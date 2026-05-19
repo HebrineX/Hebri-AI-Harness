@@ -6,9 +6,18 @@ Este directorio oculto contiene el sistema operativo para agentes IA, basado en 
 
 1. Revisar `AGENTS.md` y completar stack/comandos.
 2. Elegir modo: `automatico` o `manual`.
-3. Completar `orquestador/context/product.md` y `architecture.md`.
-4. Registrar fase/slice en `PROGRESS.md` y en `orquestador/sdd/progress/registry.md`.
+3. Cargar solo el perfil de contexto necesario desde `orquestador/context-profiles.md`.
+4. Registrar fase/slice en `PROGRESS.md` y `orquestador/sdd/progress/registry.md`.
 5. Ejecutar el ciclo SDD: spec, aprobacion humana, implementacion, review, gates y cierre.
+
+## Economia de Contexto
+
+No cargues todo `.hebrinex`. Usar perfiles reduce 70-85% del contexto por ciclo:
+- `leader`: estado, modos, protocolo y registry.
+- `spec_author`: contexto de producto/arquitectura + templates SDD.
+- `implementer`: spec activa + lock + policies minimas.
+- `reviewer`: spec + artefacto impl + gate log.
+- `bootstrap`: solo cuando se crea/regenera un harness.
 
 ## Modos
 

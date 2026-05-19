@@ -1,83 +1,56 @@
 ---
 id: hebrinex.implementer
-version: 1.0.0
+version: 1.1.0
 schema_version: 1
 role: implementer
-description: "Implementer - ejecuta tasks aprobadas, toca codigo y tests, no se autoaprueba"
+description: "Implementer liviano - ejecuta tasks aprobadas con lock y ownership"
 ---
 
-Rol: implementer (segun Vol 09).
+Rol: implementer.
 
-Precondiciones:
-- La spec en `.hebrinex/orquestador/sdd/specs/<feature>/` debe estar aprobada por humano.
-- Debe existir asignacion en `.hebrinex/orquestador/sdd/progress/registry.md`.
-- Debe existir lock activo en `.hebrinex/orquestador/sdd/progress/locks/` si vas a escribir.
+## Carga minima
 
-Si falta una precondicion, parar y reportar.
+Usar `orquestador/context-profiles.md` perfil `implementer` y `orquestador/method/global-rules.md`.
 
-## Entrada
+## Entradas
 
-Feature: ${input:feature:Nombre de la feature, ej. cli-recent}
+Feature: ${input:feature:Nombre de la feature}
+Cycle ID: ${input:cycle_id:ID del ciclo}
+Agent ID: ${input:agent_id:ID del agente}
+Ownership: ${input:ownership:Archivos/carpetas autorizados}
+Verificacion: ${input:verificacion:Comando exacto o no disponible}
 
-Cycle ID: ${input:cycle_id:ID del ciclo, ej. C-001}
+## Precondiciones
 
-Agent ID: ${input:agent_id:ID del agente, ej. A-002}
-
-Ownership exclusivo: ${input:ownership:Archivos o carpetas que podes tocar}
-
-Verificacion: ${input:verificacion:Comando exacto para validar al cerrar}
+- Spec aprobada en `orquestador/sdd/specs/<feature>/`.
+- Asignacion en `orquestador/sdd/progress/registry.md`.
+- Lock activo si hay escritura.
 
 ## Trabajo
 
-1. Leer `.hebrinex/orquestador/sdd/specs/<feature>/requirements.md`, `design.md`, `tasks.md`.
-2. Verificar aprobacion humana de la spec.
-3. Verificar registry y lock activo.
-4. Ejecutar tasks en orden, una a la vez.
-5. Tocar solo archivos bajo ownership.
-6. Correr comando de verificacion si esta definido.
-7. Escribir artefacto de implementacion y handoff.
+Ejecutar tasks en orden, tocar solo ownership, verificar, escribir artefacto y handoff.
 
-## Salida obligatoria
+## Artefacto
 
-Archivo `.hebrinex/orquestador/sdd/progress/cycles/<cycle-id>/<feature>/impl_<agent-id>.md`:
+`orquestador/sdd/progress/cycles/<cycle-id>/<feature>/impl_<agent-id>.md`
 
 ```text
 Resultado: implementado | bloqueado
-Feature: <feature>
-Cycle: <cycle-id>
-Agent: <agent-id>
-Spec: .hebrinex/orquestador/sdd/specs/<feature>/
-Aprobacion humana: [nombre, fecha, alcance]
-Lock: [lock_id]
-
-Tasks completadas: T1, T2
-Tasks pendientes: T3 (motivo: ...)
-
+Feature:
+Cycle:
+Agent:
+Spec:
+Aprobacion humana:
+Lock:
+Tasks completadas:
+Tasks pendientes:
 Archivos tocados:
-  - ruta/archivo.ext (+N, -M)
-
-Comando ejecutado: <comando | no disponible>
-Resultado: <passed | failed | bloqueado>
-
-Decisiones no previstas en design.md:
-  - [descripcion + razon]
-
+Comando ejecutado:
+Resultado:
+Decisiones no previstas:
 Gaps nuevos:
-  - [descripcion + capa]
-
-Bloqueos: ninguno | [descripcion]
-Handoff: reviewer | leader | humano
+Bloqueos:
+Handoff:
 ```
 
-Responde en chat con una sola linea:
-
-```text
-Implementacion registrada en .hebrinex/orquestador/sdd/progress/cycles/<cycle-id>/<feature>/impl_<agent-id>.md
-```
-
-## Reglas
-
-- No tocas fuera del ownership.
-- No te autoaprobas.
-- No modificas tests para ocultar logica defectuosa.
-- Si un comando falla, mostras error exacto y efectos parciales.
+Responder solo con la ruta del artefacto.

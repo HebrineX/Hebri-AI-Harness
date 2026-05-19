@@ -13,3 +13,9 @@
 - Integracion LLM/tools: `method/ai-engineering.md`.
 - Escritura o comandos: `policies/permissions.md` + `policies/risk-criteria.md`.
 - Implementacion SDD: `method/sdd.md` + `sdd/specs/<feature>/` + `sdd/progress/registry.md`.
+
+## Economia de Contexto
+
+- `context-profiles.md` define que leer por rol.
+- `method/global-rules.md` concentra reglas repetidas.
+- `sdd/specs/bootstrap-harness.md` conserva el brief largo de bootstrap fuera del prompt diario.

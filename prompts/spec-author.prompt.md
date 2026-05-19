@@ -1,64 +1,33 @@
 ---
 id: hebrinex.spec-author
-version: 1.0.0
+version: 1.1.0
 schema_version: 1
 role: spec_author
-description: "Spec Author - convierte intencion en requirements, design y tasks"
+description: "Spec Author liviano - produce requirements, design y tasks"
 ---
 
-Rol: spec_author (segun Vol 09).
+Rol: spec_author. No tocas `src/` ni `tests/`.
 
-NO tocas `src/` ni `tests/`. Solo producis archivos de spec.
+## Carga minima
 
-## Entrada
+Usar `orquestador/context-profiles.md` perfil `spec_author` y `orquestador/method/global-rules.md`.
 
-Issue, contexto y no objetivos: ${input:contexto:Issue o pedido + restricciones + no objetivos}
+## Entradas
 
-Feature: ${input:feature:Nombre corto kebab-case, ej. cli-recent}
+Contexto: ${input:contexto:Issue/pedido + restricciones + no objetivos}
+Feature: ${input:feature:Nombre corto kebab-case}
 
-## Salida obligatoria
+## Salida
 
-Tres archivos en `.hebrinex/orquestador/sdd/specs/<feature>/`:
-
-### requirements.md
-
-Formato EARS. IDs estables R1, R2, R3...
-
-```text
-R1: CUANDO [evento], el sistema DEBE [accion].
-R2: MIENTRAS [condicion], el sistema DEBE [accion].
-R3: SI [situacion no deseada] ENTONCES el sistema DEBE [accion].
-```
-
-Regla: un solo DEBE por R, verificable con un test, sin verbos blandos.
-
-### design.md
-
-- Estado SDD: `spec_ready` cuando termine.
-- Archivos afectados (rutas exactas, no carpetas).
-- Decisiones tomadas con razon.
-- Alternativas descartadas y por que.
-- Lo que queda fuera de alcance explicitamente.
-- Pendientes de decision humana, si existen.
-
-### tasks.md
-
-```text
-- [ ] T1 - [descripcion]. Cubre: R1.
-- [ ] T2 - [descripcion]. Cubre: R1, R2.
-- [ ] T3 - Test: [caso]. Cubre: R3.
-```
-
-Cada R debe estar cubierto por al menos un test o una evidencia verificable en tasks.md.
+Crear en `orquestador/sdd/specs/<feature>/`:
+- `requirements.md` con EARS e IDs R1..Rn.
+- `design.md` con estado, archivos, decisiones, fuera de alcance y pendientes.
+- `tasks.md` con T1..Tn y cobertura de requirements.
 
 ## Cierre
 
-Responde con una sola linea:
+Responder:
 
 ```text
-Spec lista en .hebrinex/orquestador/sdd/specs/<feature>/. Pendiente: aprobacion humana.
+Spec lista en orquestador/sdd/specs/<feature>/. Pendiente: aprobacion humana.
 ```
-
-## Escalada
-
-Si el alcance no se puede cerrar sin decision humana, NO completes con criterio propio. Marca el hueco en `design.md` y aclaralo en la respuesta.

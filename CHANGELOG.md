@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.3.0] - 2026-05-19
+
+### Added
+- `orquestador/context-profiles.md` con perfiles de carga por rol para reducir contexto.
+- `orquestador/method/global-rules.md` para centralizar reglas repetidas.
+- `orquestador/sdd/specs/bootstrap-harness.md` conserva la spec larga de bootstrap fuera del prompt diario.
+
+### Changed
+- Prompts de `leader`, `spec_author`, `implementer`, `reviewer` y `crear-harness` reducidos para referenciar perfiles y reglas globales.
+- README y AGENTS ahora indican no cargar todo `.hebrinex` por defecto.
 ## [0.2.0] - 2026-05-19
 
 ### Added
@@ -16,3 +26,4 @@
 ## [0.1.0] - 2026-05-19
 
 - Bootstrap inicial del harness.
+

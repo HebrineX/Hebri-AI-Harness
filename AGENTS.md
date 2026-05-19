@@ -11,6 +11,14 @@
 
 Si tests o build siguen en placeholder, ningun agente puede declarar `done`; solo puede declarar `bloqueado por verificacion no definida`.
 
+## Economia de Contexto
+
+- No cargar todo `.hebrinex` salvo auditoria completa.
+- Elegir perfil en `orquestador/context-profiles.md` antes de leer archivos.
+- Reglas comunes viven en `orquestador/method/global-rules.md`; los prompts no deben repetirlas.
+- `prompts/crear-harness.prompt.md` es liviano; la spec larga vive en `orquestador/sdd/specs/bootstrap-harness.md` y solo se carga en bootstrap.
+- Si un rol supera su presupuesto de contexto, pedir al leader un brief mas acotado.
+
 ## Mapa Canonico del Harness
 | Ruta | Responsabilidad | Cuando leer |
 |---|---|---|
@@ -69,3 +77,4 @@ Antes de cerrar:
 - Archivos modificados listados.
 - Comando ejecutado con resultado.
 - Gaps nuevos registrados.
+

@@ -22,7 +22,9 @@ AGENTS.md
 PROGRESS.md
 CHANGELOG.md
 orquestador/README.md
+orquestador/context-profiles.md
 orquestador/method/ciclo-de-trabajo.md
+orquestador/method/global-rules.md
 orquestador/method/sdd.md
 orquestador/method/roles.md
 orquestador/method/autonomia.md
@@ -35,6 +37,7 @@ orquestador/context/architecture.md
 orquestador/sdd/specs/_template/requirements.md
 orquestador/sdd/specs/_template/design.md
 orquestador/sdd/specs/_template/tasks.md
+orquestador/sdd/specs/bootstrap-harness.md
 orquestador/sdd/progress/_README.md
 orquestador/sdd/progress/registry.md
 orquestador/sdd/progress/blocked.md
@@ -82,4 +85,5 @@ fi
 
 echo "OK. Harness estructurado correctamente."
 exit 0
+
 
