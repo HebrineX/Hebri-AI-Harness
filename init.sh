@@ -23,6 +23,7 @@ PROGRESS.md
 CHANGELOG.md
 orquestador/README.md
 orquestador/context-profiles.md
+orquestador/method/session-contract.md
 orquestador/method/ciclo-de-trabajo.md
 orquestador/method/global-rules.md
 orquestador/method/sdd.md
@@ -79,11 +80,19 @@ if grep -R "\.hebrinex/orquestador/sdd/\.hebrinex" "$ROOT/agents" "$ROOT/prompts
     exit 2
 fi
 
+if ! grep -q "session-contract.md" "$ROOT/AGENTS.md"; then
+    echo "ERROR: AGENTS.md no referencia session-contract.md"
+    exit 2
+fi
+
+if ! grep -q "Rol del chat: interprete" "$ROOT/orquestador/method/session-contract.md"; then
+    echo "ERROR: session-contract.md no define rol interprete"
+    exit 2
+fi
+
 if grep -R "\[Completar" "$ROOT/AGENTS.md" "$ROOT/PROGRESS.md" >/dev/null 2>&1; then
     echo "WARN: Quedan placeholders operativos en AGENTS.md o PROGRESS.md"
 fi
 
 echo "OK. Harness estructurado correctamente."
 exit 0
-
-

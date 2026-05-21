@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.4.0] - 2026-05-21
+
+### Added
+- `orquestador/method/session-contract.md` como contrato obligatorio de arranque, hard locks y correccion de desvios.
+- Bootstrap obligatorio de sesion con chat como interprete, leader visible, modo, fase/slice y aprobacion requerida.
+- Referencia explicita a `Nicolas-Melluso/Nox-Harness` como benchmark metodologico para reforzar contrato operativo, write-set, evidencia y gobierno del propio harness.
+
+### Changed
+- `AGENTS.md` ahora declara que `.hebrinex` es vehiculo operativo completo, no referencia opcional.
+- `multiagent-protocol.md` separa chat/interprete de leader y exige leader visible para despachar o cerrar fases.
+- `operating-modes.md` endurece modo manual por defecto para escritura, comandos, subagentes, git y red.
+- Prompts de `leader`, `worker`, `implementer` y `reviewer` bloquean mezcla de roles y exigen handoffs.
+- `init.sh` valida la existencia y referencia del contrato de sesion.
 ## [0.3.0] - 2026-05-19
 
 ### Added
@@ -26,4 +39,3 @@
 ## [0.1.0] - 2026-05-19
 
 - Bootstrap inicial del harness.
-

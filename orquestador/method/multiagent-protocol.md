@@ -2,6 +2,18 @@
 
 Este harness permite muchos agentes logicos, pero limita la concurrencia operativa para mantener trazabilidad y evitar conflictos.
 
+## Separacion Chat / Leader
+
+El chat visible es interprete por defecto. Su responsabilidad es comunicar estado, pedir aprobaciones y transmitir resultados.
+
+El leader es el coordinador operativo. Debe quedar visible desde el inicio mediante uno de estos mecanismos:
+
+1. Subagente leader real, si la herramienta lo permite y el operador aprobo abrirlo.
+2. Artefacto/brief de leader en `orquestador/sdd/progress/`.
+3. Bloque explicito de estado en conversacion marcado como `Leader`.
+
+Si el leader no esta visible, no se puede despachar workers ni cerrar fases.
+
 ## Regla de Concurrencia
 
 Maximo 5 agentes activos en total:
@@ -14,16 +26,19 @@ Maximo 5 agentes activos en total:
 | 3 | subagente | idem |
 | 4 | subagente | idem |
 
+El chat interprete no consume slot. Si el chat asume leader por aprobacion explicita, consume slot 0.
+
 Un pedido de 30 agentes se procesa como 30 asignaciones logicas en ciclos. Cada ciclo puede activar hasta 4 subagentes porque el leader ocupa el quinto slot.
 
 ## Ciclo
 
-1. `G0_context_ready`: el leader define objetivo, modo, scope y riesgos.
-2. `G1_dispatch_ready`: el leader registra asignaciones y ownership.
-3. `G2_locks_acquired`: cada tarea con escritura tiene lock valido.
-4. `G3_execution_complete`: subagentes entregan artefactos.
-5. `G4_review_or_validation`: reviewer o leader valida evidencia.
-6. `G5_handoff_complete`: queda handoff y registry actualizado.
+1. `G0_session_contract`: contrato de sesion declarado y modo definido.
+2. `G1_context_ready`: el leader define objetivo, modo, scope y riesgos.
+3. `G2_dispatch_ready`: el leader registra asignaciones y ownership.
+4. `G3_locks_acquired`: cada tarea con escritura tiene lock valido.
+5. `G4_execution_complete`: subagentes entregan artefactos.
+6. `G5_review_or_validation`: reviewer valida evidencia o leader cierra solo tarea no-SDD de bajo riesgo.
+7. `G6_handoff_complete`: queda handoff, registry actualizado y consolidacion del leader.
 
 Cada gate produce `pass`, `fail` o `blocked`.
 
@@ -36,8 +51,9 @@ Campos obligatorios por asignacion:
 ```text
 agent_id: A-001
 cycle_id: C-001
-slot: 1
-role: explorer | spec_author | implementer | reviewer | worker
+slot: 0 | 1 | 2 | 3 | 4
+role: leader | explorer | spec_author | implementer | reviewer | worker
+visible_to_operator: true | false
 slice_id: [id]
 status: queued | running | blocked | done | cancelled
 mode: automatico | manual
@@ -87,7 +103,7 @@ status: active | released | expired | blocked
 Cada ciclo/slice mantiene un gate log:
 
 ```text
-Gate: G0_context_ready
+Gate: G0_session_contract | G1_context_ready | G2_dispatch_ready | G3_locks_acquired | G4_execution_complete | G5_review_or_validation | G6_handoff_complete
 Resultado: pass | fail | blocked
 Responsable: leader
 Fecha: YYYY-MM-DD
@@ -112,9 +128,27 @@ Proximo rol sugerido:
 Contexto que no debe perderse:
 ```
 
+## Reporte al Operador
+
+Cada cambio relevante se resume en tres bloques:
+
+```text
+Estado:
+- [rol/agente/ciclo/slice]
+
+Bloqueos:
+- [ninguno | lista]
+
+Siguiente paso:
+- [accion]
+- Requiere SI: si | no
+```
+
 ## Definicion Estricta de Done
 
 Una tarea esta `done` solo si:
+- Contrato de sesion cumplido.
+- Leader visible y consolidacion final registrada.
 - Spec aprobada, si aplica SDD.
 - Requirements cubiertos por tasks y tests/evidencia.
 - Gate log completo.

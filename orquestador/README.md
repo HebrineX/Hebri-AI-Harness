@@ -2,6 +2,7 @@
 
 | Directorio / Archivo | Contenido | Responsabilidad |
 |---|---|---|
+| `method/session-contract.md` | Contrato obligatorio | Bootstrap, hard locks, chat como interprete, leader visible |
 | `method/` | Esencia operativa | SDD, roles, modos, protocolo multiagente y AI Engineering |
 | `context/` | Arquitectura y Producto | El que y por que del sistema |
 | `sdd/` | Especificaciones y Progreso | Contratos, registry, locks, gates, handoffs y evidencia |
@@ -9,6 +10,7 @@
 
 ## Lectura Minima por Tarea
 
+- Cualquier sesion: `method/session-contract.md`.
 - Orquestacion: `method/multiagent-protocol.md` + `method/operating-modes.md`.
 - Integracion LLM/tools: `method/ai-engineering.md`.
 - Escritura o comandos: `policies/permissions.md` + `policies/risk-criteria.md`.

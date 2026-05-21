@@ -3,6 +3,14 @@
 > Este harness sigue Hebri-AI-Structure: https://github.com/HebrineX/Hebri-AI-Structure
 > Si hay conflicto entre la metodologia y una regla local, se registra el conflicto y decide el operador humano.
 
+## Regla Raiz
+
+El harness `.hebrinex` es el vehiculo operativo completo. No es una referencia opcional.
+
+Siempre que exista `.hebrinex`, el trabajo debe arrancar por el contrato de sesion en `orquestador/method/session-contract.md`. Si no existe `.hebrinex`, hay que buscarlo localmente, proponer bajarlo desde `https://github.com/HebrineX/Hebri-AI-Harness` o pedir la ruta al operador.
+
+El chat visible es interprete por defecto. No se presenta como leader, implementer, reviewer o worker salvo aprobacion explicita del operador. El leader coordina; los roles ejecutan; el chat traduce estado, decisiones y pedidos de aprobacion.
+
 ## Stack y Comandos
 - Lenguaje/Framework: [Completar]
 - Tests: [Completar comando o escribir "no disponible todavia"]
@@ -10,6 +18,26 @@
 - Validar harness: `./init.sh`
 
 Si tests o build siguen en placeholder, ningun agente puede declarar `done`; solo puede declarar `bloqueado por verificacion no definida`.
+
+## Bootstrap Obligatorio
+
+Antes de analisis, plan, subagentes, edicion o comandos, declarar:
+
+```text
+Contrato de sesion:
+- Harness detectado: si | no | pendiente
+- Fuente del harness: .hebrinex local | ruta local | repo remoto | provisto por usuario
+- Modo: manual | automatico
+- Rol del chat: interprete
+- Leader visible: si | no | pendiente de aprobacion
+- Subagentes activos: 0/4
+- Fase/Slice activo: [id o ninguno]
+- Estado SDD: pending | spec_ready | in_progress | review | done | blocked
+- Proxima accion propuesta: [accion]
+- Aprobacion requerida: SI antes de [accion]
+```
+
+Sin este bootstrap, el flujo no es valido.
 
 ## Economia de Contexto
 
@@ -22,6 +50,7 @@ Si tests o build siguen en placeholder, ningun agente puede declarar `done`; sol
 ## Mapa Canonico del Harness
 | Ruta | Responsabilidad | Cuando leer |
 |---|---|---|
+| `.hebrinex/orquestador/method/session-contract.md` | Contrato obligatorio de sesion, hard locks y bootstrap | Siempre al iniciar trabajo |
 | `.hebrinex/orquestador/method/` | Reglas operativas, SDD, modos y protocolo multiagente | Siempre que dudes como operar |
 | `.hebrinex/orquestador/context/` | Producto y arquitectura | Al iniciar cualquier feature |
 | `.hebrinex/orquestador/sdd/specs/` | Contratos aprobables | Antes de escribir codigo |
@@ -50,8 +79,11 @@ El leader debe pedir aceptacion antes de cada cambio y cada paso operativo. Si u
 ## Limite de Agentes
 El limite operativo es 5 agentes activos en total: 1 leader/orquestador + hasta 4 subagentes. Un pedido de 30 agentes se ejecuta como 30 asignaciones logicas en ciclos de maximo 5 agentes totales. Cada ciclo debe quedar registrado en `.hebrinex/orquestador/sdd/progress/registry.md`.
 
+Si el chat visible actua solo como interprete, no consume slot operativo. Si el chat asume leader por aprobacion explicita, consume el slot 0 y debe cumplir todas las reglas del leader.
+
 ## Roles Cerrados
 El rol que produce no debe ser el mismo que aprueba.
+- `interpreter/chat`: comunica con el operador, resume estado y pide aprobaciones. No coordina de forma invisible.
 - `leader`: orquesta, lee estado, decide siguiente rol, mantiene registry y gates. No implementa codigo.
 - `spec_author`: escribe specs y tasks. No toca `src/` ni `tests/`.
 - `implementer`: ejecuta tasks aprobadas dentro de ownership. No se autoaprueba.
@@ -59,17 +91,26 @@ El rol que produce no debe ser el mismo que aprueba.
 - `explorer`: solo lectura, hallazgos con evidencia.
 - `worker`: ejecucion acotada para tareas chicas sin SDD formal.
 
+## Hard Locks
+1. No iniciar trabajo sin contrato de sesion declarado.
+2. No presentar al chat como leader si el operador lo definio como interprete.
+3. No ocultar leader: si coordina, debe ser visible en conversacion, registry o artefacto.
+4. No mezclar produccion y aprobacion en el mismo rol.
+5. No tocar codigo antes de spec aprobada cuando la tarea usa SDD.
+6. No declarar `done` sin verificacion exitosa y evidencia registrada.
+7. No tocar fuera del ownership. Si hace falta, escalar al leader.
+8. No usar efectos externos sin aprobacion humana explicita.
+9. No hacer operaciones destructivas sin aprobacion humana explicita.
+10. Si el operador corrige una regla del harness, esa regla queda como hard lock de sesion.
+
 ## Reglas Generales
-1. No tocar codigo antes de spec aprobada cuando la tarea usa SDD.
-2. No declarar `done` sin verificacion exitosa y evidencia registrada.
-3. No tocar fuera del ownership. Si hace falta, escalar al leader.
-4. No usar efectos externos sin aprobacion humana explicita.
-5. No hacer operaciones destructivas sin aprobacion humana explicita.
-6. Si un comando falla, reportar error exacto, efectos parciales, archivos tocados y estado de recuperacion. No revertir automaticamente.
-7. Los subagentes escriben artefactos y devuelven referencias. El chat coordina; los archivos conservan la verdad.
+1. Si un comando falla, reportar error exacto, efectos parciales, archivos tocados y estado de recuperacion. No revertir automaticamente.
+2. Los subagentes escriben artefactos y devuelven referencias. El chat coordina solo si fue asignado explicitamente; por defecto interpreta.
+3. Cada cambio de estado de worker/leader se comunica con: estado, bloqueos y siguiente paso.
 
 ## Cierre de Tarea
 Antes de cerrar:
+- Consolidacion explicita del leader.
 - Registry actualizado.
 - Locks liberados o marcados como bloqueados.
 - Gate log con resultado binario.
@@ -77,4 +118,3 @@ Antes de cerrar:
 - Archivos modificados listados.
 - Comando ejecutado con resultado.
 - Gaps nuevos registrados.
-

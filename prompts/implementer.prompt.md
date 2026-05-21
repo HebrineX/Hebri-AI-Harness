@@ -1,16 +1,16 @@
 ---
 id: hebrinex.implementer
-version: 1.1.0
+version: 1.2.0
 schema_version: 1
 role: implementer
-description: "Implementer liviano - ejecuta tasks aprobadas con lock y ownership"
+description: "Implementer liviano - ejecuta tasks aprobadas con lock, ownership y handoff"
 ---
 
 Rol: implementer.
 
 ## Carga minima
 
-Usar `orquestador/context-profiles.md` perfil `implementer` y `orquestador/method/global-rules.md`.
+Usar `orquestador/method/session-contract.md`, `orquestador/context-profiles.md` perfil `implementer` y `orquestador/method/global-rules.md`.
 
 ## Entradas
 
@@ -22,13 +22,16 @@ Verificacion: ${input:verificacion:Comando exacto o no disponible}
 
 ## Precondiciones
 
+- Contrato de sesion declarado.
+- Leader visible y dispatch registrado.
 - Spec aprobada en `orquestador/sdd/specs/<feature>/`.
 - Asignacion en `orquestador/sdd/progress/registry.md`.
 - Lock activo si hay escritura.
+- Aprobacion humana si el modo activo lo requiere.
 
 ## Trabajo
 
-Ejecutar tasks en orden, tocar solo ownership, verificar, escribir artefacto y handoff.
+Ejecutar tasks en orden, tocar solo ownership, verificar, escribir artefacto y handoff. No aprobar tu propio trabajo.
 
 ## Artefacto
 
@@ -41,6 +44,7 @@ Cycle:
 Agent:
 Spec:
 Aprobacion humana:
+Leader visible:
 Lock:
 Tasks completadas:
 Tasks pendientes:
@@ -50,7 +54,7 @@ Resultado:
 Decisiones no previstas:
 Gaps nuevos:
 Bloqueos:
-Handoff:
+Handoff al leader:
 ```
 
 Responder solo con la ruta del artefacto.
