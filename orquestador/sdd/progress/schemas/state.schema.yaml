@@ -1,0 +1,29 @@
+schema: hebrinex.schema.state
+version: "0.1"
+required_fields:
+  - schema
+  - version
+  - mode
+  - session_contract.status
+  - session_contract.chat_role
+  - session_contract.leader_visible
+  - active_cycle.status
+  - required_gates
+valid_modes:
+  - manual
+  - automatico
+valid_cycle_statuses:
+  - pending
+  - spec_ready
+  - approved
+  - in_progress
+  - review
+  - done
+  - blocked
+closure_requires:
+  - session_contract.status: pass
+  - session_contract.leader_visible: true
+  - G6_agent_closure_complete: pass
+  - open_agents: []
+  - open_locks: []
+  - last_final_report: present

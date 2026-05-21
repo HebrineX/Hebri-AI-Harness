@@ -1,0 +1,44 @@
+schema: hebrinex.gate_log
+version: "0.1"
+cycle_id: C-001
+gates:
+  - gate: G0_session_contract
+    result: pending
+    responsible: leader
+    evidence: []
+    next_action: ""
+  - gate: G1_context_ready
+    result: pending
+    responsible: leader
+    evidence: []
+    next_action: ""
+  - gate: G2_dispatch_ready
+    result: pending
+    responsible: leader
+    evidence: []
+    next_action: ""
+  - gate: G3_locks_acquired
+    result: pending
+    responsible: leader
+    evidence: []
+    next_action: ""
+  - gate: G4_execution_complete
+    result: pending
+    responsible: implementer
+    evidence: []
+    next_action: ""
+  - gate: G5_review_or_validation
+    result: pending
+    responsible: reviewer
+    evidence: []
+    next_action: ""
+  - gate: G6_agent_closure_complete
+    result: pending
+    responsible: leader
+    evidence: []
+    next_action: ""
+  - gate: G7_handoff_complete
+    result: pending
+    responsible: leader
+    evidence: []
+    next_action: ""

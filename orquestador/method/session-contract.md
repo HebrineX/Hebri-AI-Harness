@@ -54,8 +54,8 @@ Estas reglas no son sugerencias. Si se rompen, el flujo debe detenerse y corregi
 6. No hay cambio de estado SDD sin gate log.
 7. No hay subagente activo sin registro en registry.
 8. No hay ejecucion de comando, uso de red, git, instalacion o edicion sin aprobacion segun modo.
-9. No hay cierre de fase sin consolidacion explicita del leader.
-10. Si el operador corrige una regla, esa correccion pasa a hard lock para el resto de la sesion.
+9. No hay cierre de fase sin consolidacion explicita del leader.`n10. No hay cierre de ciclo si quedan agentes abiertos, locks activos o handoffs pendientes.
+11. Si el operador corrige una regla, esa correccion pasa a hard lock para el resto de la sesion.
 
 ## Formato de Estado al Operador
 
@@ -100,3 +100,22 @@ Si el operador detecta un desvio:
 3. Marcarla como `hard lock` de sesion.
 4. Reconstruir estado: roles activos, locks, registry, handoffs y siguiente accion.
 5. Esperar `SI` antes de retomar si hubo acciones con efecto.
+
+## Preflight y Approval Envelope
+
+Antes de cualquier accion con escritura, comando, red, git, subagente con escritura/verificacion o cambio SDD, crear o declarar un approval envelope usando:
+
+- `orquestador/sdd/progress/templates/approval-envelope.md`
+- `orquestador/sdd/progress/templates/preflight-template.md`
+
+El `SI` del operador aprueba solo la accion exacta declarada. Si cambia comando, cwd, write-set, riesgo, red, git o herramienta, la aprobacion queda invalida.
+
+## Cierre de Agentes
+
+Antes de cerrar un ciclo:
+
+1. Listar todos los agentes abiertos desde `state.yaml` y `registry.yaml`.
+2. Confirmar `done`, `blocked` o `cancelled` para cada uno.
+3. Registrar artefactos, handoff, locks y riesgos abiertos.
+4. Pasar `G6_agent_closure_complete`.
+5. Recien despues pasar `G7_handoff_complete`.

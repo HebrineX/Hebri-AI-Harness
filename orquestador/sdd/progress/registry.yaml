@@ -1,0 +1,20 @@
+schema: hebrinex.progress.registry
+version: "0.1"
+updated_at: ""
+cycles:
+  - cycle_id: C-000
+    status: done
+    mode: automatico
+    agents:
+      - agent_id: A-000
+        slot: 0
+        role: leader
+        visible_to_operator: true
+        status: done
+        owned_files:
+          - .hebrinex/
+        readonly_files: []
+        artifacts:
+          - orquestador/sdd/progress/registry.md
+        handoff_to: human
+        blocking_reason: none

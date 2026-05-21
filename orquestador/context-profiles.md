@@ -10,7 +10,7 @@ Leer:
 - `orquestador/method/operating-modes.md`
 - `orquestador/method/multiagent-protocol.md`
 - `orquestador/method/global-rules.md`
-- `orquestador/sdd/progress/registry.md`
+- `orquestador/sdd/progress/state.yaml`\n- `orquestador/sdd/progress/registry.yaml`\n- `orquestador/sdd/progress/registry.md`
 - `orquestador/sdd/progress/blocked.md`
 
 Opcional:
@@ -40,11 +40,11 @@ Opcional:
 Leer:
 - `orquestador/method/global-rules.md`
 - `orquestador/policies/permissions.md`
-- `orquestador/policies/risk-criteria.md`
+- `orquestador/policies/risk-criteria.md`\n- `orquestador/policies/tool-policy.yaml`\n- `orquestador/policies/write-set-policy.md`
 - `orquestador/sdd/specs/<feature>/requirements.md`
 - `orquestador/sdd/specs/<feature>/design.md`
 - `orquestador/sdd/specs/<feature>/tasks.md`
-- `orquestador/sdd/progress/registry.md`
+- `orquestador/sdd/progress/state.yaml`\n- `orquestador/sdd/progress/registry.yaml`\n- `orquestador/sdd/progress/registry.md`
 - lock activo en `orquestador/sdd/progress/locks/`
 - `prompts/implementer.prompt.md`
 
@@ -58,7 +58,7 @@ Leer:
 - `orquestador/method/global-rules.md`
 - `orquestador/sdd/specs/<feature>/`
 - artefacto `impl_*.md`
-- `gate-log.md` si existe
+- `gate-log.yaml` si existe\n- `verification-matrix.yaml` si existe\n- `final-report.md` si existe
 - `prompts/reviewer.prompt.md`
 
 Opcional:
@@ -69,7 +69,7 @@ Opcional:
 Leer solo cuando se conectan LLMs, tools o runtime:
 - `orquestador/method/ai-engineering.md`
 - `orquestador/policies/permissions.md`
-- `orquestador/policies/risk-criteria.md`
+- `orquestador/policies/risk-criteria.md`\n- `orquestador/policies/tool-policy.yaml`\n- `orquestador/policies/write-set-policy.md`
 - prompt o workflow especifico
 
 ## Perfil `bootstrap` (~4k-8k tokens)

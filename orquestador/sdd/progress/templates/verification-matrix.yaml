@@ -1,0 +1,13 @@
+schema: hebrinex.verification.matrix
+version: "0.1"
+cycle_id: C-001
+slice_id: ""
+requirements:
+  - requirement_id: R-001
+    description: ""
+    tasks: []
+    evidence: []
+    command: ""
+    result: pending
+    reviewer_agent_id: ""
+verdict: pending

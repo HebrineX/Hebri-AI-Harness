@@ -54,7 +54,7 @@ Sin este bootstrap, el flujo no es valido.
 | `.hebrinex/orquestador/method/` | Reglas operativas, SDD, modos y protocolo multiagente | Siempre que dudes como operar |
 | `.hebrinex/orquestador/context/` | Producto y arquitectura | Al iniciar cualquier feature |
 | `.hebrinex/orquestador/sdd/specs/` | Contratos aprobables | Antes de escribir codigo |
-| `.hebrinex/orquestador/sdd/progress/` | Registry, locks, gates, handoffs y evidencia | Al arrancar, delegar o cerrar |
+| `.hebrinex/orquestador/sdd/progress/` | State, registry, locks, gates, audit trail, agent closure, handoffs y evidencia | Al arrancar, delegar o cerrar |
 | `.hebrinex/orquestador/policies/` | Permisos, riesgos y limites | Antes de tools, escritura o efectos externos |
 | `.hebrinex/prompts/` | Prompts versionables por rol/tarea | Al invocar un rol |
 | `.hebrinex/PROGRESS.md` | Estado global de fases, slices y gaps | Siempre al arrancar una sesion |
@@ -113,8 +113,24 @@ Antes de cerrar:
 - Consolidacion explicita del leader.
 - Registry actualizado.
 - Locks liberados o marcados como bloqueados.
-- Gate log con resultado binario.
-- Handoff escrito si pasa a otro rol.
+- `state.yaml` y `registry.yaml` actualizados.`n- Gate log con resultado binario.
+- Cierre explicito de todos los agentes.`n- Handoff escrito si pasa a otro rol.
 - Archivos modificados listados.
 - Comando ejecutado con resultado.
 - Gaps nuevos registrados.
+
+## P0 Operativo Estructurado
+
+Para evitar que el harness dependa solo de disciplina textual, las siguientes piezas son obligatorias en ciclos SDD:
+
+- `orquestador/sdd/progress/state.yaml`: fuente canonica de estado.
+- `orquestador/sdd/progress/registry.yaml`: registry estructurado.
+- `orquestador/sdd/progress/cycles/<cycle-id>/audit.jsonl`: eventos append-only.
+- `orquestador/sdd/progress/cycles/<cycle-id>/gate-log.yaml`: gates validables.
+- `orquestador/sdd/progress/templates/approval-envelope.md`: aprobaciones por accion.
+- `orquestador/sdd/progress/templates/preflight-template.md`: preflight antes de efectos.
+- `orquestador/sdd/progress/templates/verification-matrix.yaml`: trazabilidad requirement-evidencia.
+- `orquestador/sdd/progress/templates/final-report.md`: cierre verificable.
+- `orquestador/sdd/progress/templates/agent-closure.md`: ningun agente queda abierto.
+
+Las mejoras P1 futuras viven como roadmap, no como obligacion hasta que una version las active.

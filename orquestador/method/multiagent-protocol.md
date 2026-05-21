@@ -38,7 +38,7 @@ Un pedido de 30 agentes se procesa como 30 asignaciones logicas en ciclos. Cada 
 4. `G3_locks_acquired`: cada tarea con escritura tiene lock valido.
 5. `G4_execution_complete`: subagentes entregan artefactos.
 6. `G5_review_or_validation`: reviewer valida evidencia o leader cierra solo tarea no-SDD de bajo riesgo.
-7. `G6_handoff_complete`: queda handoff, registry actualizado y consolidacion del leader.
+7. `G6_agent_closure_complete`: todos los agentes abiertos tienen cierre, handoff y locks resueltos.`n8. `G7_handoff_complete`: queda handoff, registry actualizado y consolidacion del leader.
 
 Cada gate produce `pass`, `fail` o `blocked`.
 
@@ -103,7 +103,7 @@ status: active | released | expired | blocked
 Cada ciclo/slice mantiene un gate log:
 
 ```text
-Gate: G0_session_contract | G1_context_ready | G2_dispatch_ready | G3_locks_acquired | G4_execution_complete | G5_review_or_validation | G6_handoff_complete
+Gate: G0_session_contract | G1_context_ready | G2_dispatch_ready | G3_locks_acquired | G4_execution_complete | G5_review_or_validation | G6_agent_closure_complete | G7_handoff_complete
 Resultado: pass | fail | blocked
 Responsable: leader
 Fecha: YYYY-MM-DD
@@ -151,9 +151,23 @@ Una tarea esta `done` solo si:
 - Leader visible y consolidacion final registrada.
 - Spec aprobada, si aplica SDD.
 - Requirements cubiertos por tasks y tests/evidencia.
-- Gate log completo.
+- Gate log completo, incluyendo `G6_agent_closure_complete`.
 - Verificacion ejecutada o bloqueo por verificacion no disponible registrado.
 - Reviewer aprueba o leader cierra tarea no-SDD de bajo riesgo.
 - Gaps nuevos registrados.
-- Locks liberados o expirados con razon.
+- Agentes cerrados explicitamente.`n- Locks liberados o expirados con razon.
 - Registry actualizado.
+
+## Artefactos Estructurados P0
+
+Markdown conserva la vista humana, pero el cierre operativo se valida contra artefactos estructurados:
+
+- `orquestador/sdd/progress/state.yaml`
+- `orquestador/sdd/progress/registry.yaml`
+- `orquestador/sdd/progress/cycles/<cycle-id>/audit.jsonl`
+- `orquestador/sdd/progress/cycles/<cycle-id>/gate-log.yaml`
+- `orquestador/sdd/progress/cycles/<cycle-id>/<slice>/verification-matrix.yaml`
+- `orquestador/sdd/progress/cycles/<cycle-id>/<slice>/final-report.md`
+- `orquestador/sdd/progress/templates/agent-closure.md`
+
+Regla: una fase/slice solo cambia de estado si `state.yaml`, gate log, audit trail, verification matrix, final report y cierre de agentes son coherentes.

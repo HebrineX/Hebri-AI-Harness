@@ -48,3 +48,14 @@ Si un comando falla despues de modificar estado:
 4. Informar estado git/worktree si aplica.
 5. Proponer recuperacion.
 6. No revertir automaticamente salvo instruccion humana explicita.
+
+## Artefactos P0 de Permisos
+
+Antes de usar tools, comandos, red o git, consultar:
+
+- `tool-policy.yaml` para decision `allow | ask | deny` por rol y clase.
+- `command-taxonomy.md` para clasificar comandos.
+- `write-set-policy.md` para declarar y verificar escritura.
+- `secret-denylist.md` para archivos sensibles bloqueados por defecto.
+
+Si una accion no esta clasificada, se trata como `unknown` y requiere preflight + `SI`.

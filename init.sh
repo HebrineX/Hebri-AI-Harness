@@ -11,7 +11,13 @@ orquestador/context
 orquestador/sdd/specs/_template
 orquestador/sdd/progress
 orquestador/sdd/progress/locks
+orquestador/sdd/progress/schemas
+orquestador/sdd/progress/templates
+orquestador/sdd/progress/cycles
+orquestador/sdd/progress/cycles/_template
+orquestador/sdd/progress/approvals
 orquestador/policies
+orquestador/policies/schemas
 prompts
 agents
 "
@@ -40,12 +46,30 @@ orquestador/sdd/specs/_template/design.md
 orquestador/sdd/specs/_template/tasks.md
 orquestador/sdd/specs/bootstrap-harness.md
 orquestador/sdd/progress/_README.md
+orquestador/sdd/progress/state.yaml
+orquestador/sdd/progress/registry.yaml
 orquestador/sdd/progress/registry.md
+orquestador/sdd/progress/future-p1.md
+orquestador/sdd/progress/schemas/state.schema.yaml
+orquestador/sdd/progress/schemas/evidence-schema.md
+orquestador/sdd/progress/templates/approval-envelope.md
+orquestador/sdd/progress/templates/preflight-template.md
+orquestador/sdd/progress/templates/verification-matrix.yaml
+orquestador/sdd/progress/templates/final-report.md
+orquestador/sdd/progress/templates/agent-closure.md
+orquestador/sdd/progress/cycles/_template/audit.jsonl
+orquestador/sdd/progress/cycles/_template/gate-log.yaml
+orquestador/sdd/progress/approvals/_README.md
 orquestador/sdd/progress/blocked.md
 orquestador/sdd/progress/locks/_README.md
 orquestador/policies/gap-library.md
 orquestador/policies/permissions.md
 orquestador/policies/risk-criteria.md
+orquestador/policies/tool-policy.yaml
+orquestador/policies/command-taxonomy.md
+orquestador/policies/write-set-policy.md
+orquestador/policies/secret-denylist.md
+orquestador/policies/schemas/_README.md
 agents/leader.md
 agents/spec_author.md
 agents/implementer.md
@@ -82,6 +106,16 @@ fi
 
 if ! grep -q "session-contract.md" "$ROOT/AGENTS.md"; then
     echo "ERROR: AGENTS.md no referencia session-contract.md"
+    exit 2
+fi
+
+if ! grep -q "G6_agent_closure_complete" "$ROOT/orquestador/method/multiagent-protocol.md"; then
+    echo "ERROR: multiagent-protocol.md no define cierre de agentes P0"
+    exit 2
+fi
+
+if ! grep -q "tool_policy" "$ROOT/orquestador/policies/tool-policy.yaml"; then
+    echo "ERROR: tool-policy.yaml no define schema de policy"
     exit 2
 fi
 

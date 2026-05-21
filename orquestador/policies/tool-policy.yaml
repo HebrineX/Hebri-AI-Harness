@@ -1,0 +1,82 @@
+schema: hebrinex.tool_policy
+version: "0.1"
+default: ask
+principle: deny-by-default-for-risk
+roles:
+  interpreter:
+    allowed:
+      - communicate_status
+      - request_approval
+    denied:
+      - edit_files
+      - run_commands
+      - approve_work
+  leader:
+    allowed:
+      - read_context
+      - prepare_brief
+      - request_approval
+      - update_registry_after_approval
+    ask:
+      - edit_progress
+      - spawn_agents
+      - run_verification
+      - change_sdd_state
+    denied:
+      - implement_code
+      - approve_own_work
+  explorer:
+    allowed:
+      - read_non_sensitive_files
+      - report_findings
+    ask:
+      - use_network
+    denied:
+      - edit_files
+      - approve_work
+  spec_author:
+    allowed:
+      - edit_specs_after_approval
+    denied:
+      - edit_product_code
+      - approve_work
+  implementer:
+    allowed:
+      - edit_owned_files_after_approval
+      - run_declared_verification_after_approval
+    denied:
+      - edit_outside_ownership
+      - approve_own_work
+  reviewer:
+    allowed:
+      - read_diff
+      - read_evidence
+      - approve_or_block
+    denied:
+      - edit_product_code
+      - approve_own_implementation
+classes:
+  safe_read:
+    decision: allow
+    requires_approval: false
+  local_verify:
+    decision: ask
+    requires_approval: true
+  local_write:
+    decision: ask
+    requires_approval: true
+  network:
+    decision: ask
+    requires_approval: true
+  git_local:
+    decision: ask
+    requires_approval: true
+  git_remote:
+    decision: ask
+    requires_approval: true
+  destructive:
+    decision: deny
+    requires_approval: true
+  secret_touch:
+    decision: deny
+    requires_approval: true

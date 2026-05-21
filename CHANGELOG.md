@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.5.0] - 2026-05-21
+
+### Added
+- Artefactos P0 estructurados para que el harness no dependa solo de Markdown: `state.yaml`, `registry.yaml`, templates de approval, preflight, verification matrix, final report y agent closure.
+- `tool-policy.yaml`, `command-taxonomy.md`, `write-set-policy.md` y `secret-denylist.md` para gobernanza deny-by-default de tools, comandos, escritura, red, git y secretos.
+- Template de `audit.jsonl` y `gate-log.yaml` por ciclo para trazabilidad append-only y gates validables.
+- Ciclo de cierre de agentes como P0 obligatorio mediante `G6_agent_closure_complete`.
+- `future-p1.md` para listar mejoras candidatas de version futura sin activarlas todavia.
+
+### Changed
+- `AGENTS.md`, `session-contract.md`, `multiagent-protocol.md`, `permissions.md`, `context-profiles.md` y `progress/_README.md` ahora tratan estado estructurado, preflight, evidence schema y cierre de agentes como parte del contrato operativo.
+- `init.sh` valida los nuevos artefactos P0.
 ## [0.4.0] - 2026-05-21
 
 ### Added
