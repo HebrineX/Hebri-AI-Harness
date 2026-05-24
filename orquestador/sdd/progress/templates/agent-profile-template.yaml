@@ -1,0 +1,24 @@
+﻿schema: hebrinex.agent.profile
+version: "0.6"
+agent_id: A-000
+cycle_id: C-000
+slot: 1
+role: auditor
+profile: detractor
+mode: read_only
+objective: "Que debe lograr este agente"
+visible_to_operator: true
+ownership:
+  owned_files: []
+  readonly_files: []
+constraints:
+  can_edit: false
+  can_approve: false
+  can_use_network: false
+  requires_preflight: true
+handoff:
+  to: leader
+  required_artifacts: []
+closure:
+  status: todo
+  evidence: []

@@ -12,6 +12,7 @@ Siempre que exista `.hebrinex`, el trabajo debe arrancar por el contrato de sesi
 El chat visible es interprete por defecto. No se presenta como leader, implementer, reviewer o worker salvo aprobacion explicita del operador. El leader coordina; los roles ejecutan; el chat traduce estado, decisiones y pedidos de aprobacion.
 
 ## Stack y Comandos
+
 - Lenguaje/Framework: [Completar]
 - Tests: [Completar comando o escribir "no disponible todavia"]
 - Build/Lint: [Completar comando o escribir "no disponible todavia"]
@@ -48,10 +49,11 @@ Sin este bootstrap, el flujo no es valido.
 - Si un rol supera su presupuesto de contexto, pedir al leader un brief mas acotado.
 
 ## Mapa Canonico del Harness
+
 | Ruta | Responsabilidad | Cuando leer |
 |---|---|---|
 | `.hebrinex/orquestador/method/session-contract.md` | Contrato obligatorio de sesion, hard locks y bootstrap | Siempre al iniciar trabajo |
-| `.hebrinex/orquestador/method/` | Reglas operativas, SDD, modos y protocolo multiagente | Siempre que dudes como operar |
+| `.hebrinex/orquestador/method/` | Reglas operativas, SDD, modos, taxonomia y protocolo multiagente | Siempre que dudes como operar |
 | `.hebrinex/orquestador/context/` | Producto y arquitectura | Al iniciar cualquier feature |
 | `.hebrinex/orquestador/sdd/specs/` | Contratos aprobables | Antes de escribir codigo |
 | `.hebrinex/orquestador/sdd/progress/` | State, registry, locks, gates, audit trail, agent closure, handoffs y evidencia | Al arrancar, delegar o cerrar |
@@ -60,12 +62,15 @@ Sin este bootstrap, el flujo no es valido.
 | `.hebrinex/PROGRESS.md` | Estado global de fases, slices y gaps | Siempre al arrancar una sesion |
 
 ## Modos de Operacion
+
 El modo activo se registra en `PROGRESS.md` o en el brief de sesion.
 
 ### Modo automatico
+
 El leader puede decidir el proximo paso dentro del scope aprobado y preparar briefs, lecturas, planes y asignaciones sin pedir permiso por cada microdecision.
 
 Antes de ejecutar cualquier accion que cambie estado o tenga costo/riesgo, debe avisar:
+
 1. Que va a hacer.
 2. Que archivos, comandos, tools o agentes involucra.
 3. Que riesgo tiene y como se verifica.
@@ -74,24 +79,29 @@ Antes de ejecutar cualquier accion que cambie estado o tenga costo/riesgo, debe 
 Luego debe esperar un `SI` explicito del operador para avanzar. Aplica a editar archivos, correr comandos, crear locks, iniciar implementacion, llamar APIs/modelos, instalar dependencias, usar red, git, deploy o borrar/mover contenido.
 
 ### Modo manual
+
 El leader debe pedir aceptacion antes de cada cambio y cada paso operativo. Si una fase tiene 5 slices, el leader explica cada slice antes de empezarlo y espera `SI` para continuar. No agrupa aprobaciones salvo que el operador lo pida explicitamente.
 
 ## Limite de Agentes
+
 El limite operativo es 5 agentes activos en total: 1 leader/orquestador + hasta 4 subagentes. Un pedido de 30 agentes se ejecuta como 30 asignaciones logicas en ciclos de maximo 5 agentes totales. Cada ciclo debe quedar registrado en `.hebrinex/orquestador/sdd/progress/registry.md`.
 
 Si el chat visible actua solo como interprete, no consume slot operativo. Si el chat asume leader por aprobacion explicita, consume el slot 0 y debe cumplir todas las reglas del leader.
 
 ## Roles Cerrados
+
 El rol que produce no debe ser el mismo que aprueba.
+
 - `interpreter/chat`: comunica con el operador, resume estado y pide aprobaciones. No coordina de forma invisible.
 - `leader`: orquesta, lee estado, decide siguiente rol, mantiene registry y gates. No implementa codigo.
-- `spec_author`: escribe specs y tasks. No toca `src/` ni `tests/`.
-- `implementer`: ejecuta tasks aprobadas dentro de ownership. No se autoaprueba.
+- `executor`: produce cambios dentro de scope aprobado. No aprueba su propio trabajo.
 - `reviewer`: revisa contra spec, evidencia y trazabilidad. No edita codigo.
-- `explorer`: solo lectura, hallazgos con evidencia.
-- `worker`: ejecucion acotada para tareas chicas sin SDD formal.
+- `auditor`: audita contrato, riesgos, evidencia, sesgos y cumplimiento. No implementa ni aprueba.
+- `reporter`: comunica hallazgos de forma clara y accionable. No altera veredictos.
+- `spec_author`, `implementer`, `explorer` y `worker` son perfiles operativos o familias compatibles cuando la herramienta los requiera.
 
 ## Hard Locks
+
 1. No iniciar trabajo sin contrato de sesion declarado.
 2. No presentar al chat como leader si el operador lo definio como interprete.
 3. No ocultar leader: si coordina, debe ser visible en conversacion, registry o artefacto.
@@ -102,19 +112,27 @@ El rol que produce no debe ser el mismo que aprueba.
 8. No usar efectos externos sin aprobacion humana explicita.
 9. No hacer operaciones destructivas sin aprobacion humana explicita.
 10. Si el operador corrige una regla del harness, esa regla queda como hard lock de sesion.
+11. No validar una decision solo porque la pidio el operador o la propuso un agente.
+12. No cerrar decisiones importantes sin detractor pass cuando haya riesgo medio/alto, arquitectura, cumplimiento o evidencia debil.
 
 ## Reglas Generales
+
 1. Si un comando falla, reportar error exacto, efectos parciales, archivos tocados y estado de recuperacion. No revertir automaticamente.
 2. Los subagentes escriben artefactos y devuelven referencias. El chat coordina solo si fue asignado explicitamente; por defecto interpreta.
 3. Cada cambio de estado de worker/leader se comunica con: estado, bloqueos y siguiente paso.
 
 ## Cierre de Tarea
+
 Antes de cerrar:
+
 - Consolidacion explicita del leader.
 - Registry actualizado.
 - Locks liberados o marcados como bloqueados.
-- `state.yaml` y `registry.yaml` actualizados.`n- Gate log con resultado binario.
-- Cierre explicito de todos los agentes.`n- Handoff escrito si pasa a otro rol.
+- `state.yaml` y `registry.yaml` actualizados.
+- Gate log con resultado binario.
+- Cierre explicito de todos los agentes.
+- Handoff escrito si pasa a otro rol.
+- Detractor pass si aplica por riesgo, arquitectura, cumplimiento o evidencia debil.
 - Archivos modificados listados.
 - Comando ejecutado con resultado.
 - Gaps nuevos registrados.
@@ -129,6 +147,12 @@ Para evitar que el harness dependa solo de disciplina textual, las siguientes pi
 - `orquestador/sdd/progress/cycles/<cycle-id>/gate-log.yaml`: gates validables.
 - `orquestador/sdd/progress/templates/approval-envelope.md`: aprobaciones por accion.
 - `orquestador/sdd/progress/templates/preflight-template.md`: preflight antes de efectos.
+- `orquestador/sdd/progress/templates/clarification-checklist.md`: gate de aclaracion.
+- `orquestador/sdd/progress/templates/analysis-checklist.md`: analisis minimo antes de ejecutar.
+- `orquestador/sdd/progress/templates/blast-radius.md`: alcance, riesgo y rollback.
+- `orquestador/sdd/progress/templates/task-graph.yaml`: dependencias y waves.
+- `orquestador/sdd/progress/templates/agent-profile-template.yaml`: roles minimos con perfiles.
+- `orquestador/sdd/progress/templates/detractor-pass.md`: contradiccion tecnica controlada.
 - `orquestador/sdd/progress/templates/verification-matrix.yaml`: trazabilidad requirement-evidencia.
 - `orquestador/sdd/progress/templates/final-report.md`: cierre verificable.
 - `orquestador/sdd/progress/templates/agent-closure.md`: ningun agente queda abierto.

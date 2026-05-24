@@ -1,5 +1,5 @@
-schema: hebrinex.schema.state
-version: "0.1"
+﻿schema: hebrinex.schema.state
+version: "0.2"
 required_fields:
   - schema
   - version
@@ -16,10 +16,51 @@ valid_cycle_statuses:
   - pending
   - spec_ready
   - approved
+  - todo
+  - ready
   - in_progress
   - review
   - done
   - blocked
+  - cancelled
+  - legacy_unverified
+valid_roles:
+  - interpreter
+  - leader
+  - executor
+  - reviewer
+  - auditor
+  - reporter
+  - explorer
+  - spec_author
+  - implementer
+  - worker
+valid_profiles:
+  auditor:
+    - harness_compliance
+    - cost
+    - security
+    - architecture
+    - release
+    - detractor
+  reporter:
+    - operator
+    - technical
+    - executive
+required_gates:
+  - G0_session_contract
+  - G1_context_ready
+  - G1A_clarification_complete
+  - G1B_analysis_complete
+  - G1C_blast_radius_declared
+  - G2_dispatch_ready
+  - G2A_task_graph_ready
+  - G3_locks_acquired
+  - G4_execution_complete
+  - G5_review_or_validation
+  - G5A_detractor_pass_complete
+  - G6_agent_closure_complete
+  - G7_handoff_complete
 closure_requires:
   - session_contract.status: pass
   - session_contract.leader_visible: true

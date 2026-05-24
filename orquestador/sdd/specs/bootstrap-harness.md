@@ -4,7 +4,7 @@ Esta spec conserva el brief largo original de bootstrap. No se carga en operacio
 
 ## Uso
 
-1. Leer orquestador/context-profiles.md perfil ootstrap.
+1. Leer orquestador/context-profiles.md perfil bootstrap.
 2. Leer orquestador/method/global-rules.md.
 3. Leer esta spec.
 4. Ejecutar el bootstrap con aprobacion humana antes de escribir archivos.

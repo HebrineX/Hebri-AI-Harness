@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.6.0] - 2026-05-23
+
+### Added
+- `HARNESS_VERSION` para declarar version operativa del harness.
+- `agent-role-taxonomy.md` con roles minimos, perfiles parametrizados y regla anti-explosion de agentes.
+- Templates P0: `clarification-checklist.md`, `analysis-checklist.md`, `blast-radius.md`, `task-graph.yaml`, `agent-profile-template.yaml` y `detractor-pass.md`.
+- Roles `auditor.md` y `reporter.md` para separar auditoria, contradiccion tecnica y comunicacion al operador.
+- Anti-confirmation bias y detractor pass como controles contra errores del usuario y de los agentes.
+
+### Changed
+- `multiagent-protocol.md` incorpora subgates G1A/G1B/G1C/G2A/G5A, roles minimos, perfiles y registry Kanban.
+- `global-rules.md`, `AGENTS.md`, `context-profiles.md`, `registry.yaml`, `state.schema.yaml` e `init.sh` quedan alineados al P0 de 0.6.0.
+- Se corrigen literales rotos de salto de linea en contratos y perfiles.
+
+
 ## [0.5.0] - 2026-05-21
 
 ### Added

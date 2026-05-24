@@ -1,6 +1,8 @@
 # Hebri-AI-Harness
 
-Este directorio oculto contiene el sistema operativo para agentes IA, basado en la metodologia [Hebri-AI-Structure](https://github.com/HebrineX/Hebri-AI-Structure). Convierte el proyecto en un entorno estructurado por SDD, roles cerrados, ownership, gates y memoria por archivos.
+Referencia operativa actual: **0.6.0**.
+
+Este directorio oculto contiene el sistema operativo para agentes IA, basado en la metodologia [Hebri-AI-Structure](https://github.com/HebrineX/Hebri-AI-Structure). Convierte el proyecto en un entorno estructurado por SDD, roles cerrados, roles minimos con perfiles parametrizados, ownership, gates, auditoria, reporter, detractor pass y memoria por archivos.
 
 ## Como usarlo en 5 pasos
 
@@ -13,10 +15,13 @@ Este directorio oculto contiene el sistema operativo para agentes IA, basado en 
 ## Economia de Contexto
 
 No cargues todo `.hebrinex`. Usar perfiles reduce 70-85% del contexto por ciclo:
-- `leader`: estado, modos, protocolo y registry.
+
+- `leader`: estado, modos, protocolo, taxonomia de roles y registry.
 - `spec_author`: contexto de producto/arquitectura + templates SDD.
 - `implementer`: spec activa + lock + policies minimas.
 - `reviewer`: spec + artefacto impl + gate log.
+- `auditor`: state, registry, gates, evidence, risk y detractor pass.
+- `reporter`: outputs de auditor/reviewer/leader y audiencia objetivo.
 - `bootstrap`: solo cuando se crea/regenera un harness.
 
 ## Modos
@@ -26,7 +31,16 @@ No cargues todo `.hebrinex`. Usar perfiles reduce 70-85% del contexto por ciclo:
 
 ## Limite Multiagente
 
-Maximo 5 agentes activos totales: 1 leader + 4 subagentes. Para 30 agentes se usan ciclos registrados, no 30 ejecuciones simultaneas.
+Maximo 5 agentes activos totales: 1 leader + 4 subagentes. Las especializaciones se expresan como perfiles, no como mas agentes. Para 30 asignaciones se usan ciclos registrados, no 30 ejecuciones simultaneas.
+
+## Novedades 0.6.0
+
+- Anti-confirmation bias: el sistema valida por evidencia, no por autoridad humana o de agentes.
+- Roles minimos con perfiles parametrizados: `interpreter`, `leader`, `executor`, `reviewer`, `auditor`, `reporter`.
+- `auditor(profile: detractor)` para cuestionar conclusiones antes de cierres importantes.
+- `reporter(profile: operator|technical|executive)` para comunicar sin ocultar riesgos.
+- Clarification checklist, analysis checklist, blast radius y task graph como P0 antes de ejecutar.
+- Registry Kanban con `role`, `profile`, `objective` y estado verificable.
 
 ## Que NO es
 

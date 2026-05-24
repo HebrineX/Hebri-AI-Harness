@@ -1,4 +1,4 @@
-# Context Profiles
+﻿# Context Profiles
 
 No cargues todo `.hebrinex` por defecto. Elegi el perfil minimo para la tarea.
 
@@ -7,20 +7,15 @@ No cargues todo `.hebrinex` por defecto. Elegi el perfil minimo para la tarea.
 Leer:
 - `AGENTS.md`
 - `PROGRESS.md`
+- `orquestador/method/session-contract.md`
 - `orquestador/method/operating-modes.md`
 - `orquestador/method/multiagent-protocol.md`
+- `orquestador/method/agent-role-taxonomy.md`
 - `orquestador/method/global-rules.md`
-- `orquestador/sdd/progress/state.yaml`\n- `orquestador/sdd/progress/registry.yaml`\n- `orquestador/sdd/progress/registry.md`
+- `orquestador/sdd/progress/state.yaml`
+- `orquestador/sdd/progress/registry.yaml`
+- `orquestador/sdd/progress/registry.md`
 - `orquestador/sdd/progress/blocked.md`
-
-Opcional:
-- spec activa en `orquestador/sdd/specs/<feature>/`
-- ultimo handoff en `orquestador/sdd/progress/cycles/`
-
-No leer:
-- `prompts/crear-harness.prompt.md`
-- `orquestador/sdd/specs/bootstrap-harness.md`
-- `orquestador/method/ai-engineering.md`, salvo integracion LLM/tools
 
 ## Perfil `spec_author` (~1.5k-3k tokens)
 
@@ -32,25 +27,21 @@ Leer:
 - `orquestador/sdd/specs/_template/`
 - `prompts/spec-author.prompt.md`
 
-Opcional:
-- archivos de codigo pedidos por explorer/leader, solo lectura
-
 ## Perfil `implementer` (~2k-4k tokens)
 
 Leer:
 - `orquestador/method/global-rules.md`
 - `orquestador/policies/permissions.md`
-- `orquestador/policies/risk-criteria.md`\n- `orquestador/policies/tool-policy.yaml`\n- `orquestador/policies/write-set-policy.md`
+- `orquestador/policies/risk-criteria.md`
+- `orquestador/policies/tool-policy.yaml`
+- `orquestador/policies/write-set-policy.md`
 - `orquestador/sdd/specs/<feature>/requirements.md`
 - `orquestador/sdd/specs/<feature>/design.md`
 - `orquestador/sdd/specs/<feature>/tasks.md`
-- `orquestador/sdd/progress/state.yaml`\n- `orquestador/sdd/progress/registry.yaml`\n- `orquestador/sdd/progress/registry.md`
+- `orquestador/sdd/progress/state.yaml`
+- `orquestador/sdd/progress/registry.yaml`
 - lock activo en `orquestador/sdd/progress/locks/`
 - `prompts/implementer.prompt.md`
-
-No leer:
-- biblioteca completa de gaps, salvo que registre un gap
-- prompts de otros roles
 
 ## Perfil `reviewer` (~2k-4k tokens)
 
@@ -58,18 +49,38 @@ Leer:
 - `orquestador/method/global-rules.md`
 - `orquestador/sdd/specs/<feature>/`
 - artefacto `impl_*.md`
-- `gate-log.yaml` si existe\n- `verification-matrix.yaml` si existe\n- `final-report.md` si existe
+- `gate-log.yaml` si existe
+- `verification-matrix.yaml` si existe
+- `final-report.md` si existe
 - `prompts/reviewer.prompt.md`
 
-Opcional:
-- diff o archivos tocados por implementer
+## Perfil `auditor` (~2k-4k tokens)
+
+Leer:
+- `orquestador/method/global-rules.md`
+- `orquestador/method/agent-role-taxonomy.md`
+- `orquestador/method/multiagent-protocol.md`
+- `orquestador/sdd/progress/state.yaml`
+- `orquestador/sdd/progress/registry.yaml`
+- gate logs, audit trails, final reports y agent closures del ciclo auditado
+- `agents/auditor.md`
+
+## Perfil `reporter` (~1k-2k tokens)
+
+Leer:
+- output de auditor/reviewer/leader
+- audiencia objetivo
+- `agents/reporter.md`
+- evidencia referenciada, no todo el repo
 
 ## Perfil `ai_engineering` (~2k-5k tokens)
 
 Leer solo cuando se conectan LLMs, tools o runtime:
 - `orquestador/method/ai-engineering.md`
 - `orquestador/policies/permissions.md`
-- `orquestador/policies/risk-criteria.md`\n- `orquestador/policies/tool-policy.yaml`\n- `orquestador/policies/write-set-policy.md`
+- `orquestador/policies/risk-criteria.md`
+- `orquestador/policies/tool-policy.yaml`
+- `orquestador/policies/write-set-policy.md`
 - prompt o workflow especifico
 
 ## Perfil `bootstrap` (~4k-8k tokens)
@@ -88,5 +99,7 @@ Leer solo para crear o regenerar un harness:
 | spec_author | 3k tokens |
 | implementer | 4k tokens |
 | reviewer | 4k tokens |
+| auditor | 4k tokens |
+| reporter | 2k tokens |
 | ai_engineering | 5k tokens |
 | bootstrap | 8k tokens |

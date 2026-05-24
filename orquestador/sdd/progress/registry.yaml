@@ -1,6 +1,34 @@
-schema: hebrinex.progress.registry
-version: "0.1"
+﻿schema: hebrinex.progress.registry
+version: "0.2"
 updated_at: ""
+kanban_statuses:
+  - todo
+  - ready
+  - in_progress
+  - review
+  - blocked
+  - done
+  - cancelled
+  - legacy_unverified
+roles:
+  - interpreter
+  - leader
+  - executor
+  - reviewer
+  - auditor
+  - reporter
+profiles:
+  auditor:
+    - harness_compliance
+    - cost
+    - security
+    - architecture
+    - release
+    - detractor
+  reporter:
+    - operator
+    - technical
+    - executive
 cycles:
   - cycle_id: C-000
     status: done
@@ -9,6 +37,8 @@ cycles:
       - agent_id: A-000
         slot: 0
         role: leader
+        profile: none
+        objective: bootstrap harness
         visible_to_operator: true
         status: done
         owned_files:

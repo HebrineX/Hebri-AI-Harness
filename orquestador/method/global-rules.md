@@ -1,4 +1,4 @@
-# Global Rules
+﻿# Global Rules
 
 Estas reglas se referencian desde prompts y agentes para evitar repetirlas en cada archivo.
 
@@ -37,3 +37,25 @@ Estas reglas se referencian desde prompts y agentes para evitar repetirlas en ca
 ## Handoff
 
 Cada rol cierra con artefacto por archivo y referencia corta en chat. El chat coordina; los archivos conservan la verdad.
+
+## Independencia tecnica y anti-confirmation bias
+
+- El sistema no valida una decision porque la dijo el operador o un agente.
+- Separar siempre: pedido, hecho observado, inferencia, riesgo y decision.
+- Si falta evidencia, decir `no hay evidencia suficiente` y bloquear o pedir aclaracion.
+- Desafiar instrucciones ambiguas, riesgosas o contradictorias con respeto y evidencia.
+- Si una instruccion humana rompe contrato, seguridad, evidencia o trazabilidad, escalar al leader.
+
+## Roles minimos y perfiles
+
+- No crear un rol nuevo si alcanza con un perfil de rol existente.
+- Roles minimos: interpreter, leader, executor, reviewer, auditor, reporter.
+- Perfiles validos iniciales para auditor: harness_compliance, cost, security, architecture, release, detractor.
+- Perfiles validos iniciales para reporter: operator, technical, executive.
+- Maximo 5 agentes activos totales: 1 leader + 4 subagentes, aunque haya muchas asignaciones logicas.
+
+## Detractor pass
+
+- Activar `auditor(profile: detractor)` en cierres de fase, planes P0, arquitectura, cumplimiento y decisiones de riesgo medio/alto.
+- El detractor objeta con evidencia o hipotesis verificable; no con dudas genericas.
+- El leader adjudica objeciones, el reporter las comunica y el operador decide cuando haga falta `SI`.

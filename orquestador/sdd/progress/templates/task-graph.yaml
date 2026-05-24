@@ -1,0 +1,23 @@
+﻿schema: hebrinex.task_graph
+version: "0.6"
+cycle_id: C-000
+slice_id: slice-000
+waves:
+  - wave_id: W-001
+    type: sequential
+    tasks:
+      - task_id: T-001
+        title: ""
+        depends_on: []
+        role: executor
+        profile: worker
+        status: todo
+        ownership:
+          owned_files: []
+          readonly_files: []
+        evidence_expected: []
+limits:
+  max_active_agents_total: 5
+  leader_slot_reserved: true
+  max_subagents_active: 4
+blockers: []

@@ -27,6 +27,7 @@ README.md
 AGENTS.md
 PROGRESS.md
 CHANGELOG.md
+HARNESS_VERSION
 orquestador/README.md
 orquestador/context-profiles.md
 orquestador/method/session-contract.md
@@ -38,6 +39,7 @@ orquestador/method/autonomia.md
 orquestador/method/brief-operativo.md
 orquestador/method/operating-modes.md
 orquestador/method/multiagent-protocol.md
+orquestador/method/agent-role-taxonomy.md
 orquestador/method/ai-engineering.md
 orquestador/context/product.md
 orquestador/context/architecture.md
@@ -54,6 +56,12 @@ orquestador/sdd/progress/schemas/state.schema.yaml
 orquestador/sdd/progress/schemas/evidence-schema.md
 orquestador/sdd/progress/templates/approval-envelope.md
 orquestador/sdd/progress/templates/preflight-template.md
+orquestador/sdd/progress/templates/clarification-checklist.md
+orquestador/sdd/progress/templates/analysis-checklist.md
+orquestador/sdd/progress/templates/blast-radius.md
+orquestador/sdd/progress/templates/task-graph.yaml
+orquestador/sdd/progress/templates/agent-profile-template.yaml
+orquestador/sdd/progress/templates/detractor-pass.md
 orquestador/sdd/progress/templates/verification-matrix.yaml
 orquestador/sdd/progress/templates/final-report.md
 orquestador/sdd/progress/templates/agent-closure.md
@@ -74,6 +82,8 @@ agents/leader.md
 agents/spec_author.md
 agents/implementer.md
 agents/reviewer.md
+agents/auditor.md
+agents/reporter.md
 "
 
 for dir in $DIRECTORIES; do
@@ -111,6 +121,21 @@ fi
 
 if ! grep -q "G6_agent_closure_complete" "$ROOT/orquestador/method/multiagent-protocol.md"; then
     echo "ERROR: multiagent-protocol.md no define cierre de agentes P0"
+    exit 2
+fi
+
+if ! grep -q "G5A_detractor_pass_complete" "$ROOT/orquestador/method/multiagent-protocol.md"; then
+    echo "ERROR: multiagent-protocol.md no define detractor pass P0"
+    exit 2
+fi
+
+if ! grep -q "anti-confirmation bias" "$ROOT/orquestador/method/global-rules.md"; then
+    echo "ERROR: global-rules.md no define anti-confirmation bias"
+    exit 2
+fi
+
+if ! grep -q "0.6.0" "$ROOT/HARNESS_VERSION"; then
+    echo "ERROR: HARNESS_VERSION no declara 0.6.0"
     exit 2
 fi
 
