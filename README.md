@@ -1,6 +1,6 @@
 # Hebri-AI-Harness
 
-Referencia operativa actual: **0.7.0**.
+Referencia operativa actual: **0.7.9**.
 
 Este directorio oculto contiene el sistema operativo para agentes IA, basado en la metodologia [Hebri-AI-Structure](https://github.com/HebrineX/Hebri-AI-Structure). Convierte el proyecto en un entorno estructurado por SDD, roles cerrados, roles minimos con perfiles parametrizados, ownership, gates, auditoria, reporter, detractor pass y memoria por archivos.
 
@@ -46,6 +46,33 @@ No cargues todo `.hebrinex`. Usar perfiles reduce 70-85% del contexto por ciclo:
 ## Limite Multiagente
 
 Maximo 5 agentes activos totales: 1 leader + 4 subagentes. Las especializaciones se expresan como perfiles, no como mas agentes. Para 30 asignaciones se usan ciclos registrados, no 30 ejecuciones simultaneas.
+
+## Novedades 0.7.9
+
+- `orquestador/harness-manifest.txt` centraliza la estructura esperada del harness.
+- `init.sh` valida directorios y archivos desde el manifest para reducir drift y duplicacion.
+- `bootstrap-harness.md` queda condensado al flujo actual y elimina el bloque legacy con estructura vieja.
+- Los placeholders de stack se reportan como `INFO` en `source_template` y como `WARN` en harness `bound`.
+- Se corrige el perfil `pipeline` en ejemplos y prompts de auditoria.
+
+## Novedades 0.7.2 a 0.7.8
+
+- `0.7.2`: gate de deploy/migracion con comandos, entorno, evidencia y rollback.
+- `0.7.3`: gate de drift entre `HARNESS_VERSION`, binding, README, changelog, prompts e `init.sh`.
+- `0.7.4`: gate de reconstruccion de CI/pipeline por iteraciones, sin colapsar fallos relevantes.
+- `0.7.5`: clasificacion P0/P1/P2 por bloqueo, impacto, dependencia y criterio de cierre.
+- `0.7.6`: separacion estricta entre auditor y reporter.
+- `0.7.7`: final report con cross-links obligatorios a gates, evidencia, closures, locks y gaps.
+- `0.7.8`: presets Codex, Claude y Gemini para recuperar contrato, binding y re-entry.
+
+## Novedades 0.7.1
+
+- Gate de reconstruccion historica para `CHANGELOG.md`, release notes y documentacion derivada.
+- `changelog-policy.md` exige leer `git log`, `PROGRESS.md`, registry y evidencia de ciclos antes de escribir historial.
+- `evidence-reconstruction.md` separa hechos, inferencias, contradicciones y gaps antes de producir narrativa.
+- Templates de matriz/checklist para evitar versiones mal ubicadas, eventos omitidos o agrupaciones incorrectas.
+- Prompt `actualizar-changelog.prompt.md` para migrar el error ERR-05 a un flujo repetible y auditable.
+- Roadmap incremental `0.7.x` para sumar huecos de control como versiones patch/minor, sin saltar a 0.8 si no cambia la estructura.
 
 ## Novedades 0.7.0
 

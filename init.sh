@@ -2,112 +2,51 @@
 set -eu
 
 ROOT="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
+MANIFEST="$ROOT/orquestador/harness-manifest.txt"
 
 echo "Verificando estructura del Hebri-AI-Harness..."
 
-DIRECTORIES="
-orquestador/method
-orquestador/context
-orquestador/sdd/specs/_template
-orquestador/sdd/progress
-orquestador/sdd/progress/locks
-orquestador/sdd/progress/schemas
-orquestador/sdd/progress/templates
-orquestador/sdd/progress/cycles
-orquestador/sdd/progress/cycles/_template
-orquestador/sdd/progress/approvals
-orquestador/policies
-orquestador/policies/schemas
-prompts
-agents
-"
+if [ ! -s "$MANIFEST" ]; then
+    echo "ERROR: Falta el manifiesto orquestador/harness-manifest.txt"
+    exit 2
+fi
 
-FILES="
-README.md
-AGENTS.md
-PROGRESS.md
-CHANGELOG.md
-HARNESS_VERSION
-PROJECT_BINDING.yaml
-orquestador/README.md
-orquestador/context-profiles.md
-orquestador/method/session-contract.md
-orquestador/method/harness-resolution.md
-orquestador/method/ciclo-de-trabajo.md
-orquestador/method/global-rules.md
-orquestador/method/sdd.md
-orquestador/method/roles.md
-orquestador/method/autonomia.md
-orquestador/method/brief-operativo.md
-orquestador/method/operating-modes.md
-orquestador/method/multiagent-protocol.md
-orquestador/method/agent-role-taxonomy.md
-orquestador/method/ai-engineering.md
-orquestador/context/product.md
-orquestador/context/architecture.md
-orquestador/sdd/specs/_template/requirements.md
-orquestador/sdd/specs/_template/design.md
-orquestador/sdd/specs/_template/tasks.md
-orquestador/sdd/specs/bootstrap-harness.md
-orquestador/sdd/progress/_README.md
-orquestador/sdd/progress/state.yaml
-orquestador/sdd/progress/registry.yaml
-orquestador/sdd/progress/registry.md
-orquestador/sdd/progress/future-p1.md
-orquestador/sdd/progress/schemas/state.schema.yaml
-orquestador/sdd/progress/schemas/evidence-schema.md
-orquestador/sdd/progress/templates/approval-envelope.md
-orquestador/sdd/progress/templates/preflight-template.md
-orquestador/sdd/progress/templates/reentry-checklist.md
-orquestador/sdd/progress/templates/clarification-checklist.md
-orquestador/sdd/progress/templates/analysis-checklist.md
-orquestador/sdd/progress/templates/blast-radius.md
-orquestador/sdd/progress/templates/task-graph.yaml
-orquestador/sdd/progress/templates/agent-profile-template.yaml
-orquestador/sdd/progress/templates/detractor-pass.md
-orquestador/sdd/progress/templates/verification-matrix.yaml
-orquestador/sdd/progress/templates/final-report.md
-orquestador/sdd/progress/templates/agent-closure.md
-orquestador/sdd/progress/cycles/_template/audit.jsonl
-orquestador/sdd/progress/cycles/_template/gate-log.yaml
-orquestador/sdd/progress/approvals/_README.md
-orquestador/sdd/progress/blocked.md
-orquestador/sdd/progress/locks/_README.md
-orquestador/policies/gap-library.md
-orquestador/policies/permissions.md
-orquestador/policies/risk-criteria.md
-orquestador/policies/tool-policy.yaml
-orquestador/policies/command-taxonomy.md
-orquestador/policies/write-set-policy.md
-orquestador/policies/secret-denylist.md
-orquestador/policies/schemas/_README.md
-agents/leader.md
-agents/spec_author.md
-agents/implementer.md
-agents/reviewer.md
-agents/auditor.md
-agents/reporter.md
-prompts/migrar-harness-0-7.prompt.md
-prompts/usuario-contrato-reentry.prompt.md
-"
+while IFS= read -r line || [ -n "$line" ]; do
+    entry="$(printf '%s' "$line" | sed 's/[[:space:]]*$//')"
+    case "$entry" in
+        ""|\#*) continue ;;
+    esac
 
-for dir in $DIRECTORIES; do
-    if [ ! -d "$ROOT/$dir" ]; then
-        echo "ERROR: Falta el directorio $dir"
+    kind="${entry%% *}"
+    path="${entry#* }"
+    if [ "$kind" = "$path" ]; then
+        echo "ERROR: Entrada invalida en manifest: $entry"
         exit 2
     fi
-done
 
-for file in $FILES; do
-    if [ ! -f "$ROOT/$file" ]; then
-        echo "ERROR: Falta el archivo $file"
-        exit 2
-    fi
-    if [ ! -s "$ROOT/$file" ]; then
-        echo "ERROR: Archivo vacio $file"
-        exit 2
-    fi
-done
+    case "$kind" in
+        dir)
+            if [ ! -d "$ROOT/$path" ]; then
+                echo "ERROR: Falta el directorio $path"
+                exit 2
+            fi
+            ;;
+        file)
+            if [ ! -f "$ROOT/$path" ]; then
+                echo "ERROR: Falta el archivo $path"
+                exit 2
+            fi
+            if [ ! -s "$ROOT/$path" ]; then
+                echo "ERROR: Archivo vacio $path"
+                exit 2
+            fi
+            ;;
+        *)
+            echo "ERROR: Tipo invalido en manifest: $kind"
+            exit 2
+            ;;
+    esac
+done < "$MANIFEST"
 
 if grep -R "\.hebrinex/policies" "$ROOT/AGENTS.md" "$ROOT/orquestador" >/dev/null 2>&1; then
     echo "ERROR: Ruta obsoleta detectada: .hebrinex/policies"
@@ -139,8 +78,48 @@ if ! grep -q "anti-confirmation bias" "$ROOT/orquestador/method/global-rules.md"
     exit 2
 fi
 
-if ! grep -q "0.7.0" "$ROOT/HARNESS_VERSION"; then
-    echo "ERROR: HARNESS_VERSION no declara 0.7.0"
+if ! grep -q "git log + PROGRESS.md + registry" "$ROOT/orquestador/method/changelog-policy.md"; then
+    echo "ERROR: changelog-policy.md no define gate de reconstruccion historica"
+    exit 2
+fi
+
+if ! grep -q "deploy" "$ROOT/orquestador/method/deploy-migration-policy.md"; then
+    echo "ERROR: deploy-migration-policy.md no define gate de deploy/migracion"
+    exit 2
+fi
+
+if ! grep -q "HARNESS_VERSION" "$ROOT/orquestador/method/reference-drift-policy.md"; then
+    echo "ERROR: reference-drift-policy.md no define control de version"
+    exit 2
+fi
+
+if ! grep -q "pipeline" "$ROOT/orquestador/method/ci-pipeline-policy.md"; then
+    echo "ERROR: ci-pipeline-policy.md no define control de pipeline"
+    exit 2
+fi
+
+if ! grep -q "P0/P1/P2" "$ROOT/orquestador/method/backlog-policy.md"; then
+    echo "ERROR: backlog-policy.md no define clasificacion P0/P1/P2"
+    exit 2
+fi
+
+if ! grep -q "reporter" "$ROOT/orquestador/method/audit-reporting-policy.md"; then
+    echo "ERROR: audit-reporting-policy.md no define separacion auditor/reporter"
+    exit 2
+fi
+
+if ! grep -q "Cross-links" "$ROOT/orquestador/method/final-report-evidence-policy.md"; then
+    echo "ERROR: final-report-evidence-policy.md no define cross-links"
+    exit 2
+fi
+
+if ! grep -q "Codex" "$ROOT/orquestador/method/ai-preset-policy.md"; then
+    echo "ERROR: ai-preset-policy.md no define presets por IA"
+    exit 2
+fi
+
+if ! grep -q "0.7.9" "$ROOT/HARNESS_VERSION"; then
+    echo "ERROR: HARNESS_VERSION no declara 0.7.9"
     exit 2
 fi
 
@@ -171,8 +150,8 @@ if [ "$BINDING_MODE" != "source_template" ] && [ "$BINDING_MODE" != "bound" ]; t
     exit 2
 fi
 
-if [ "$HARNESS_BINDING_VERSION" != "0.7.0" ]; then
-    echo "ERROR: PROJECT_BINDING.yaml no declara harness_version 0.7.0"
+if [ "$HARNESS_BINDING_VERSION" != "0.7.9" ]; then
+    echo "ERROR: PROJECT_BINDING.yaml no declara harness_version 0.7.9"
     exit 2
 fi
 
@@ -213,7 +192,11 @@ if ! grep -q "Rol del chat: interprete" "$ROOT/orquestador/method/session-contra
 fi
 
 if grep -R "\[Completar" "$ROOT/AGENTS.md" "$ROOT/PROGRESS.md" >/dev/null 2>&1; then
-    echo "WARN: Quedan placeholders operativos en AGENTS.md o PROGRESS.md"
+    if [ "$BINDING_MODE" = "source_template" ]; then
+        echo "INFO: Placeholders operativos esperados en source_template"
+    else
+        echo "WARN: Quedan placeholders operativos en AGENTS.md o PROGRESS.md"
+    fi
 fi
 
 echo "OK. Harness estructurado correctamente."

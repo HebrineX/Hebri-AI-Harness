@@ -61,6 +61,15 @@ Sin este bootstrap, el flujo no es valido.
 | `.hebrinex/orquestador/method/session-contract.md` | Contrato obligatorio de sesion, hard locks y bootstrap | Siempre al iniciar trabajo |
 | `.hebrinex/PROJECT_BINDING.yaml` | Vinculo entre harness y proyecto activo | Siempre al iniciar, reentrar o migrar |
 | `.hebrinex/orquestador/method/harness-resolution.md` | Reglas de bootstrap, fuente libre y binding | Cuando falta `.hebrinex` o hay duda de ruta |
+| `.hebrinex/orquestador/method/evidence-reconstruction.md` | Reglas para artefactos derivados de evidencia historica | Antes de changelog, release notes, roadmap, deploy docs o reportes historicos |
+| `.hebrinex/orquestador/method/changelog-policy.md` | Gate especifico para changelog/versiones | Antes de tocar `CHANGELOG.md` o release notes |
+| `.hebrinex/orquestador/method/deploy-migration-policy.md` | Gate de deploy/migracion | Antes de documentar deploys, migraciones o entornos |
+| `.hebrinex/orquestador/method/reference-drift-policy.md` | Gate de drift de version/referencias | Antes de cerrar versiones o migraciones del harness |
+| `.hebrinex/orquestador/method/ci-pipeline-policy.md` | Gate de CI/pipeline | Antes de resumir iteraciones de CI |
+| `.hebrinex/orquestador/method/backlog-policy.md` | Clasificacion P0/P1/P2 | Antes de ordenar roadmap o plan futuro |
+| `.hebrinex/orquestador/method/audit-reporting-policy.md` | Separacion auditor/reporter | Antes de emitir auditorias/reportes consolidados |
+| `.hebrinex/orquestador/method/final-report-evidence-policy.md` | Cross-links de cierre | Antes de declarar `done` |
+| `.hebrinex/orquestador/method/ai-preset-policy.md` | Presets por IA | Al configurar Codex, Claude, Gemini o re-entry |
 | `.hebrinex/orquestador/method/` | Reglas operativas, SDD, modos, taxonomia y protocolo multiagente | Siempre que dudes como operar |
 | `.hebrinex/orquestador/context/` | Producto y arquitectura | Al iniciar cualquier feature |
 | `.hebrinex/orquestador/sdd/specs/` | Contratos aprobables | Antes de escribir codigo |
@@ -125,6 +134,15 @@ El rol que produce no debe ser el mismo que aprueba.
 13. No usar un harness ubicado fuera del proyecto activo como autoridad operativa.
 14. No hacer fallback a "cualquier harness local"; solo se permite fuente libre `source_template` para copiar, vincular y luego operar desde la copia.
 15. Si `PROJECT_BINDING.yaml` esta ausente, en `mismatch` o apunta a otro proyecto, el flujo queda bloqueado hasta corregirlo.
+16. No editar `CHANGELOG.md`, release notes, README versionado, deploy docs historicos o roadmap consolidado sin reconstruir evidencia desde `git log`, `PROGRESS.md`, registry y ciclos disponibles.
+17. No declarar `done` en artefactos derivados si no existe matriz de eventos o si quedan eventos sin version/gaps no declarados.
+18. No documentar deploys/migraciones sin entorno, comando, evidencia, version/ciclo y rollback.
+19. No cerrar una version si hay drift operativo entre version, binding, README, changelog, prompts e `init.sh`.
+20. No colapsar iteraciones de CI/pipeline cuando explican la decision final.
+21. No clasificar P0/P1/P2 sin impacto, bloqueo, dependencia y criterio de cierre.
+22. No permitir que reporter altere veredicto de auditor.
+23. No declarar `done` si el final report no linkea evidencia, gates, closures, locks y gaps.
+24. No usar presets de IA que permitan efectos antes de contrato, binding y `SI`.
 
 ## Reglas Generales
 
@@ -176,6 +194,15 @@ Para evitar que el harness dependa solo de disciplina textual, las siguientes pi
 - `orquestador/sdd/progress/templates/task-graph.yaml`: dependencias y waves.
 - `orquestador/sdd/progress/templates/agent-profile-template.yaml`: roles minimos con perfiles.
 - `orquestador/sdd/progress/templates/detractor-pass.md`: contradiccion tecnica controlada.
+- `orquestador/sdd/progress/templates/changelog-reconstruction-checklist.md`: checklist para cambios de changelog/release docs.
+- `orquestador/sdd/progress/templates/release-history-matrix.yaml`: matriz de eventos, evidencia, commits, ciclos y version propuesta.
+- `orquestador/sdd/progress/templates/deploy-migration-checklist.md`: reconstruccion de deploy/migracion.
+- `orquestador/sdd/progress/templates/reference-drift-matrix.yaml`: version y referencias cruzadas.
+- `orquestador/sdd/progress/templates/ci-pipeline-history.yaml`: iteraciones de CI/pipeline.
+- `orquestador/sdd/progress/templates/backlog-classification-matrix.yaml`: clasificacion P0/P1/P2.
+- `orquestador/sdd/progress/templates/audit-report-contract.md`: contrato auditor/reporter.
+- `orquestador/sdd/progress/templates/final-report-crosslink-checklist.md`: cross-links de cierre.
+- `orquestador/sdd/progress/templates/ai-preset-contract.md`: validacion de presets por IA.
 - `orquestador/sdd/progress/templates/verification-matrix.yaml`: trazabilidad requirement-evidencia.
 - `orquestador/sdd/progress/templates/final-report.md`: cierre verificable.
 - `orquestador/sdd/progress/templates/agent-closure.md`: ningun agente queda abierto.

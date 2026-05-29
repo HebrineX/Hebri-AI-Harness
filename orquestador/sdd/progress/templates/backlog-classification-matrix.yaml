@@ -1,0 +1,17 @@
+schema: hebrinex.backlog_classification
+version: "0.1"
+matrix_id: BKL-YYYYMMDD-001
+items:
+  - id: ITEM-001
+    title: ""
+    problem: ""
+    evidence_refs: []
+    impact: low # low | medium | high | critical
+    blocks_current_flow: false
+    dependency_for: []
+    proposed_priority: P1 # P0 | P1 | P2
+    promotion_criteria: ""
+    closure_criteria: ""
+    status: candidate # candidate | approved | implemented | deferred | rejected
+contradictions: []
+result: pending # pass | blocked | fail

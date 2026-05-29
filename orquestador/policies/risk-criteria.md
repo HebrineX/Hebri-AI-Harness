@@ -11,6 +11,9 @@ Un agente debe escalar cuando el riesgo supera su autonomia o su ownership.
 5. Git remoto: push, force-push, tags remotos, releases, merge de PR.
 6. Cambios de contrato publico: APIs, interfaces compartidas, formatos persistidos.
 7. Instalacion de dependencias o herramientas nuevas.
+8. Artefactos derivados con impacto publico o historico: changelog, release notes, README versionado, deploy docs historicos, roadmap consolidado o auditorias que declaran cumplimiento.
+9. Deploys, migraciones o CI/pipelines que afectan entornos, datos o release publico.
+10. Presets por IA que cambian permisos, autonomias o reglas de aprobacion.
 
 ## Puede Escalar Solo al Leader
 
@@ -20,6 +23,9 @@ Un agente debe escalar cuando el riesgo supera su autonomia o su ownership.
 - Necesidad de serializar agentes.
 - Falta de evidencia o handoff incompleto.
 - Reintentos agotados en una tarea no destructiva.
+- Contradiccion entre `git log`, `PROGRESS.md`, registry y ciclos al reconstruir historia.
+- Drift entre version operativa, binding, README, changelog, prompts e `init.sh`.
+- Backlog P0/P1/P2 sin evidencia suficiente.
 
 ## Bloqueos Tipicos
 
@@ -31,6 +37,9 @@ Un agente debe escalar cuando el riesgo supera su autonomia o su ownership.
 | Scope/ownership | Leader |
 | Verificacion no definida | Leader o humano si bloquea cierre |
 | Spec contradictoria | Spec author + humano |
+| Historia/versionado contradictorio | Auditor release + humano si cambia release publico |
+| Deploy/migracion sin evidencia | Leader + humano si afecta entorno externo |
+| Preset de IA inseguro | Auditor harness_compliance + humano |
 
 ## Regla de No Sustitucion
 

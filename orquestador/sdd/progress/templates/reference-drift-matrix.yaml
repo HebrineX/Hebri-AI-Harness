@@ -1,0 +1,19 @@
+schema: hebrinex.reference_drift_matrix
+version: "0.1"
+matrix_id: RDF-YYYYMMDD-001
+canonical_version: ""
+sources:
+  harness_version: HARNESS_VERSION
+  binding: PROJECT_BINDING.yaml
+  init: init.sh
+  readme: README.md
+  changelog: CHANGELOG.md
+references:
+  - path: ""
+    line: 0
+    value: ""
+    classification: operative # operative | historical | example | stale
+    expected: ""
+    status: pending # pass | fail | allowed
+drift_detected: []
+result: pending # pass | blocked | fail

@@ -36,7 +36,7 @@ Roles minimos: `interpreter`, `leader`, `executor`, `reviewer`, `auditor`, `repo
 
 ```yaml
 auditor:
-  profiles: [harness_compliance, cost, security, architecture, release, detractor]
+  profiles: [harness_compliance, cost, security, architecture, release, pipeline, detractor]
 reporter:
   profiles: [operator, technical, executive]
 executor:
@@ -58,6 +58,13 @@ Regla anti-explosion: no se crea un rol nuevo si la necesidad puede expresarse c
 5. `G4_execution_complete`: subagentes entregan artefactos.
 6. `G5_review_or_validation`: reviewer valida evidencia o leader cierra solo tarea no-SDD de bajo riesgo.
    - `G5A_detractor_pass_complete`: decisiones importantes revisadas por `auditor(profile: detractor)`.
+   - `G5B_release_reconstruction_complete`: changelog/release docs/roadmap historico revisados contra matriz de evidencia si fueron tocados.
+   - `G5C_deploy_migration_complete`: deploy/migracion reconstruida con entorno, comando, evidencia y rollback si aplica.
+   - `G5D_reference_drift_complete`: version y referencias operativas sin drift si se cierra una version.
+   - `G5E_ci_pipeline_history_complete`: iteraciones de CI/pipeline mapeadas si fueron parte del cambio.
+   - `G5F_backlog_classification_complete`: P0/P1/P2 justificados por impacto, bloqueo y dependencia.
+   - `G5G_audit_report_contract_complete`: auditor y reporter separados sin cambio de veredicto.
+   - `G5H_final_report_crosslink_complete`: final report conectado con evidencia, gates, closures, locks y gaps.
 7. `G6_agent_closure_complete`: todos los agentes abiertos tienen cierre, handoff y locks resueltos.
 8. `G7_handoff_complete`: queda handoff, registry actualizado y consolidacion del leader.
 
@@ -74,7 +81,7 @@ agent_id: A-001
 cycle_id: C-001
 slot: 0
 role: leader | executor | reviewer | auditor | reporter | explorer | spec_author | implementer | worker
-profile: none | harness_compliance | cost | security | architecture | release | detractor | operator | technical | executive
+profile: none | harness_compliance | cost | security | architecture | release | pipeline | detractor | operator | technical | executive
 visible_to_operator: true
 slice_id: slice-001
 status: todo | ready | in_progress | review | blocked | done | cancelled | legacy_unverified
@@ -94,7 +101,7 @@ artifacts: []
 Cada ciclo/slice mantiene un gate log:
 
 ```text
-Gate: G0_session_contract | G1_context_ready | G1A_clarification_complete | G1B_analysis_complete | G1C_blast_radius_declared | G2_dispatch_ready | G2A_task_graph_ready | G3_locks_acquired | G4_execution_complete | G5_review_or_validation | G5A_detractor_pass_complete | G6_agent_closure_complete | G7_handoff_complete
+Gate: G0_session_contract | G1_context_ready | G1A_clarification_complete | G1B_analysis_complete | G1C_blast_radius_declared | G2_dispatch_ready | G2A_task_graph_ready | G3_locks_acquired | G4_execution_complete | G5_review_or_validation | G5A_detractor_pass_complete | G5B_release_reconstruction_complete | G5C_deploy_migration_complete | G5D_reference_drift_complete | G5E_ci_pipeline_history_complete | G5F_backlog_classification_complete | G5G_audit_report_contract_complete | G5H_final_report_crosslink_complete | G6_agent_closure_complete | G7_handoff_complete
 Resultado: pass | fail | blocked
 Responsable: leader
 Fecha: YYYY-MM-DD
@@ -147,6 +154,8 @@ Una tarea esta `done` solo si:
 - Requirements cubiertos por tasks y tests/evidencia.
 - Gate log completo, incluyendo `G6_agent_closure_complete`.
 - Detractor pass completo si el cierre es importante o de riesgo medio/alto.
+- Release reconstruction completo si se tocaron changelog, release notes, README versionado, deploy docs historicos o roadmap consolidado.
+- Controles condicionales 0.7.x completos cuando aplican: deploy/migracion, drift de referencias, CI/pipeline, backlog, auditor/reporter y cross-links.
 - Verificacion ejecutada o bloqueo por verificacion no disponible registrado.
 - Reviewer aprueba o leader cierra tarea no-SDD de bajo riesgo.
 - Gaps nuevos registrados.
@@ -170,6 +179,15 @@ Una tarea esta `done` solo si:
 - `orquestador/sdd/progress/templates/task-graph.yaml`
 - `orquestador/sdd/progress/templates/agent-profile-template.yaml`
 - `orquestador/sdd/progress/templates/detractor-pass.md`
+- `orquestador/sdd/progress/templates/changelog-reconstruction-checklist.md`
+- `orquestador/sdd/progress/templates/release-history-matrix.yaml`
+- `orquestador/sdd/progress/templates/deploy-migration-checklist.md`
+- `orquestador/sdd/progress/templates/reference-drift-matrix.yaml`
+- `orquestador/sdd/progress/templates/ci-pipeline-history.yaml`
+- `orquestador/sdd/progress/templates/backlog-classification-matrix.yaml`
+- `orquestador/sdd/progress/templates/audit-report-contract.md`
+- `orquestador/sdd/progress/templates/final-report-crosslink-checklist.md`
+- `orquestador/sdd/progress/templates/ai-preset-contract.md`
 - `orquestador/sdd/progress/templates/agent-closure.md`
 
 Regla: una fase/slice solo cambia de estado si `state.yaml`, gate log, audit trail, verification matrix, final report y cierre de agentes son coherentes.

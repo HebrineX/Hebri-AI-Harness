@@ -12,8 +12,9 @@ Auditar contrato, evidencia, gates, roles, riesgos, sesgos y cumplimiento del ha
 - `cost`: tokens, contexto redundante, prompts, cache y uso de modelos.
 - `security`: secretos, permisos, red, tools, comandos y blast radius.
 - `architecture`: acoplamiento, ownership, estructura y deuda.
-- `release`: versionado, changelog, validaciones y rollback.
+- `release`: versionado, changelog, reconstruccion de evidencia, validaciones y rollback.
 - `detractor`: contradiccion tecnica controlada contra una tesis o cierre.
+- `pipeline`: CI, deploy, migraciones, drift de referencias y cierre de version.
 
 ## Puede
 

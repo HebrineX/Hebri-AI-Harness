@@ -3,8 +3,18 @@
 | Directorio / Archivo | Contenido | Responsabilidad |
 |---|---|---|
 | `../PROJECT_BINDING.yaml` | Binding de proyecto | Distingue fuente libre de harness vinculado |
+| `harness-manifest.txt` | Manifest estructural | Lista canonica de directorios y archivos validados por `init.sh` |
 | `method/session-contract.md` | Contrato obligatorio | Bootstrap, hard locks, chat como interprete, leader visible |
 | `method/harness-resolution.md` | Resolucion del harness | Bootstrap, copia, binding y anti-contaminacion |
+| `method/evidence-reconstruction.md` | Reconstruccion historica | Hechos, inferencias, contradicciones y gaps antes de narrativa |
+| `method/changelog-policy.md` | Versionado y changelog | Gate para changelog, release notes y docs historicas |
+| `method/deploy-migration-policy.md` | Deploy/migracion | Evidencia de entorno, comandos, rollback y version |
+| `method/reference-drift-policy.md` | Drift de referencias | Version, binding, README, changelog, prompts e init |
+| `method/ci-pipeline-policy.md` | CI/pipeline | Iteraciones, logs y evidencia hasta pipeline funcional |
+| `method/backlog-policy.md` | Roadmap | Clasificacion P0/P1/P2 |
+| `method/audit-reporting-policy.md` | Auditor/reporter | Veredicto por evidencia y reporte fiel |
+| `method/final-report-evidence-policy.md` | Cierre | Final report con cross-links a evidencia |
+| `method/ai-preset-policy.md` | Presets IA | Codex, Claude, Gemini y re-entry |
 | `method/` | Esencia operativa | SDD, roles, modos, protocolo multiagente y AI Engineering |
 | `context/` | Arquitectura y Producto | El que y por que del sistema |
 | `sdd/` | Especificaciones y Progreso | Contratos, state, registry, locks, gates, audit trail, agent closure, handoffs y evidencia |
@@ -13,7 +23,16 @@
 ## Lectura Minima por Tarea
 
 - Cualquier sesion: `../PROJECT_BINDING.yaml` + `method/session-contract.md`.
+- Validacion estructural: `harness-manifest.txt` + `../init.sh`.
 - Duda de ruta o bootstrap: `method/harness-resolution.md`.
+- Changelog, release notes o docs historicas: `method/evidence-reconstruction.md` + `method/changelog-policy.md`.
+- Deploy/migracion: `method/deploy-migration-policy.md`.
+- Versionado del harness: `method/reference-drift-policy.md`.
+- CI/pipeline: `method/ci-pipeline-policy.md`.
+- Roadmap: `method/backlog-policy.md`.
+- Auditoria/reporte: `method/audit-reporting-policy.md`.
+- Cierre: `method/final-report-evidence-policy.md`.
+- Presets por IA: `method/ai-preset-policy.md`.
 - Orquestacion: `method/multiagent-protocol.md` + `method/operating-modes.md`.
 - Integracion LLM/tools: `method/ai-engineering.md`.
 - Escritura o comandos: `policies/permissions.md` + `policies/tool-policy.yaml` + `policies/command-taxonomy.md` + `policies/write-set-policy.md`.

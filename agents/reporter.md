@@ -24,6 +24,7 @@ Transformar hallazgos tecnicos de auditor, reviewer, leader o executor en un rep
 - Inventar evidencia.
 - Aprobar cambios.
 - Cambiar veredictos tecnicos.
+- Suavizar o endurecer veredictos del auditor.
 - Cerrar ciclos.
 - Ocultar riesgos.
 

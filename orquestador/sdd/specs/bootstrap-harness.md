@@ -1,311 +1,90 @@
 # Spec Bootstrap Harness
 
-Esta spec conserva el brief largo original de bootstrap. No se carga en operacion diaria; solo se lee cuando el objetivo es crear o regenerar un harness completo.
+Esta spec describe como crear o regenerar una instancia del harness actual. No se carga en operacion diaria; solo se lee con el perfil `bootstrap`.
+
+## Autoridad Actual
+
+Para uso operativo, la autoridad vigente es:
+
+- `PROJECT_BINDING.yaml`
+- `AGENTS.md`
+- `README.md`
+- `init.sh`
+- `orquestador/harness-manifest.txt`
+- `orquestador/method/session-contract.md`
+- `orquestador/method/harness-resolution.md`
+- `orquestador/method/multiagent-protocol.md`
+- `orquestador/context-profiles.md`
 
 ## Uso
 
-1. Leer orquestador/context-profiles.md perfil bootstrap.
-2. Leer PROJECT_BINDING.yaml.
-3. Leer orquestador/method/harness-resolution.md.
-4. Leer orquestador/method/global-rules.md.
+1. Leer `orquestador/context-profiles.md` perfil `bootstrap`.
+2. Leer `PROJECT_BINDING.yaml`.
+3. Leer `orquestador/method/harness-resolution.md`.
+4. Leer `orquestador/method/global-rules.md`.
 5. Leer esta spec.
-6. Ejecutar el bootstrap con aprobacion humana antes de escribir archivos.
-
-## Nota de version 0.7.0
-
-El brief historico que sigue conserva contexto de origen. Para uso actual, la autoridad operativa es:
-
-- `PROJECT_BINDING.yaml`
-- `orquestador/method/session-contract.md`
-- `orquestador/method/harness-resolution.md`
-- `AGENTS.md`
-- `init.sh`
-
-Desde 0.7.0, un proyecto consumidor no opera con un harness local externo. Si falta `.hebrinex/`, se copia una fuente libre `source_template` al proyecto, se vincula como `bound`, y recien despues se usa.
-
----
-
-
-# Brief operativo — Crear Hebri-AI-Harness
-
-Aplicás la metodología documentada en
-https://github.com/Hebrinex/Hebri-AI-Structure (v2.1.0). Antes de
-producir nada, leé al menos el `README.md`, `AGENTS.md` y los
-archivos `biblia/vol-04-arquitectura-repo.md`, `biblia/vol-07-harness.md`,
-`biblia/vol-09-roles-cerrados.md` de ese repo. Si no podés acceder, decilo
-y parás — no completes con criterio propio.
-
----
+6. Presentar preflight.
+7. Esperar `SI` antes de copiar, descargar o editar.
 
 ## Objetivo
 
-Crear el repositorio scaffolding **Hebri-AI-Harness**: una plantilla
-ejecutable que implementa la metodología Hebri-AI-Structure. Cualquier
-proyecto nuevo arranca clonando este harness, personalizando
-`AGENTS.md` con su stack y siguiendo el ciclo del Vol 01.
-
-El harness es la materialización del Gap H-01 registrado en Vol 07.
-
----
-
-## Contexto
-
-- **Stack del harness:** Markdown + scripts shell + YAML (CI). Sin código de
-  runtime propio. Es scaffolding, no aplicación.
-- **Audiencia:** desarrolladores que arrancan un proyecto nuevo y quieren
-  el flujo SDD + roles cerrados pre-cargado.
-- **Decisión arquitectónica:** GitHub-first según Vol 04 (el orquestador
-  vive en `.github/orquestador/`). Si en el futuro alguien quiere
-  Claude-first, agrega `.claude/` como capa adicional.
-
----
-
-## Restricciones
-
-- No copies el contenido de la biblia adentro del harness — solo
-  **referenciala** desde `AGENTS.md`. La metodología vive en
-  Hebri-AI-Structure; el harness solo la implementa.
-- No agregues lenguaje específico (Node, .NET, Python) al stack base. El
-  stack se decide al personalizar el harness, no acá.
-- No agregues herramientas pesadas (Docker, terraform, npm modules) en
-  la base. Si hace falta, lo decide el proyecto que use el harness.
-- Todos los nombres de archivos y carpetas en ASCII (sin tildes, sin
-  espacios, kebab-case).
-
----
-
-## Archivos a producir
-
-### Raíz
-
-```
-Hebri-AI-Harness/
-├── README.md
-├── AGENTS.md
-├── PROGRESS.md
-├── CHANGELOG.md
-├── .editorconfig
-├── .markdownlint.json
-├── .gitignore
-└── init.sh
-```
-
-### `.github/`
-
-```
-.github/
-├── copilot-instructions.md
-├── workflows/
-│   └── ci.yml
-├── prompts/
-│   ├── arrancar-proyecto.prompt.md
-│   ├── plan-fase.prompt.md
-│   ├── plan-slice.prompt.md
-│   ├── cierre-fase.prompt.md
-│   ├── explorar.prompt.md
-│   ├── worker.prompt.md
-│   ├── brief.prompt.md
-│   ├── registrar-gap.prompt.md
-│   ├── revisar-spec.prompt.md
-│   ├── lider.prompt.md
-│   ├── spec-author.prompt.md
-│   ├── implementer.prompt.md
-│   └── reviewer.prompt.md
-└── orquestador/
-    ├── README.md
-    ├── context/
-    │   ├── product.md          (template vacío)
-    │   └── architecture.md     (template vacío)
-    ├── sdd/
-    │   ├── specs/
-    │   │   └── _template/
-    │   │       ├── requirements.md
-    │   │       ├── design.md
-    │   │       └── tasks.md
-    │   └── progress/
-    │       └── _README.md      (explica formato de impl_/review_)
-    ├── policies/
-    │   ├── permissions.md
-    │   └── risk-criteria.md
-    └── pipelines/
-        └── README.md
-```
-
-### Roles cerrados (Claude-first opcional)
-
-```
-.claude/
-└── agents/
-    ├── leader.md
-    ├── spec_author.md
-    ├── implementer.md
-    └── reviewer.md
-```
-
-Cada archivo describe el rol con su ownership y prompt base, alineado
-con Vol 09 de Hebri-AI-Structure.
-
----
-
-## Contenido de archivos clave
-
-### `AGENTS.md` (base, parametrizable)
-
-```markdown
-# AGENTS.md — [NOMBRE-DEL-PROYECTO]
-
-> Este proyecto sigue Hebri-AI-Structure: https://github.com/Hebrinex/Hebri-AI-Structure
-> En conflicto, la biblia gana sobre este archivo.
-
-## Stack
-- Lenguaje: [completar]
-- Framework: [completar]
-- Tests: [completar]
-
-## Comandos
-- Tests: `[comando]`
-- Build: `[comando]`
-- Validar todo: `./init.sh`
-
-## Mapa
-| Ruta | Contenido | Cuándo leer |
-|---|---|---|
-| `.github/orquestador/context/` | Producto y arquitectura | Al arrancar una sesión |
-| `.github/orquestador/sdd/specs/` | Specs activas | Antes de implementar |
-| `.github/orquestador/sdd/progress/` | Handoffs de roles | Para saber qué pasó antes |
-| `PROGRESS.md` | Fases, slices y gaps | Siempre al arrancar |
-
-## Roles activos (ver Vol 09 de la biblia)
-- leader · spec_author · implementer · reviewer
-- Par informal: explorer / worker (para tareas chicas)
+Crear o actualizar un `.hebrinex/` operativo que materialice Hebri-AI-Harness sin copiar contexto de otro proyecto.
 
 ## Reglas
-- No tocar código antes de spec aprobada.
-- No declarar done sin tests verdes y build limpio.
-- Si un comando falla, reportar el error exacto antes de continuar.
 
-## Cierre
-Archivos modificados + comando ejecutado con resultado + gaps nuevos.
+- Si el destino es el repo fuente del harness, mantener `binding_mode: source_template`.
+- Si el destino es un proyecto consumidor, crear/copiar `.hebrinex/` dentro del proyecto y vincularlo como `binding_mode: bound`.
+- Nunca operar un proyecto desde un harness ubicado fuera de su raiz.
+- No copiar specs, ciclos, locks, approvals ni reports de otro proyecto.
+- No agregar dependencias runtime al harness base.
+- Mantener nombres de archivos y carpetas en ASCII.
+
+## Estructura Canonica
+
+La estructura canonica vive en:
+
+```text
+orquestador/harness-manifest.txt
 ```
 
-### `PROGRESS.md` (template)
+`init.sh` valida esa lista. Si se agrega o elimina una pieza estructural del harness, actualizar el manifest y el changelog en la misma version.
 
-Seguí el formato de Vol 06 con tabla de fases, tabla de gaps y sección de
-criterios de cierre. Pre-cargá una "Fase 0 — Setup inicial" con tres slices
-del propio harness.
+## Flujo De Bootstrap
 
-### `init.sh`
+1. Determinar `project_root`.
+2. Buscar `<project_root>/.hebrinex/`.
+3. Si existe, validar `PROJECT_BINDING.yaml`.
+4. Si no existe, buscar fuente local `source_template`.
+5. Copiar o clonar desde `https://github.com/HebrineX/Hebri-AI-Harness`.
+6. Vincular la copia con:
 
-Script POSIX `#!/usr/bin/env sh` con `set -eu`. Debe:
-1. Verificar que existe `AGENTS.md`, `PROGRESS.md` y `.github/orquestador/`.
-2. Correr el comando de tests si está definido en `AGENTS.md` (búsqueda
-   simple).
-3. Salir con código `0` si todo OK, `1` si tests fallan, `2` si falta
-   estructura básica.
-
-Sin lógica específica de stack — eso lo agrega cada proyecto que use el
-harness.
-
-### `.github/workflows/ci.yml`
-
-Workflow mínimo: markdownlint + lychee link checker. Sin tests de stack
-(eso lo agrega cada proyecto).
-
-### Prompts en `.github/prompts/`
-
-Copiar **textualmente** los 13 prompts de Hebri-AI-Structure
-v2.1.0. Mismo contenido y nombres ASCII. Esto evita que cada proyecto
-tenga que re-escribirlos.
-
-### `.claude/agents/leader.md` (ejemplo)
-
-```markdown
-# leader
-
-Rol cerrado según Vol 09 de Hebri-AI-Structure.
-
-NO implementa código. NO escribe specs. NO revisa diffs. Solo orquesta.
-
-## Ownership
-Lectura: PROGRESS.md, AGENTS.md, .github/orquestador/sdd/specs/*, .github/orquestador/sdd/progress/*
-Escritura: ninguna (solo decisiones por chat).
-
-## Dispatch
-Ver tabla de pivoteo en Vol 09 y prompt operativo en
-.github/prompts/lider.prompt.md.
+```yaml
+schema: hebrinex.project_binding
+version: "0.1"
+harness_version: "0.7.9"
+binding_mode: bound
+harness_instance_id: "HBX-..."
+project_name: "nombre-del-proyecto"
+project_root: "ruta-absoluta-del-proyecto"
+repo_remote: "url-o-none"
+source_repo: "https://github.com/HebrineX/Hebri-AI-Harness"
+created_at: "YYYY-MM-DDTHH:mm:ssZ"
+bound_at: "YYYY-MM-DDTHH:mm:ssZ"
 ```
 
-Equivalentes para `spec_author.md`, `implementer.md`, `reviewer.md` con
-sus respectivos ownerships y referencias a los prompts.
+7. Asegurar que `.hebrinex/` este en `.gitignore` del proyecto consumidor.
+8. Ejecutar `./.hebrinex/init.sh` con aprobacion.
 
----
+## Verificacion
 
-## Salida esperada
+Esperado:
 
-1. Carpeta `Hebri-AI-Harness/` creada con la estructura arriba.
-2. Todos los archivos con contenido pre-cargado (no vacíos, salvo los
-   templates explícitamente vacíos como `product.md`).
-3. Un `README.md` raíz que explique:
-   - Qué es el harness y qué NO es.
-   - Cómo clonarlo y personalizarlo (3-5 pasos concretos).
-   - Link a Hebri-AI-Structure como fuente metodológica.
-4. Un `CHANGELOG.md` con `[0.1.0]` registrando el bootstrap.
-5. `PROGRESS.md` con "Fase 0 — Setup inicial" cerrada y "Fase 1 —
-   Validación con primer proyecto piloto" como pendiente.
+- `init.sh` retorna 0.
+- Binding coherente con el proyecto.
+- Manifest completo.
+- `.hebrinex/` no esta trackeado por Git del proyecto consumidor.
+- No hay contexto de otro proyecto dentro de specs/progress/cycles.
 
----
+## Gaps Permitidos En Source Template
 
-## Verificación
-
-Al terminar, ejecutá y mostrá el resultado:
-
-```bash
-cd Hebri-AI-Harness
-chmod +x init.sh
-./init.sh
-find . -name "*.md" | xargs -I {} wc -l {} | head
-ls -la .github/orquestador/sdd/specs/_template/
-```
-
-Esperado: `init.sh` retorna 0 con mensaje de estructura OK; al menos 25
-archivos `.md` creados; el template de specs tiene los tres archivos.
-
----
-
-## Riesgos
-
-- **Copiar la biblia adentro del harness.** Lo haría duplicado y se va a
-  desincronizar. Solo referenciá.
-- **Atar a un stack concreto.** El harness es agnóstico; los stacks viven
-  en Vol 04 de la biblia, no acá.
-- **Sobre-ingeniar el `init.sh`.** Que sea POSIX puro, sin dependencias.
-  Cada proyecto extiende según necesite.
-- **Saltearse Vol 09 al definir los roles.** Los 4 archivos en
-  `.claude/agents/` deben respetar las restricciones de la tabla de
-  permisos (leader no implementa, reviewer no edita, etc.).
-
----
-
-## Nivel de autonomía
-
-N2 (escritura local) — creás archivos pero no hacés push ni deploys.
-Cuando termines, parás y dejás que el operador revise el árbol antes de
-hacer `git init` + `git remote add` + `git push`.
-
----
-
-## Formato de cierre
-
-Reportá:
-
-1. Cantidad total de archivos creados, agrupados por carpeta.
-2. Resultado de `./init.sh`.
-3. Diff conceptual con Vol 09: qué partes de los 4 roles cerrados están
-   materializadas en `.claude/agents/` y qué partes quedaron solo
-   referenciadas desde los prompts.
-4. Gaps nuevos detectados durante el bootstrap (registralos como `H-02`,
-   `H-03`, etc. en `PROGRESS.md` del harness).
-5. Próximo paso sugerido: qué hace falta para validar el harness con un
-   proyecto piloto real.
-
-No hacés `git commit` ni `git push`. Eso queda para el operador humano.
+En `source_template` pueden existir placeholders de stack, tests y producto. En `bound`, esos placeholders deben revisarse y completar o quedar bloqueados como verificacion no definida.

@@ -88,6 +88,15 @@ Contexto que no debe perderse:
 | `audit.jsonl` | Todo evento relevante se registra append-only. |
 | `gate-log.yaml` | Cada gate produce `pass`, `fail` o `blocked`. |
 | `verification-matrix.yaml` | Ningun requirement se considera cubierto sin evidencia. |
+| `changelog-reconstruction-checklist.md` | Obligatorio si se toca changelog, release notes o documentacion historica. |
+| `release-history-matrix.yaml` | Mapea eventos, commits, ciclos, evidencia y version propuesta. |
+| `deploy-migration-checklist.md` | Obligatorio si se documentan deploys/migraciones. |
+| `reference-drift-matrix.yaml` | Obligatorio al cerrar versiones del harness. |
+| `ci-pipeline-history.yaml` | Obligatorio si se documentan iteraciones de CI/pipeline. |
+| `backlog-classification-matrix.yaml` | Obligatorio si se ordena P0/P1/P2. |
+| `audit-report-contract.md` | Obligatorio si auditor y reporter participan del cierre. |
+| `final-report-crosslink-checklist.md` | Obligatorio antes de declarar `done` en ciclos/fases. |
+| `ai-preset-contract.md` | Obligatorio si se crean presets por IA. |
 | `final-report.md` | Ningun ciclo/fase cierra sin reporte final. |
 | `agent-closure.md` | Ningun agente queda abierto al cerrar ciclo. |
 

@@ -1,5 +1,105 @@
 # Changelog
 
+## [0.7.9] - 2026-05-29
+
+### Added
+- `orquestador/harness-manifest.txt` como manifiesto estructural canonico para directorios y archivos obligatorios.
+
+### Changed
+- `init.sh` deja de duplicar listas largas de estructura y valida desde el manifest.
+- `bootstrap-harness.md` fue condensado al flujo actual para evitar confusion con la estructura legacy `.github/orquestador/`.
+- Placeholders de `AGENTS.md`/`PROGRESS.md` se informan como `INFO` en `source_template` y como `WARN` en `bound`.
+- Se completa el perfil `pipeline` en ejemplos/profiles de auditoria.
+
+### Rationale
+- Optimizacion interna de mantenibilidad: mismo comportamiento funcional, menor duplicacion y menor riesgo de drift entre estructura, version y validacion.
+
+## [0.7.8] - 2026-05-29
+
+### Added
+- `orquestador/method/ai-preset-policy.md` para presets anti-desvio por IA.
+- Templates y prompts para Codex, Claude y Gemini con contrato, binding, re-entry y preflight.
+
+### Changed
+- La version operativa actual pasa a 0.7.8.
+- `init.sh` valida todos los gates incrementales de la linea 0.7.x.
+
+## [0.7.7] - 2026-05-29
+
+### Added
+- `orquestador/method/final-report-evidence-policy.md`.
+- `orquestador/sdd/progress/templates/final-report-crosslink-checklist.md`.
+- `prompts/cerrar-con-evidencia.prompt.md`.
+
+### Rationale
+- Evita cierres `done` sin links verificables a gate log, audit trail, verification matrix, agent closure, locks, gaps y validaciones.
+
+## [0.7.6] - 2026-05-29
+
+### Added
+- `orquestador/method/audit-reporting-policy.md`.
+- `orquestador/sdd/progress/templates/audit-report-contract.md`.
+- `prompts/auditar-y-reportar.prompt.md`.
+
+### Rationale
+- Refuerza que el auditor define veredicto por evidencia y el reporter comunica sin alterar el resultado.
+
+## [0.7.5] - 2026-05-29
+
+### Added
+- `orquestador/method/backlog-policy.md`.
+- `orquestador/sdd/progress/templates/backlog-classification-matrix.yaml`.
+- `prompts/clasificar-roadmap.prompt.md`.
+
+### Rationale
+- Ordena P0/P1/P2 por bloqueo, impacto, dependencia y criterio de cierre, no por preferencia del agente.
+
+## [0.7.4] - 2026-05-29
+
+### Added
+- `orquestador/method/ci-pipeline-policy.md`.
+- `orquestador/sdd/progress/templates/ci-pipeline-history.yaml`.
+- `prompts/reconstruir-ci-pipeline.prompt.md`.
+
+### Rationale
+- Evita colapsar iteraciones de CI/pipeline cuando el operador necesita documentar como se llego a un pipeline funcional.
+
+## [0.7.3] - 2026-05-29
+
+### Added
+- `orquestador/method/reference-drift-policy.md`.
+- `orquestador/sdd/progress/templates/reference-drift-matrix.yaml`.
+- `prompts/validar-referencias-version.prompt.md`.
+
+### Rationale
+- Evita inconsistencias entre `HARNESS_VERSION`, `PROJECT_BINDING.yaml`, README, changelog, prompts e `init.sh`.
+
+## [0.7.2] - 2026-05-29
+
+### Added
+- `orquestador/method/deploy-migration-policy.md`.
+- `orquestador/sdd/progress/templates/deploy-migration-checklist.md`.
+- `prompts/reconstruir-deploy-migracion.prompt.md`.
+
+### Rationale
+- Evita documentar deploys o migraciones sin comandos, entorno, evidencia, version/ciclo y rollback.
+
+## [0.7.1] - 2026-05-29
+
+### Added
+- `orquestador/method/changelog-policy.md` para bloquear cambios de changelog/release docs sin reconstruccion historica previa.
+- `orquestador/method/evidence-reconstruction.md` para tratar changelog, release notes, roadmap, deploy docs, reportes y auditorias como artefactos derivados de evidencia.
+- `orquestador/sdd/progress/templates/changelog-reconstruction-checklist.md` y `release-history-matrix.yaml` como evidencia obligatoria antes de editar historial/versiones.
+- `prompts/actualizar-changelog.prompt.md` para usar un flujo repetible ante pedidos de completar, ordenar o corregir changelog.
+- Roadmap incremental `0.7.x` en `future-p1.md` para sumar controles omitidos como versiones chicas, sin salto estructural a 0.8.
+
+### Changed
+- `init.sh` valida la version 0.7.1 y la existencia del gate de reconstruccion historica.
+- `AGENTS.md`, `session-contract.md`, `multiagent-protocol.md`, `context-profiles.md` y `risk-criteria.md` integran el control de artefactos derivados.
+
+### Rationale
+- Cambio motivado por ERR-05: en la version 0.6 el changelog requirio multiples correcciones manuales porque el agente no leyo `git log`, `PROGRESS.md` y registry juntos antes de escribir. 0.7.1 convierte esa reconstruccion en gate obligatorio.
+
 ## [0.7.0] - 2026-05-29
 
 ### Added

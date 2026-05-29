@@ -48,6 +48,7 @@ valid_profiles:
     - security
     - architecture
     - release
+    - pipeline
     - detractor
   reporter:
     - operator
@@ -65,8 +66,16 @@ required_gates:
   - G4_execution_complete
   - G5_review_or_validation
   - G5A_detractor_pass_complete
+  - G5B_release_reconstruction_complete
   - G6_agent_closure_complete
   - G7_handoff_complete
+conditional_gates:
+  - G5C_deploy_migration_complete
+  - G5D_reference_drift_complete
+  - G5E_ci_pipeline_history_complete
+  - G5F_backlog_classification_complete
+  - G5G_audit_report_contract_complete
+  - G5H_final_report_crosslink_complete
 closure_requires:
   - project_binding.status: bound | source_template
   - session_contract.status: pass

@@ -1,0 +1,32 @@
+schema: hebrinex.release_history_matrix
+version: "0.1"
+matrix_id: RH-YYYYMMDD-001
+generated_at: YYYY-MM-DDTHH:mm:ssZ
+scope:
+  artifact_target: CHANGELOG.md
+  from_version: ""
+  to_version: ""
+sources:
+  files_read: []
+  commands_read: []
+  external_evidence: []
+entries:
+  - event_id: EVT-001
+    observed_event: ""
+    fact_or_inference: fact # fact | inference | contradiction | gap
+    evidence_refs: []
+    commits: []
+    cycles: []
+    concern: docs # feature | fix | ci | deploy | migration | docs | security | release | audit | harness
+    proposed_version: ""
+    version_status: actual # actual | proposed | synthetic | unreleased | unknown_blocked
+    changelog_section: Changed # Added | Changed | Fixed | Removed | Deprecated | Security | Rationale
+    include_in_changelog: true
+    notes: ""
+    open_questions: []
+unmapped_events: []
+contradictions: []
+release_auditor:
+  agent_id: ""
+  status: pending # pending | pass | blocked | fail
+  notes: ""

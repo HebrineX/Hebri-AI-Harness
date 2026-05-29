@@ -79,6 +79,15 @@ Estas reglas no son sugerencias. Si se rompen, el flujo debe detenerse y corregi
 11. No usar un harness externo como autoridad operativa de un proyecto.
 12. No hacer fallback a "cualquier harness local"; solo se permite fuente libre `source_template` para copiar y vincular.
 13. Si el operador corrige una regla, esa correccion pasa a hard lock para el resto de la sesion.
+14. No editar artefactos derivados de historia o version sin aplicar `evidence-reconstruction.md`.
+15. No tocar `CHANGELOG.md`, release notes o README versionado sin aplicar `changelog-policy.md`.
+16. No documentar deploys/migraciones sin aplicar `deploy-migration-policy.md`.
+17. No cerrar version si no se aplico `reference-drift-policy.md`.
+18. No resumir CI/pipeline sin aplicar `ci-pipeline-policy.md` cuando hay iteraciones o fallos.
+19. No ordenar roadmap P0/P1/P2 sin aplicar `backlog-policy.md`.
+20. No consolidar auditoria/reporte sin aplicar `audit-reporting-policy.md`.
+21. No declarar `done` sin aplicar `final-report-evidence-policy.md` cuando hay cierre de ciclo/fase.
+22. No usar preset externo o copiado si no cumple `ai-preset-policy.md`.
 
 ## Re-entry Post-Compactacion
 
@@ -147,6 +156,33 @@ Antes de cualquier accion con escritura, comando, red, git, subagente con escrit
 - `orquestador/sdd/progress/templates/preflight-template.md`
 
 El `SI` del operador aprueba solo la accion exacta declarada. Si cambia comando, cwd, write-set, riesgo, red, git o herramienta, la aprobacion queda invalida.
+
+## Artefactos Derivados
+
+Cuando la tarea pide reconstruir historia, completar changelog, ordenar versiones, explicar deploys pasados, resumir auditorias o consolidar roadmap, el flujo no puede actuar como escritura directa.
+
+Antes de escribir:
+
+1. Leer `orquestador/method/evidence-reconstruction.md`.
+2. Si toca versiones o changelog, leer `orquestador/method/changelog-policy.md`.
+3. Reconstruir hechos desde `git log`, `PROGRESS.md`, registry y ciclos disponibles.
+4. Separar hechos observados, inferencias, contradicciones y gaps.
+5. Completar matriz/checklist si el artefacto es versionado.
+6. Pedir `SI` para escribir con write-set y verificacion declarados.
+
+## Controles 0.7.x
+
+Los siguientes controles son condicionales por tipo de tarea:
+
+| Version | Control | Archivo |
+|---|---|---|
+| 0.7.2 | Deploy/migracion con evidencia | `deploy-migration-policy.md` |
+| 0.7.3 | Drift de referencias/version | `reference-drift-policy.md` |
+| 0.7.4 | CI/pipeline por iteraciones | `ci-pipeline-policy.md` |
+| 0.7.5 | Clasificacion P0/P1/P2 | `backlog-policy.md` |
+| 0.7.6 | Separacion auditor/reporter | `audit-reporting-policy.md` |
+| 0.7.7 | Final report con cross-links | `final-report-evidence-policy.md` |
+| 0.7.8 | Presets por IA | `ai-preset-policy.md` |
 
 ## Cierre de Agentes
 

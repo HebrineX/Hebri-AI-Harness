@@ -26,6 +26,7 @@ Estas reglas se referencian desde prompts y agentes para evitar repetirlas en ca
 - No declarar `done` sin verificacion exitosa o bloqueo documentado.
 - Si un comando falla, reportar error exacto, efectos parciales y archivos tocados.
 - No modificar tests para ocultar logica defectuosa.
+- No escribir artefactos historicos/versionados sin reconstruir evidencia disponible.
 
 ## Roles
 
@@ -50,7 +51,7 @@ Cada rol cierra con artefacto por archivo y referencia corta en chat. El chat co
 
 - No crear un rol nuevo si alcanza con un perfil de rol existente.
 - Roles minimos: interpreter, leader, executor, reviewer, auditor, reporter.
-- Perfiles validos iniciales para auditor: harness_compliance, cost, security, architecture, release, detractor.
+- Perfiles validos iniciales para auditor: harness_compliance, cost, security, architecture, release, pipeline, detractor.
 - Perfiles validos iniciales para reporter: operator, technical, executive.
 - Maximo 5 agentes activos totales: 1 leader + 4 subagentes, aunque haya muchas asignaciones logicas.
 

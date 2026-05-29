@@ -1,0 +1,21 @@
+schema: hebrinex.ci_pipeline_history
+version: "0.1"
+history_id: CIH-YYYYMMDD-001
+pipeline_name: ""
+sources:
+  workflows: []
+  logs: []
+  screenshots: []
+  commits: []
+iterations:
+  - iteration_id: CI-001
+    observed_status: failed # failed | passed | cancelled | unknown
+    evidence_refs: []
+    change_applied: ""
+    command_or_job: ""
+    commit: ""
+    next_decision: ""
+collapsed_iterations:
+  allowed: false
+  justification: ""
+result: pending # pass | blocked | fail
