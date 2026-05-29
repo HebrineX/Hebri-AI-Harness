@@ -6,7 +6,9 @@ Esta carpeta conserva la memoria entre agentes. El chat coordina; estos archivos
 
 | Archivo / Carpeta | Uso |
 |---|---|
-| `state.yaml` | Fuente canonica de fase, slice, modo, approvals, gates, locks y agentes abiertos |`n| `registry.yaml` | Registro estructurado de ciclos/agentes; `registry.md` queda como vista humana |`n| `registry.md` | Vista humana de ciclos, agentes, slots, roles y artefactos |
+| `state.yaml` | Fuente canonica de fase, slice, modo, approvals, gates, locks y agentes abiertos |
+| `registry.yaml` | Registro estructurado de ciclos/agentes; `registry.md` queda como vista humana |
+| `registry.md` | Vista humana de ciclos, agentes, slots, roles y artefactos |
 | `blocked.md` | Cola de bloqueos priorizada |
 | `locks/` | Locks de ownership por slice/ciclo |
 | `cycles/<cycle-id>/` | Evidencia, audit log, gates, handoffs, verification matrix, final report y cierres de agentes |
@@ -14,7 +16,10 @@ Esta carpeta conserva la memoria entre agentes. El chat coordina; estos archivos
 ## Estructura Recomendada
 
 ```text
-progress/`n  state.yaml`n  registry.yaml`n  registry.md
+progress/
+  state.yaml
+  registry.yaml
+  registry.md
   blocked.md
   locks/
     L-001.lock.md

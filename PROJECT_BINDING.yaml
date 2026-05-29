@@ -1,0 +1,15 @@
+schema: hebrinex.project_binding
+version: "0.1"
+harness_version: "0.7.0"
+binding_mode: source_template
+harness_instance_id: "SOURCE-TEMPLATE"
+project_name: ""
+project_root: ""
+repo_remote: ""
+source_repo: "https://github.com/HebrineX/Hebri-AI-Harness"
+created_at: ""
+bound_at: ""
+notes:
+  - "source_template significa que esta carpeta es una fuente libre para bootstrap."
+  - "Un proyecto consumidor debe copiar esta carpeta como .hebrinex y cambiar binding_mode a bound."
+  - "En modo bound, project_root debe apuntar a la raiz exacta del proyecto consumidor."

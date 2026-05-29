@@ -28,9 +28,11 @@ AGENTS.md
 PROGRESS.md
 CHANGELOG.md
 HARNESS_VERSION
+PROJECT_BINDING.yaml
 orquestador/README.md
 orquestador/context-profiles.md
 orquestador/method/session-contract.md
+orquestador/method/harness-resolution.md
 orquestador/method/ciclo-de-trabajo.md
 orquestador/method/global-rules.md
 orquestador/method/sdd.md
@@ -56,6 +58,7 @@ orquestador/sdd/progress/schemas/state.schema.yaml
 orquestador/sdd/progress/schemas/evidence-schema.md
 orquestador/sdd/progress/templates/approval-envelope.md
 orquestador/sdd/progress/templates/preflight-template.md
+orquestador/sdd/progress/templates/reentry-checklist.md
 orquestador/sdd/progress/templates/clarification-checklist.md
 orquestador/sdd/progress/templates/analysis-checklist.md
 orquestador/sdd/progress/templates/blast-radius.md
@@ -84,6 +87,8 @@ agents/implementer.md
 agents/reviewer.md
 agents/auditor.md
 agents/reporter.md
+prompts/migrar-harness-0-7.prompt.md
+prompts/usuario-contrato-reentry.prompt.md
 "
 
 for dir in $DIRECTORIES; do
@@ -134,9 +139,67 @@ if ! grep -q "anti-confirmation bias" "$ROOT/orquestador/method/global-rules.md"
     exit 2
 fi
 
-if ! grep -q "0.6.0" "$ROOT/HARNESS_VERSION"; then
-    echo "ERROR: HARNESS_VERSION no declara 0.6.0"
+if ! grep -q "0.7.0" "$ROOT/HARNESS_VERSION"; then
+    echo "ERROR: HARNESS_VERSION no declara 0.7.0"
     exit 2
+fi
+
+get_binding_value() {
+    key="$1"
+    sed -n "s/^$key:[[:space:]]*//p" "$ROOT/PROJECT_BINDING.yaml" | head -n 1 | sed 's/^"//; s/"$//; s/\r$//'
+}
+
+normalize_path() {
+    path="$1"
+    if [ -z "$path" ]; then
+        printf '%s\n' ""
+        return 0
+    fi
+    if command -v cygpath >/dev/null 2>&1; then
+        cygpath -u "$path" 2>/dev/null || printf '%s\n' "$path"
+    else
+        printf '%s\n' "$path"
+    fi
+}
+
+BINDING_MODE="$(get_binding_value binding_mode)"
+PROJECT_ROOT_RAW="$(get_binding_value project_root)"
+HARNESS_BINDING_VERSION="$(get_binding_value harness_version)"
+
+if [ "$BINDING_MODE" != "source_template" ] && [ "$BINDING_MODE" != "bound" ]; then
+    echo "ERROR: PROJECT_BINDING.yaml binding_mode invalido: $BINDING_MODE"
+    exit 2
+fi
+
+if [ "$HARNESS_BINDING_VERSION" != "0.7.0" ]; then
+    echo "ERROR: PROJECT_BINDING.yaml no declara harness_version 0.7.0"
+    exit 2
+fi
+
+if [ "$BINDING_MODE" = "bound" ]; then
+    if [ -z "$PROJECT_ROOT_RAW" ]; then
+        echo "ERROR: PROJECT_BINDING.yaml bound requiere project_root"
+        exit 2
+    fi
+    ROOT_BASENAME="$(basename "$ROOT")"
+    if [ "$ROOT_BASENAME" != ".hebrinex" ]; then
+        echo "ERROR: Un harness bound debe vivir en <project_root>/.hebrinex"
+        exit 2
+    fi
+    ACTUAL_PROJECT_ROOT="$(CDPATH= cd -- "$ROOT/.." && pwd)"
+    EXPECTED_PROJECT_ROOT="$(normalize_path "$PROJECT_ROOT_RAW")"
+    if [ "$EXPECTED_PROJECT_ROOT" != "$ACTUAL_PROJECT_ROOT" ]; then
+        echo "ERROR: PROJECT_BINDING mismatch"
+        echo "  project_root esperado: $EXPECTED_PROJECT_ROOT"
+        echo "  project_root real:     $ACTUAL_PROJECT_ROOT"
+        exit 2
+    fi
+fi
+
+echo "Binding: $BINDING_MODE"
+echo "Harness path: $ROOT"
+if [ -n "$PROJECT_ROOT_RAW" ]; then
+    echo "Project root: $(normalize_path "$PROJECT_ROOT_RAW")"
 fi
 
 if ! grep -q "tool_policy" "$ROOT/orquestador/policies/tool-policy.yaml"; then

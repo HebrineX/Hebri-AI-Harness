@@ -139,6 +139,7 @@ Siguiente paso:
 
 Una tarea esta `done` solo si:
 
+- `PROJECT_BINDING.yaml` valido y coherente con el proyecto activo.
 - Contrato de sesion cumplido.
 - Leader visible y consolidacion final registrada.
 - Clarification, analysis y blast radius completos cuando aplique.
@@ -157,6 +158,8 @@ Una tarea esta `done` solo si:
 
 - `orquestador/sdd/progress/state.yaml`
 - `orquestador/sdd/progress/registry.yaml`
+- `PROJECT_BINDING.yaml`
+- `orquestador/sdd/progress/templates/reentry-checklist.md`
 - `orquestador/sdd/progress/cycles/<cycle-id>/audit.jsonl`
 - `orquestador/sdd/progress/cycles/<cycle-id>/gate-log.yaml`
 - `orquestador/sdd/progress/cycles/<cycle-id>/<slice>/verification-matrix.yaml`

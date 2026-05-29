@@ -6,8 +6,10 @@ No cargues todo `.hebrinex` por defecto. Elegi el perfil minimo para la tarea.
 
 Leer:
 - `AGENTS.md`
+- `PROJECT_BINDING.yaml`
 - `PROGRESS.md`
 - `orquestador/method/session-contract.md`
+- `orquestador/method/harness-resolution.md`
 - `orquestador/method/operating-modes.md`
 - `orquestador/method/multiagent-protocol.md`
 - `orquestador/method/agent-role-taxonomy.md`
@@ -86,7 +88,10 @@ Leer solo cuando se conectan LLMs, tools o runtime:
 ## Perfil `bootstrap` (~4k-8k tokens)
 
 Leer solo para crear o regenerar un harness:
+- `PROJECT_BINDING.yaml`
 - `prompts/crear-harness.prompt.md`
+- `prompts/migrar-harness-0-7.prompt.md` si se migra desde version previa
+- `orquestador/method/harness-resolution.md`
 - `orquestador/sdd/specs/bootstrap-harness.md`
 - `orquestador/method/global-rules.md`
 - `orquestador/method/ai-engineering.md` si se agregan runtime/tools

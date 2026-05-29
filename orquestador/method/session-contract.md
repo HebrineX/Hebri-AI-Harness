@@ -20,7 +20,11 @@ Ante cualquier pedido de trabajo sobre un proyecto, el primer paso operativo deb
 ```text
 Contrato de sesion:
 - Harness detectado: si | no | pendiente
-- Fuente del harness: .hebrinex local | ruta local | repo remoto | provisto por usuario
+- Fuente del harness: .hebrinex del proyecto | source_template copiado | repo remoto clonado | provisto por usuario
+- Harness path: [ruta absoluta]
+- Project root: [ruta absoluta]
+- Binding: source_template | bound | missing | mismatch
+- External write scope: none | [rutas aprobadas]
 - Modo: manual | automatico
 - Rol del chat: interprete
 - Leader visible: si | no | pendiente de aprobacion
@@ -35,12 +39,28 @@ Sin este bootstrap, no se puede iniciar trabajo operativo.
 
 ## Resolucion del Harness
 
-1. Buscar `.hebrinex/` en la raiz del proyecto.
-2. Si existe, usarlo como autoridad operativa.
-3. Si no existe, buscar una copia local del repo `Hebri-AI-Harness`.
-4. Si no existe copia local, proponer descargar `https://github.com/HebrineX/Hebri-AI-Harness`.
-5. Si no se puede descargar, pedir al operador ruta o contenido.
-6. No copiar, descargar, editar ni correr comandos sin `SI` explicito.
+La resolucion tiene dos modos separados: `bootstrap` y `operation`.
+
+### Operation
+
+1. Buscar `.hebrinex/` en la raiz exacta del proyecto activo.
+2. Si existe, validar `.hebrinex/PROJECT_BINDING.yaml`.
+3. Si `binding_mode` es `bound`, `project_root` debe coincidir con la raiz del proyecto activo.
+4. Si el binding no coincide, detener el flujo y pedir correccion. No usar otro harness local.
+5. Si no existe `.hebrinex/`, no se puede operar. Pasar a `bootstrap`.
+
+### Bootstrap
+
+1. Buscar una fuente local libre del repo `Hebri-AI-Harness`.
+2. Una fuente local libre es una carpeta con `PROJECT_BINDING.yaml` y `binding_mode: source_template`.
+3. No usar esa fuente para operar el proyecto.
+4. Copiar la fuente libre a `<project_root>/.hebrinex/`.
+5. Cambiar el binding copiado a `binding_mode: bound` y completar `project_root`, `project_name`, `repo_remote`, `bound_at` y un `harness_instance_id` nuevo.
+6. Si no existe fuente local libre, proponer bajar obligatoriamente `https://github.com/HebrineX/Hebri-AI-Harness`, copiarlo a `<project_root>/.hebrinex/` y vincularlo.
+7. Si no se puede descargar ni copiar, pedir al operador ruta o contenido.
+8. No copiar, descargar, editar ni correr comandos sin `SI` explicito.
+
+Regla dura: nunca operar un proyecto usando un harness ubicado fuera de su raiz. Un harness local externo solo puede ser fuente de copia.
 
 ## Hard Locks
 
@@ -54,8 +74,26 @@ Estas reglas no son sugerencias. Si se rompen, el flujo debe detenerse y corregi
 6. No hay cambio de estado SDD sin gate log.
 7. No hay subagente activo sin registro en registry.
 8. No hay ejecucion de comando, uso de red, git, instalacion o edicion sin aprobacion segun modo.
-9. No hay cierre de fase sin consolidacion explicita del leader.`n10. No hay cierre de ciclo si quedan agentes abiertos, locks activos o handoffs pendientes.
-11. Si el operador corrige una regla, esa correccion pasa a hard lock para el resto de la sesion.
+9. No hay cierre de fase sin consolidacion explicita del leader.
+10. No hay cierre de ciclo si quedan agentes abiertos, locks activos o handoffs pendientes.
+11. No usar un harness externo como autoridad operativa de un proyecto.
+12. No hacer fallback a "cualquier harness local"; solo se permite fuente libre `source_template` para copiar y vincular.
+13. Si el operador corrige una regla, esa correccion pasa a hard lock para el resto de la sesion.
+
+## Re-entry Post-Compactacion
+
+Si la sesion fue compactada, resumida, retomada desde logs o cambiaron el cwd/proyecto activo, antes de continuar:
+
+1. Validar que `.hebrinex/PROJECT_BINDING.yaml` existe.
+2. Confirmar `binding_mode: bound` para proyectos consumidores o `source_template` solo si la tarea es editar el harness fuente.
+3. Confirmar `project_root` contra la raiz real del proyecto activo.
+4. Declarar nuevamente el contrato de sesion completo.
+5. Leer `PROGRESS.md`, `state.yaml` y `registry.yaml`.
+6. Expirar approvals pendientes de sesiones anteriores salvo que el operador los revalide con un nuevo `SI`.
+7. Confirmar ciclo activo, locks, agentes abiertos y handoffs.
+8. Si no hay ciclo valido, abrir/proponer ciclo antes de cualquier escritura.
+
+El resumen de compactacion no reemplaza el contrato de sesion ni extiende approvals anteriores.
 
 ## Formato de Estado al Operador
 

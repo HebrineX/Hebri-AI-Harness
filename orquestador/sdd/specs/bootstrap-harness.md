@@ -5,9 +5,23 @@ Esta spec conserva el brief largo original de bootstrap. No se carga en operacio
 ## Uso
 
 1. Leer orquestador/context-profiles.md perfil bootstrap.
-2. Leer orquestador/method/global-rules.md.
-3. Leer esta spec.
-4. Ejecutar el bootstrap con aprobacion humana antes de escribir archivos.
+2. Leer PROJECT_BINDING.yaml.
+3. Leer orquestador/method/harness-resolution.md.
+4. Leer orquestador/method/global-rules.md.
+5. Leer esta spec.
+6. Ejecutar el bootstrap con aprobacion humana antes de escribir archivos.
+
+## Nota de version 0.7.0
+
+El brief historico que sigue conserva contexto de origen. Para uso actual, la autoridad operativa es:
+
+- `PROJECT_BINDING.yaml`
+- `orquestador/method/session-contract.md`
+- `orquestador/method/harness-resolution.md`
+- `AGENTS.md`
+- `init.sh`
+
+Desde 0.7.0, un proyecto consumidor no opera con un harness local externo. Si falta `.hebrinex/`, se copia una fuente libre `source_template` al proyecto, se vincula como `bound`, y recien despues se usa.
 
 ---
 
@@ -295,4 +309,3 @@ Reportá:
    proyecto piloto real.
 
 No hacés `git commit` ni `git push`. Eso queda para el operador humano.
-

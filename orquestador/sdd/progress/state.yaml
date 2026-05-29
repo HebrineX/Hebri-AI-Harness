@@ -1,7 +1,12 @@
 schema: hebrinex.progress.state
-version: "0.1"
+version: "0.2"
 updated_at: ""
 mode: manual
+project_binding:
+  status: source_template
+  source: "PROJECT_BINDING.yaml"
+  project_root: ""
+  harness_path: ""
 session_contract:
   status: pending
   source: "orquestador/method/session-contract.md"
@@ -23,10 +28,15 @@ active_cycle:
 required_gates:
   - G0_session_contract
   - G1_context_ready
+  - G1A_clarification_complete
+  - G1B_analysis_complete
+  - G1C_blast_radius_declared
   - G2_dispatch_ready
+  - G2A_task_graph_ready
   - G3_locks_acquired
   - G4_execution_complete
   - G5_review_or_validation
+  - G5A_detractor_pass_complete
   - G6_agent_closure_complete
   - G7_handoff_complete
 approvals:

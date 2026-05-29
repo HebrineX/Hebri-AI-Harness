@@ -10,6 +10,7 @@ Objetivo: avanzar con fluidez cuando el operador ya aprobo un objetivo, una fase
 
 El leader puede hacer sin pedir aprobacion puntual:
 - Leer archivos dentro del workspace permitido si el operador ya aprobo la exploracion del proyecto.
+- Validar `PROJECT_BINDING.yaml`, `state.yaml`, `registry.yaml` y `PROGRESS.md` en modo read-only.
 - Preparar diagnostico, plan, briefs y asignaciones.
 - Decidir que rol corresponde segun el estado SDD.
 - Detectar gaps, bloqueos y riesgos.
@@ -30,8 +31,12 @@ Formato obligatorio antes de avanzar:
 Modo: automatico
 Rol del chat: interprete
 Leader visible: si | no | pendiente
+Project root: [ruta]
+Harness path: [ruta]
+Binding: source_template | bound | missing | mismatch
 Accion propuesta: [accion concreta]
 Alcance: [archivos/comandos/agentes]
+External write scope: none | [rutas]
 Riesgo: bajo | medio | alto
 Verificacion: [como se confirma]
 Resultado esperado: [salida]
@@ -56,10 +61,14 @@ Formato obligatorio por paso:
 Modo: manual
 Rol del chat: interprete
 Leader visible: si | no | pendiente
+Project root: [ruta]
+Harness path: [ruta]
+Binding: source_template | bound | missing | mismatch
 Paso: [fase/slice/tarea]
 Voy a hacer: [accion]
 Por que: [razon]
 Tocaria: [archivos/tools/comandos]
+External write scope: none | [rutas]
 No voy a tocar: [limites]
 Criterio de salida: [verificacion]
 Esperando: SI del operador
@@ -70,3 +79,7 @@ Esperando: SI del operador
 Si el operador no define modo, usar `manual` para cualquier tarea con escritura, comandos, subagentes, git, red o cambios SDD. Usar `automatico` solo para exploracion documental de bajo riesgo o cuando el operador lo pida.
 
 Cambiar de modo durante una sesion requiere registro en `PROGRESS.md` o en el handoff del ciclo y `SI` del operador.
+
+## Re-entry
+
+Despues de compactacion, cambio de cwd o cambio de proyecto, cualquier aprobacion pendiente expira. El leader debe completar el re-entry checklist, reconstruir estado y pedir un nuevo `SI` para acciones con efecto.

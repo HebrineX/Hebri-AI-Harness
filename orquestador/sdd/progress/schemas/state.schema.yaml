@@ -4,6 +4,7 @@ required_fields:
   - schema
   - version
   - mode
+  - project_binding.status
   - session_contract.status
   - session_contract.chat_role
   - session_contract.leader_visible
@@ -12,6 +13,11 @@ required_fields:
 valid_modes:
   - manual
   - automatico
+valid_binding_statuses:
+  - source_template
+  - bound
+  - missing
+  - mismatch
 valid_cycle_statuses:
   - pending
   - spec_ready
@@ -62,6 +68,7 @@ required_gates:
   - G6_agent_closure_complete
   - G7_handoff_complete
 closure_requires:
+  - project_binding.status: bound | source_template
   - session_contract.status: pass
   - session_contract.leader_visible: true
   - G6_agent_closure_complete: pass

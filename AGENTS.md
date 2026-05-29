@@ -7,7 +7,9 @@
 
 El harness `.hebrinex` es el vehiculo operativo completo. No es una referencia opcional.
 
-Siempre que exista `.hebrinex`, el trabajo debe arrancar por el contrato de sesion en `orquestador/method/session-contract.md`. Si no existe `.hebrinex`, hay que buscarlo localmente, proponer bajarlo desde `https://github.com/HebrineX/Hebri-AI-Harness` o pedir la ruta al operador.
+Siempre que exista `.hebrinex`, el trabajo debe arrancar por el contrato de sesion en `orquestador/method/session-contract.md` y por la validacion de `PROJECT_BINDING.yaml`.
+
+Si el proyecto activo no tiene `.hebrinex`, no se usa un harness local externo como autoridad. Primero se busca una fuente local libre con `binding_mode: source_template`, se copia a `<project_root>/.hebrinex/`, se vincula con `binding_mode: bound`, y recien despues se opera. Si no existe fuente local libre, se propone bajar obligatoriamente `https://github.com/HebrineX/Hebri-AI-Harness` y vincularlo al proyecto. Si no se puede copiar o bajar, se pide ruta/contenido al operador.
 
 El chat visible es interprete por defecto. No se presenta como leader, implementer, reviewer o worker salvo aprobacion explicita del operador. El leader coordina; los roles ejecutan; el chat traduce estado, decisiones y pedidos de aprobacion.
 
@@ -27,7 +29,11 @@ Antes de analisis, plan, subagentes, edicion o comandos, declarar:
 ```text
 Contrato de sesion:
 - Harness detectado: si | no | pendiente
-- Fuente del harness: .hebrinex local | ruta local | repo remoto | provisto por usuario
+- Fuente del harness: .hebrinex del proyecto | source_template copiado | repo remoto clonado | provisto por usuario
+- Harness path: [ruta absoluta]
+- Project root: [ruta absoluta]
+- Binding: source_template | bound | missing | mismatch
+- External write scope: none | [rutas aprobadas]
 - Modo: manual | automatico
 - Rol del chat: interprete
 - Leader visible: si | no | pendiente de aprobacion
@@ -53,6 +59,8 @@ Sin este bootstrap, el flujo no es valido.
 | Ruta | Responsabilidad | Cuando leer |
 |---|---|---|
 | `.hebrinex/orquestador/method/session-contract.md` | Contrato obligatorio de sesion, hard locks y bootstrap | Siempre al iniciar trabajo |
+| `.hebrinex/PROJECT_BINDING.yaml` | Vinculo entre harness y proyecto activo | Siempre al iniciar, reentrar o migrar |
+| `.hebrinex/orquestador/method/harness-resolution.md` | Reglas de bootstrap, fuente libre y binding | Cuando falta `.hebrinex` o hay duda de ruta |
 | `.hebrinex/orquestador/method/` | Reglas operativas, SDD, modos, taxonomia y protocolo multiagente | Siempre que dudes como operar |
 | `.hebrinex/orquestador/context/` | Producto y arquitectura | Al iniciar cualquier feature |
 | `.hebrinex/orquestador/sdd/specs/` | Contratos aprobables | Antes de escribir codigo |
@@ -114,6 +122,9 @@ El rol que produce no debe ser el mismo que aprueba.
 10. Si el operador corrige una regla del harness, esa regla queda como hard lock de sesion.
 11. No validar una decision solo porque la pidio el operador o la propuso un agente.
 12. No cerrar decisiones importantes sin detractor pass cuando haya riesgo medio/alto, arquitectura, cumplimiento o evidencia debil.
+13. No usar un harness ubicado fuera del proyecto activo como autoridad operativa.
+14. No hacer fallback a "cualquier harness local"; solo se permite fuente libre `source_template` para copiar, vincular y luego operar desde la copia.
+15. Si `PROJECT_BINDING.yaml` esta ausente, en `mismatch` o apunta a otro proyecto, el flujo queda bloqueado hasta corregirlo.
 
 ## Reglas Generales
 
@@ -136,6 +147,18 @@ Antes de cerrar:
 - Archivos modificados listados.
 - Comando ejecutado con resultado.
 - Gaps nuevos registrados.
+
+## Re-entry Post-Compactacion
+
+Si la conversacion fue compactada, resumida, retomada desde logs, o si cambia el proyecto/cwd:
+
+1. Validar `PROJECT_BINDING.yaml`.
+2. Confirmar que `harness_path` esta dentro de `project_root`.
+3. Declarar de nuevo el contrato de sesion.
+4. Leer `PROGRESS.md`, `state.yaml` y `registry.yaml`.
+5. Expirar approvals viejos salvo revalidacion explicita del operador.
+6. Confirmar ciclo, locks, agentes y handoffs.
+7. No continuar trabajo con escritura hasta que el leader declare estado reconstruido.
 
 ## P0 Operativo Estructurado
 
