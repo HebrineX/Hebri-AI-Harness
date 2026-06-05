@@ -1,14 +1,14 @@
 ---
-description: "Migrar cualquier .hebrinex previo a Hebri-AI-Harness 0.7.9 sin contaminar proyectos"
+description: "Migrar cualquier .hebrinex previo a Hebri-AI-Harness 0.8.0 sin contaminar proyectos"
 ---
 
-# Migracion a Hebri-AI-Harness 0.7.9
+# Migracion a Hebri-AI-Harness 0.8.0
 
 Actua como interprete operativo del harness. No implementes nada hasta presentar preflight y esperar `SI`.
 
 ## Objetivo
 
-Migrar el `.hebrinex/` del proyecto activo a Hebri-AI-Harness 0.7.9, preservando contexto local del proyecto y evitando usar un harness de otra carpeta como autoridad operativa.
+Migrar el `.hebrinex/` del proyecto activo a Hebri-AI-Harness 0.8.0, preservando contexto local del proyecto y evitando usar un harness de otra carpeta como autoridad operativa.
 
 ## Reglas duras
 
@@ -90,7 +90,7 @@ La copia final del proyecto debe tener:
 ```yaml
 schema: hebrinex.project_binding
 version: "0.1"
-harness_version: "0.7.9"
+harness_version: "0.8.0"
 binding_mode: bound
 harness_instance_id: "HBX-[timestamp-o-id]"
 project_name: "[nombre]"
@@ -115,7 +115,7 @@ Ejecutar solo con aprobacion:
 Entregar:
 
 ```text
-Migracion 0.7.9:
+Migracion 0.8.0:
 - Estado:
 - Archivos preservados:
 - Archivos actualizados/agregados:

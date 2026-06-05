@@ -33,6 +33,9 @@ Contrato de sesion:
 - Harness path: [ruta absoluta]
 - Project root: [ruta absoluta]
 - Binding: source_template | bound | missing | mismatch
+- Memory registry: orquestador/memory/memory-registry.yaml | missing
+- Memory route: first_message | reentry_light | reentry_full | debug_log_intake | compactation_recovery
+- Memory layers loaded: local | daily | cycle | project | complete
 - External write scope: none | [rutas aprobadas]
 - Modo: manual | automatico
 - Rol del chat: interprete
@@ -49,6 +52,8 @@ Sin este bootstrap, el flujo no es valido.
 ## Economia de Contexto
 
 - No cargar todo `.hebrinex` salvo auditoria completa.
+- Antes de elegir archivos, leer `orquestador/memory/local/session-pin.md` y `orquestador/memory/memory-registry.yaml`.
+- La memoria completa vive en `orquestador/memory/complete/` y no se carga sin motivo y aprobacion.
 - Elegir perfil en `orquestador/context-profiles.md` antes de leer archivos.
 - Reglas comunes viven en `orquestador/method/global-rules.md`; los prompts no deben repetirlas.
 - `prompts/crear-harness.prompt.md` es liviano; la spec larga vive en `orquestador/sdd/specs/bootstrap-harness.md` y solo se carga en bootstrap.
@@ -59,6 +64,9 @@ Sin este bootstrap, el flujo no es valido.
 | Ruta | Responsabilidad | Cuando leer |
 |---|---|---|
 | `.hebrinex/orquestador/method/session-contract.md` | Contrato obligatorio de sesion, hard locks y bootstrap | Siempre al iniciar trabajo |
+| `.hebrinex/orquestador/memory/` | Memoria local, diaria, de ciclo, proyecto y completa gobernada por el orquestador | Siempre al iniciar o reentrar, cargando solo capas activas |
+| `.hebrinex/orquestador/entrypoints/` | Procedimientos de primer mensaje, reentry y debug log intake | Al iniciar, reentrar o recibir logs/debug |
+| `.hebrinex/orquestador/adapters/` | Traduccion del contrato para Codex, Claude, Gemini, Qwen, DeepSeek y otras IAs | Al configurar o migrar herramientas IA |
 | `.hebrinex/PROJECT_BINDING.yaml` | Vinculo entre harness y proyecto activo | Siempre al iniciar, reentrar o migrar |
 | `.hebrinex/orquestador/method/harness-resolution.md` | Reglas de bootstrap, fuente libre y binding | Cuando falta `.hebrinex` o hay duda de ruta |
 | `.hebrinex/orquestador/method/evidence-reconstruction.md` | Reglas para artefactos derivados de evidencia historica | Antes de changelog, release notes, roadmap, deploy docs o reportes historicos |
@@ -143,6 +151,9 @@ El rol que produce no debe ser el mismo que aprueba.
 22. No permitir que reporter altere veredicto de auditor.
 23. No declarar `done` si el final report no linkea evidencia, gates, closures, locks y gaps.
 24. No usar presets de IA que permitan efectos antes de contrato, binding y `SI`.
+25. No ignorar `memory-registry.yaml`: el orquestador decide capas activas.
+26. No cargar memoria completa sin motivo, alcance y aprobacion cuando aplique.
+27. No usar memoria conversacional o memoria de herramienta como evidencia operativa.
 
 ## Reglas Generales
 
@@ -167,6 +178,8 @@ Antes de cerrar:
 - Gaps nuevos registrados.
 
 ## Re-entry Post-Compactacion
+
+Desde 0.8.0, el re-entry arranca por `orquestador/memory/local/session-pin.md` y `orquestador/memory/memory-registry.yaml`. El re-entry completo solo se usa para auditoria, migracion, reconstruccion historica o incidente complejo.
 
 Si la conversacion fue compactada, resumida, retomada desde logs, o si cambia el proyecto/cwd:
 

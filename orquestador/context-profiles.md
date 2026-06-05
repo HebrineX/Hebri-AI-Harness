@@ -1,6 +1,15 @@
-﻿# Context Profiles
+# Context Profiles
 
 No cargues todo `.hebrinex` por defecto. Elegi el perfil minimo para la tarea.
+
+## Perfil `memory_bootstrap` (~1k-2k tokens)
+
+Leer siempre que hay inicio, re-entry o debug:
+- `PROJECT_BINDING.yaml`
+- `orquestador/memory/local/session-pin.md`
+- `orquestador/memory/memory-registry.yaml`
+- `orquestador/memory/memory-routing.yaml`
+- entrypoint aplicable en `orquestador/entrypoints/`
 
 ## Perfil `leader` (~2k-3k tokens)
 
@@ -131,7 +140,9 @@ Leer:
 ## Perfil `preset_ai` (~2k-4k tokens)
 
 Leer:
-- `orquestador/method/ai-preset-policy.md`
+- `orquestador/method/adapter-contract.md`
+- `orquestador/adapters/README.md`
+- adapter especifico en `orquestador/adapters/` o `generic-ai.md`- `orquestador/method/ai-preset-policy.md`
 - `orquestador/sdd/progress/templates/ai-preset-contract.md`
 - `prompts/preset-codex.prompt.md`
 - `prompts/preset-claude.prompt.md`
@@ -182,6 +193,6 @@ Leer solo para crear o regenerar un harness:
 | ci_pipeline | 6k tokens |
 | backlog | 4k tokens |
 | preset_ai | 4k tokens |
-| reporter | 2k tokens |
+| memory_bootstrap | 2k tokens || reporter | 2k tokens |
 | ai_engineering | 5k tokens |
 | bootstrap | 8k tokens |

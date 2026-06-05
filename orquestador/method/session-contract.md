@@ -24,6 +24,9 @@ Contrato de sesion:
 - Harness path: [ruta absoluta]
 - Project root: [ruta absoluta]
 - Binding: source_template | bound | missing | mismatch
+- Memory registry: orquestador/memory/memory-registry.yaml | missing
+- Memory route: first_message | reentry_light | reentry_full | debug_log_intake | compactation_recovery
+- Memory layers loaded: local | daily | cycle | project | complete
 - External write scope: none | [rutas aprobadas]
 - Modo: manual | automatico
 - Rol del chat: interprete
@@ -36,6 +39,17 @@ Contrato de sesion:
 ```
 
 Sin este bootstrap, no se puede iniciar trabajo operativo.
+
+## Memoria Operativa 0.8.0
+
+Antes de cargar contexto amplio, leer:
+
+1. `orquestador/memory/local/session-pin.md`.
+2. `orquestador/memory/memory-registry.yaml`.
+3. `orquestador/memory/memory-routing.yaml`.
+4. El entrypoint que corresponda.
+
+La memoria local y diaria ayudan a rehidratar foco. La memoria completa no se carga por defecto y no reemplaza evidencia, approvals, state, registry ni gate logs.
 
 ## Resolucion del Harness
 
@@ -88,6 +102,9 @@ Estas reglas no son sugerencias. Si se rompen, el flujo debe detenerse y corregi
 20. No consolidar auditoria/reporte sin aplicar `audit-reporting-policy.md`.
 21. No declarar `done` sin aplicar `final-report-evidence-policy.md` cuando hay cierre de ciclo/fase.
 22. No usar preset externo o copiado si no cumple `ai-preset-policy.md`.
+23. No ignorar `memory-registry.yaml` ni cargar capas no habilitadas por el orquestador.
+24. No usar memoria conversacional o de herramienta como evidencia.
+25. No cargar memoria completa sin motivo y aprobacion cuando aplique.
 
 ## Re-entry Post-Compactacion
 
@@ -97,7 +114,7 @@ Si la sesion fue compactada, resumida, retomada desde logs o cambiaron el cwd/pr
 2. Confirmar `binding_mode: bound` para proyectos consumidores o `source_template` solo si la tarea es editar el harness fuente.
 3. Confirmar `project_root` contra la raiz real del proyecto activo.
 4. Declarar nuevamente el contrato de sesion completo.
-5. Leer `PROGRESS.md`, `state.yaml` y `registry.yaml`.
+5. Leer `session-pin.md`, `memory-registry.yaml`, `memory-routing.yaml`, `PROGRESS.md`, `state.yaml` y `registry.yaml`.
 6. Expirar approvals pendientes de sesiones anteriores salvo que el operador los revalide con un nuevo `SI`.
 7. Confirmar ciclo activo, locks, agentes abiertos y handoffs.
 8. Si no hay ciclo valido, abrir/proponer ciclo antes de cualquier escritura.
@@ -183,6 +200,7 @@ Los siguientes controles son condicionales por tipo de tarea:
 | 0.7.6 | Separacion auditor/reporter | `audit-reporting-policy.md` |
 | 0.7.7 | Final report con cross-links | `final-report-evidence-policy.md` |
 | 0.7.8 | Presets por IA | `ai-preset-policy.md` |
+| 0.8.0 | Memoria estratificada y adapters IA | `memory-layer-policy.md`, `adapter-contract.md`, `context-loading-policy.md` |
 
 ## Cierre de Agentes
 

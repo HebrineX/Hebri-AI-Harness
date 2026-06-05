@@ -61,7 +61,7 @@ orquestador/harness-manifest.txt
 ```yaml
 schema: hebrinex.project_binding
 version: "0.1"
-harness_version: "0.7.9"
+harness_version: "0.8.0"
 binding_mode: bound
 harness_instance_id: "HBX-..."
 project_name: "nombre-del-proyecto"

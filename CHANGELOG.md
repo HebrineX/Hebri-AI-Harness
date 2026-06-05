@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.8.0] - 2026-06-05
+
+### Added
+- `orquestador/memory/` con memoria estratificada local, diaria, de ciclo, de proyecto y completa.
+- `orquestador/entrypoints/` para first message, reentry light/full, debug log intake y recovery post-compactacion.
+- `orquestador/adapters/` para Codex, Claude Code, Gemini, Qwen, DeepSeek, Cursor, Copilot y Generic AI.
+- Politicas `memory-layer-policy.md`, `adapter-contract.md` y `context-loading-policy.md`.
+- Prompts operativos para reentry liviano/completo, memoria diaria, cierre de memoria de ciclo, auditoria de memoria, primer mensaje y entrada de logs/debug.
+
+### Changed
+- La version operativa actual pasa a 0.8.0.
+- `init.sh` valida memoria, adapters y entrypoints desde el manifest.
+- `PROJECT_BINDING.yaml` declara que la memoria operativa se gobierna desde `memory-registry.yaml`.
+- Los presets por IA pasan a ser adapters gobernados por `ai-preset-policy.md`.
+
+### Rationale
+- La memoria conversacional no es confiable ni portable entre IAs. 0.8.0 convierte el re-entry en una rehidratacion por capas decidida por el orquestador, reduciendo reentradas manuales, drift y costo de contexto.
 ## [0.7.9] - 2026-05-29
 
 ### Added

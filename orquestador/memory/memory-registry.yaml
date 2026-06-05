@@ -1,0 +1,46 @@
+schema: hebrinex.memory.registry
+version: "0.1"
+updated_at: ""
+owner_role: leader
+binding_mode: source_template
+active_layers:
+  local:
+    enabled: true
+    refs:
+      - orquestador/memory/local/session-pin.md
+      - orquestador/memory/local/active-contract.md
+      - orquestador/memory/local/current-focus.md
+  daily:
+    enabled: true
+    current_ref: orquestador/memory/daily/_template.md
+  cycle:
+    enabled: false
+    current_cycle_id: ""
+    current_ref: orquestador/memory/cycle/_template.md
+  project:
+    enabled: true
+    refs:
+      - orquestador/memory/project/project-facts.md
+      - orquestador/memory/project/architecture-summary.md
+      - orquestador/memory/project/decisions.md
+  complete:
+    enabled: false
+    requires_approval: true
+    refs:
+      - orquestador/memory/complete/full-index.md
+      - orquestador/memory/complete/deep-context-map.md
+      - orquestador/memory/complete/historical-summary.md
+load_order_default:
+  - orquestador/memory/local/session-pin.md
+  - orquestador/memory/local/active-contract.md
+  - orquestador/memory/local/current-focus.md
+  - orquestador/memory/daily/_template.md
+conflict_resolution:
+  order:
+    - approvals_and_gate_logs
+    - state_and_registry
+    - memory_cycle
+    - memory_project
+    - memory_daily
+    - memory_local
+  on_conflict: stop_and_report

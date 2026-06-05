@@ -1,33 +1,38 @@
 # AI Preset Policy
 
-Version: 0.7.8
+Version: 0.8.0
 
-Esta politica define presets minimos para Codex, Claude y Gemini cuando el operador necesita recuperar el foco del harness.
+Esta politica define como configurar instrucciones persistentes para IAs sin duplicar el harness completo.
 
 ## Objetivo
 
-Cada IA debe recibir el mismo contrato operativo, adaptado a su forma de trabajo, para evitar que el agente actue directo ante logs, errores o debug.
+Cada IA debe encontrar, validar y obedecer `.hebrinex`, cargar memoria por capas y usar el adapter correspondiente.
 
 ## Preset Minimo
 
 Todo preset debe incluir:
 
 - Hebri-AI-Harness como contrato obligatorio;
-- project root;
-- harness path o regla de bootstrap;
+- regla de busqueda/copia/binding de `.hebrinex`;
+- lectura de `PROJECT_BINDING.yaml`;
+- lectura de `orquestador/memory/local/session-pin.md`;
+- lectura de `orquestador/memory/memory-registry.yaml`;
+- lectura de `orquestador/method/session-contract.md`;
 - chat como interprete;
 - leader visible;
 - maximo 5 agentes activos;
-- lectura de `PROJECT_BINDING.yaml`;
-- lectura de `AGENTS.md` y `session-contract.md`;
-- preflight antes de efectos;
-- re-entry si hay compactacion o desvio;
-- prohibicion de usar harness externo como autoridad;
-- regla de evidencia antes de changelog/release/docs historicas.
+- preflight y `SI` antes de efectos;
+- reentry light ante compactacion, logs o perdida de foco;
+- reentry full solo con motivo y aprobacion;
+- prohibicion de usar harness externo como autoridad.
+
+## Adapters
+
+Usar `orquestador/adapters/<tool>.md` cuando exista. Si no existe, usar `orquestador/adapters/generic-ai.md`.
 
 ## Regla
 
-Un preset no reemplaza al harness. Solo obliga a la IA a encontrarlo, validarlo y obedecerlo.
+Un preset no reemplaza al harness. Solo obliga a la IA a encontrarlo, validarlo, cargar su memoria minima y obedecerlo.
 
 ## Bloqueos
 
@@ -36,5 +41,6 @@ Bloquear si:
 - el preset permite editar antes de contrato;
 - no exige `SI` antes de efectos;
 - no menciona binding;
-- no separa interprete, leader y roles;
+- no carga `session-pin.md`;
+- no respeta `memory-registry.yaml`;
 - permite operar desde un harness de otra carpeta.

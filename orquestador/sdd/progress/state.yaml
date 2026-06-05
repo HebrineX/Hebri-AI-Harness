@@ -27,7 +27,7 @@ active_cycle:
     - blocked
 required_gates:
   - G0_session_contract
-  - G1_context_ready
+  - G0A_memory_registry_loaded  - G1_context_ready
   - G1A_clarification_complete
   - G1B_analysis_complete
   - G1C_blast_radius_declared
@@ -47,7 +47,7 @@ conditional_gates:
   - G5F_backlog_classification_complete
   - G5G_audit_report_contract_complete
   - G5H_final_report_crosslink_complete
-approvals:
+  - G5I_memory_consistency_completeapprovals:
   required_for:
     - edit_files
     - run_commands

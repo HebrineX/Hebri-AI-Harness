@@ -1,6 +1,6 @@
 # Hebri-AI-Harness
 
-Referencia operativa actual: **0.7.9**.
+Referencia operativa actual: **0.8.0**.
 
 Este directorio oculto contiene el sistema operativo para agentes IA, basado en la metodologia [Hebri-AI-Structure](https://github.com/HebrineX/Hebri-AI-Structure). Convierte el proyecto en un entorno estructurado por SDD, roles cerrados, roles minimos con perfiles parametrizados, ownership, gates, auditoria, reporter, detractor pass y memoria por archivos.
 
@@ -46,6 +46,14 @@ No cargues todo `.hebrinex`. Usar perfiles reduce 70-85% del contexto por ciclo:
 ## Limite Multiagente
 
 Maximo 5 agentes activos totales: 1 leader + 4 subagentes. Las especializaciones se expresan como perfiles, no como mas agentes. Para 30 asignaciones se usan ciclos registrados, no 30 ejecuciones simultaneas.
+
+## Novedades 0.8.0
+
+- `orquestador/memory/` separa memoria local, diaria, de ciclo, de proyecto y completa.
+- `memory-registry.yaml` y `memory-routing.yaml` hacen que el orquestador decida que capas cargar.
+- `orquestador/entrypoints/` define primer mensaje, reentry liviano/completo, debug log intake y recovery post-compactacion.
+- `orquestador/adapters/` permite operar con Codex, Claude Code, Gemini, Qwen, DeepSeek, Cursor, Copilot o una IA generica sin duplicar el contrato.
+- `init.sh` valida memoria, adapters y entrypoints desde `harness-manifest.txt`.
 
 ## Novedades 0.7.9
 
