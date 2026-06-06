@@ -1,6 +1,6 @@
 # Final Report Evidence Policy
 
-Version: 0.7.7
+Version: 0.8.2
 
 Esta politica exige que todo cierre tenga links internos a la evidencia que lo sostiene.
 
@@ -16,6 +16,7 @@ El final report debe referenciar:
 - audit trail;
 - verification matrix si aplica;
 - agent closure;
+- memory closure checklist (`orquestador/sdd/progress/templates/memory-closure-checklist.md`);
 - locks liberados o bloqueados;
 - gaps abiertos;
 - comandos o validaciones ejecutadas;
@@ -31,6 +32,7 @@ Bloquear si:
 
 - falta gate log;
 - falta agent closure;
+- falta cierre de memoria cuando hubo cambios de contrato, estado o contexto;
 - hay locks abiertos no explicados;
 - no hay evidencia de verificacion ni bloqueo documentado;
 - el final report no permite reconstruir que paso.

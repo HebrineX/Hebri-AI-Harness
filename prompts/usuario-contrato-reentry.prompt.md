@@ -123,5 +123,5 @@ Respondé solo con el contrato reconstruido y el próximo preflight.
 ## Frase corta de emergencia
 
 ```text
-Volvé al harness. Re-entry 0.8.0: valida PROJECT_BINDING, session-pin, memory-registry, memory-routing, project_root, harness_path, state, registry y expiracion de approvals antes de seguir.
+Volvé al harness. Re-entry 0.8.2: valida PROJECT_BINDING, session-pin, memory-registry, memory-routing, project_root, harness_path, state, registry y expiracion de approvals antes de seguir.
 ```

@@ -1,17 +1,21 @@
 # Reentry Full
 
+Ruta: `reentry_full`.
+Presupuesto: <= 8000 tokens salvo `audit_global`.
+
 Usar para auditoria global, migracion, reconstruccion historica, drift complejo o incidente con evidencia incompleta.
 
-Requiere preflight y `SI` si implica lectura amplia, git, red o escritura.
+Requiere motivo. Requiere preflight y `SI` si implica lectura amplia, git, red, escritura o acciones posteriores.
 
-Leer:
+Leer segun alcance declarado:
 - local
 - daily
 - cycle
 - project
-- complete
+- complete si fue aprobado
 - state/registry
 - gates/evidence del alcance declarado
+- politica especifica del caso
 
 Salida obligatoria:
 - hechos observados;
@@ -19,4 +23,5 @@ Salida obligatoria:
 - contradicciones;
 - gaps;
 - plan de correccion;
-- evidencia consultada.
+- evidencia consultada;
+- tokens estimados usados.

@@ -1,0 +1,35 @@
+schema: hebrinex.context_budget
+version: "0.1"
+harness_version: "0.8.2"
+objective: "Reducir 70-80% el costo operativo frente a cargas completas."
+
+default_policy:
+  default_route: reentry_light
+  full_context_requires_approval: true
+  load_infohebri: denied
+  over_budget_action: stop_and_request_narrower_brief
+
+budgets:
+  memory_bootstrap: { max_tokens: 1500 }
+  first_message: { max_tokens: 1800 }
+  reentry_light: { max_tokens: 1800 }
+  debug_log_intake: { max_tokens_before_user_logs: 2000 }
+  leader_light: { max_tokens: 2400 }
+  leader_full: { max_tokens: 8000, requires_approval: true }
+  audit_global: { max_tokens: 12000, requires_approval: true }
+
+deny_by_default:
+  - infoHebri.md
+  - orquestador/memory/complete/*
+  - CHANGELOG.md unless profile is release/version_drift
+  - README.md unless profile is docs/bootstrap/version_drift
+  - orquestador/harness-manifest.txt unless profile is bootstrap/version_drift
+  - init.sh unless profile is bootstrap/version_drift
+  - prompts/* unless selected profile explicitly requires one prompt
+
+required_context_report:
+  - memory_route
+  - files_loaded
+  - estimated_tokens
+  - over_budget
+  - reason_if_full_context

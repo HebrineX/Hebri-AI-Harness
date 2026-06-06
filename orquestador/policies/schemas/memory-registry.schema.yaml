@@ -1,0 +1,24 @@
+schema: hebrinex.schema.memory_registry
+version: "0.1"
+target: orquestador/memory/memory-registry.yaml
+required_top_keys:
+  - schema
+  - version
+  - updated_at
+  - owner_role
+  - binding_mode
+  - active_layers
+  - load_order_default
+  - conflict_resolution
+required_values:
+  schema: hebrinex.memory.registry
+required_layers:
+  - local
+  - daily
+  - cycle
+  - project
+  - complete
+hard_rules:
+  - complete.enabled false por defecto.
+  - complete.requires_approval true.
+  - local/session-pin.md debe estar en load_order_default.

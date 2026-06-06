@@ -1,198 +1,106 @@
 # Context Profiles
 
-No cargues todo `.hebrinex` por defecto. Elegi el perfil minimo para la tarea.
+Version: 0.8.2
 
-## Perfil `memory_bootstrap` (~1k-2k tokens)
+Objetivo: cargar el minimo contexto posible. El default debe ahorrar 70-80% frente a leer `AGENTS.md + session-contract + method/* + prompts/*`.
 
-Leer siempre que hay inicio, re-entry o debug:
+Antes de leer un perfil, revisar `orquestador/context-budget.yaml`.
+
+## `memory_bootstrap` <= 1500 tokens
+
+Leer:
 - `PROJECT_BINDING.yaml`
 - `orquestador/memory/local/session-pin.md`
 - `orquestador/memory/memory-registry.yaml`
 - `orquestador/memory/memory-routing.yaml`
-- entrypoint aplicable en `orquestador/entrypoints/`
+- entrypoint aplicable
 
-## Perfil `leader` (~2k-3k tokens)
+Uso: inicio, re-entry, debug, cambio de tema.
+
+## `first_message` <= 1800 tokens
+
+Leer `memory_bootstrap` + memoria local minima. No leer contrato extendido.
+
+## `debug_log_intake` <= 2000 tokens + logs del usuario
 
 Leer:
-- `AGENTS.md`
-- `PROJECT_BINDING.yaml`
-- `PROGRESS.md`
-- `orquestador/method/session-contract.md`
-- `orquestador/method/harness-resolution.md`
-- `orquestador/method/operating-modes.md`
-- `orquestador/method/multiagent-protocol.md`
-- `orquestador/method/agent-role-taxonomy.md`
-- `orquestador/method/global-rules.md`
+- `memory_bootstrap`
+- `orquestador/entrypoints/debug-log-intake.md`
+
+No leer `leader_full` por recibir logs. Primero clasificar hechos, inferencias y comandos candidatos.
+
+## `leader_light` <= 2500 tokens
+
+Leer:
+- `memory_bootstrap`
 - `orquestador/sdd/progress/state.yaml`
 - `orquestador/sdd/progress/registry.yaml`
-- `orquestador/sdd/progress/registry.md`
-- `orquestador/sdd/progress/blocked.md`
+- `orquestador/sdd/progress/blocked.md` solo si `state.yaml` declara bloqueo o el operador reporta bloqueo
+- `orquestador/method/session-contract.md`
 
-## Perfil `spec_author` (~1.5k-3k tokens)
+Uso: coordinacion normal, plan corto, preflight, estado al operador.
+
+## `leader_full` <= 8000 tokens, requiere motivo
+
+Leer solo si `leader_light` no alcanza:
+- `leader_light`
+- `orquestador/method/session-contract-extended.md`
+- politica especifica del caso
+- evidencia del ciclo activo
+
+Requiere explicar motivo. Si supera presupuesto, pedir brief mas acotado.
+
+## `spec_author` <= 3000 tokens
 
 Leer:
-- `orquestador/method/global-rules.md`
 - `orquestador/method/sdd.md`
 - `orquestador/context/product.md`
 - `orquestador/context/architecture.md`
-- `orquestador/sdd/specs/_template/`
+- templates SDD necesarios
 - `prompts/spec-author.prompt.md`
 
-## Perfil `implementer` (~2k-4k tokens)
+## `implementer` <= 4000 tokens
 
 Leer:
-- `orquestador/method/global-rules.md`
+- spec activa: requirements/design/tasks
 - `orquestador/policies/permissions.md`
 - `orquestador/policies/risk-criteria.md`
 - `orquestador/policies/tool-policy.yaml`
-- `orquestador/policies/write-set-policy.md`
-- `orquestador/sdd/specs/<feature>/requirements.md`
-- `orquestador/sdd/specs/<feature>/design.md`
-- `orquestador/sdd/specs/<feature>/tasks.md`
-- `orquestador/sdd/progress/state.yaml`
-- `orquestador/sdd/progress/registry.yaml`
-- lock activo en `orquestador/sdd/progress/locks/`
+- lock activo si existe
 - `prompts/implementer.prompt.md`
 
-## Perfil `reviewer` (~2k-4k tokens)
+## `reviewer` <= 4000 tokens
 
-Leer:
-- `orquestador/method/global-rules.md`
-- `orquestador/sdd/specs/<feature>/`
-- artefacto `impl_*.md`
-- `gate-log.yaml` si existe
-- `verification-matrix.yaml` si existe
-- `final-report.md` si existe
-- `prompts/reviewer.prompt.md`
+Leer spec activa, artefacto implementado, gate log/evidencia del alcance y `prompts/reviewer.prompt.md`.
 
-## Perfil `auditor` (~2k-4k tokens)
+## `auditor` <= 4000 tokens
 
-Leer:
-- `orquestador/method/global-rules.md`
-- `orquestador/method/agent-role-taxonomy.md`
-- `orquestador/method/multiagent-protocol.md`
-- `orquestador/sdd/progress/state.yaml`
-- `orquestador/sdd/progress/registry.yaml`
-- gate logs, audit trails, final reports y agent closures del ciclo auditado
-- `agents/auditor.md`
+Leer state, registry, gates/evidencia del ciclo auditado, `agents/auditor.md` y detractor pass si aplica.
 
-## Perfil `release` (~3k-6k tokens)
+## `reporter` <= 2000 tokens
 
-Leer cuando se actualiza changelog, release notes, README versionado, deploy docs historicos o roadmap consolidado:
-- `AGENTS.md`
-- `PROJECT_BINDING.yaml`
-- `PROGRESS.md`
-- `CHANGELOG.md`
-- `orquestador/method/evidence-reconstruction.md`
-- `orquestador/method/changelog-policy.md`
-- `orquestador/sdd/progress/state.yaml`
-- `orquestador/sdd/progress/registry.yaml`
-- `orquestador/sdd/progress/registry.md`
-- gate logs, final reports y audit trails relevantes
-- `orquestador/sdd/progress/templates/changelog-reconstruction-checklist.md`
-- `orquestador/sdd/progress/templates/release-history-matrix.yaml`
-- `prompts/actualizar-changelog.prompt.md`
+Leer output de auditor/reviewer/leader, audiencia objetivo, `agents/reporter.md` y solo evidencia referenciada.
 
-Comandos read-only recomendados:
-- `git log --oneline --decorate --date=short`
-- `git show --stat <sha>`
+## Perfiles Especiales
 
-## Perfil `deploy_migration` (~3k-6k tokens)
+| Perfil | Presupuesto | Carga |
+|---|---:|---|
+| `release` | <= 6000 | changelog, evidence reconstruction, registry, git log y matriz historica |
+| `deploy_migration` | <= 6000 | deploy policy, scripts/docs de deploy y evidencia |
+| `version_drift` | <= 4000 | HARNESS_VERSION, binding, README, CHANGELOG, init, prompts de migracion |
+| `ci_pipeline` | <= 6000 | workflows, logs, commits relevantes y pipeline policy |
+| `backlog` | <= 4000 | PROGRESS, future-p1, registry y backlog policy |
+| `preset_ai` | <= 4000 | adapter contract, adapter especifico y preset puntual |
+| `ai_engineering` | <= 5000 | solo si hay LLM/tools/runtime |
+| `bootstrap` | <= 8000 | manifest, bootstrap spec y migracion |
+| `audit_global` | <= 12000 | requiere preflight y `SI` |
 
-Leer:
-- `orquestador/method/deploy-migration-policy.md`
-- scripts, workflows y docs de deploy/migracion del proyecto
-- `CHANGELOG.md`, `PROGRESS.md` y registry si se documenta historia
-- `orquestador/sdd/progress/templates/deploy-migration-checklist.md`
-- `prompts/reconstruir-deploy-migracion.prompt.md`
+## Denegado por Defecto
 
-## Perfil `version_drift` (~2k-4k tokens)
+- `infoHebri.md`
+- `orquestador/memory/complete/*`
+- leer todo `orquestador/method/`
+- leer todo `prompts/`
+- leer todo `.hebrinex/`
 
-Leer:
-- `HARNESS_VERSION`
-- `PROJECT_BINDING.yaml`
-- `README.md`
-- `CHANGELOG.md`
-- `init.sh`
-- prompts de migracion/re-entry
-- `orquestador/method/reference-drift-policy.md`
-- `orquestador/sdd/progress/templates/reference-drift-matrix.yaml`
-
-## Perfil `ci_pipeline` (~3k-6k tokens)
-
-Leer:
-- workflows/scripts de CI
-- logs o capturas provistas
-- commits relevantes
-- `orquestador/method/ci-pipeline-policy.md`
-- `orquestador/sdd/progress/templates/ci-pipeline-history.yaml`
-- `prompts/reconstruir-ci-pipeline.prompt.md`
-
-## Perfil `backlog` (~2k-4k tokens)
-
-Leer:
-- `PROGRESS.md`
-- `orquestador/sdd/progress/future-p1.md`
-- registry y auditorias relevantes
-- `orquestador/method/backlog-policy.md`
-- `orquestador/sdd/progress/templates/backlog-classification-matrix.yaml`
-
-## Perfil `preset_ai` (~2k-4k tokens)
-
-Leer:
-- `orquestador/method/adapter-contract.md`
-- `orquestador/adapters/README.md`
-- adapter especifico en `orquestador/adapters/` o `generic-ai.md`- `orquestador/method/ai-preset-policy.md`
-- `orquestador/sdd/progress/templates/ai-preset-contract.md`
-- `prompts/preset-codex.prompt.md`
-- `prompts/preset-claude.prompt.md`
-- `prompts/preset-gemini.prompt.md`
-
-## Perfil `reporter` (~1k-2k tokens)
-
-Leer:
-- output de auditor/reviewer/leader
-- audiencia objetivo
-- `agents/reporter.md`
-- evidencia referenciada, no todo el repo
-
-## Perfil `ai_engineering` (~2k-5k tokens)
-
-Leer solo cuando se conectan LLMs, tools o runtime:
-- `orquestador/method/ai-engineering.md`
-- `orquestador/policies/permissions.md`
-- `orquestador/policies/risk-criteria.md`
-- `orquestador/policies/tool-policy.yaml`
-- `orquestador/policies/write-set-policy.md`
-- prompt o workflow especifico
-
-## Perfil `bootstrap` (~4k-8k tokens)
-
-Leer solo para crear o regenerar un harness:
-- `PROJECT_BINDING.yaml`
-- `orquestador/harness-manifest.txt`
-- `prompts/crear-harness.prompt.md`
-- `prompts/migrar-harness-0-7.prompt.md` si se migra desde version previa
-- `orquestador/method/harness-resolution.md`
-- `orquestador/sdd/specs/bootstrap-harness.md`
-- `orquestador/method/global-rules.md`
-- `orquestador/method/ai-engineering.md` si se agregan runtime/tools
-
-## Presupuesto por defecto
-
-| Perfil | Presupuesto objetivo |
-|---|---:|
-| leader | 3k tokens |
-| spec_author | 3k tokens |
-| implementer | 4k tokens |
-| reviewer | 4k tokens |
-| auditor | 4k tokens |
-| release | 6k tokens |
-| deploy_migration | 6k tokens |
-| version_drift | 4k tokens |
-| ci_pipeline | 6k tokens |
-| backlog | 4k tokens |
-| preset_ai | 4k tokens |
-| memory_bootstrap | 2k tokens || reporter | 2k tokens |
-| ai_engineering | 5k tokens |
-| bootstrap | 8k tokens |
+Si un agente necesita superar presupuesto, debe detenerse, explicar read-set y pedir autorizacion.

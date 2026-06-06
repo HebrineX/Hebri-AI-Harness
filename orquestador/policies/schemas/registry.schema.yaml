@@ -1,0 +1,24 @@
+schema: hebrinex.schema.progress_registry
+version: "0.1"
+target: orquestador/sdd/progress/registry.yaml
+required_top_keys:
+  - schema
+  - version
+  - updated_at
+  - kanban_statuses
+  - roles
+  - profiles
+  - cycles
+required_values:
+  schema: hebrinex.progress.registry
+required_roles:
+  - interpreter
+  - leader
+  - executor
+  - reviewer
+  - auditor
+  - reporter
+hard_rules:
+  - Un ciclo done/review debe tener evidencia P0 o bloqueo documentado.
+  - Leader visible no implementa.
+  - Reporter comunica; no cambia veredicto.

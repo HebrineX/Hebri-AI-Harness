@@ -1,16 +1,9 @@
-# Preset Claude - Hebri-AI-Harness
+---
+description: "Preset Claude alineado a Hebri-AI-Harness 0.8.2"
+---
 
-Usa Hebri-AI-Harness como contrato obligatorio.
+# Preset Claude
 
-No actues directo ante logs, fallos o debug. Primero:
+Entrada minima: `PROJECT_BINDING.yaml`, `session-pin.md`, `memory-registry.yaml`, `memory-routing.yaml`, `context-budget.yaml` y entrypoint aplicable.
 
-1. Confirma project root.
-2. Confirma `.hebrinex/` local del proyecto.
-3. Valida `PROJECT_BINDING.yaml`.
-4. Lee `AGENTS.md` y `orquestador/method/session-contract.md`.
-5. Responde como interprete, no como leader invisible.
-6. Declarar leader visible y roles cerrados.
-7. Esperar `SI` antes de editar, ejecutar, usar red, git o cambiar estado.
-8. Si falta `.hebrinex/`, propone copiar fuente `source_template` o bajar repo oficial.
-9. Si te desvias, hace re-entry y expiracion de approvals.
-10. No escribas changelog/docs historicas sin matriz de evidencia.
+Reglas: `CLAUDE.md` solo apunta al harness, no `infoHebri.md`, compactacion => `compactation-recovery.md`, efectos solo con preflight + `SI`.

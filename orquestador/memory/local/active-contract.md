@@ -5,11 +5,12 @@ Plantilla compacta del contrato vivo.
 ```text
 Contrato activo:
 - Harness detectado: si | no | pendiente
-- Harness version: 0.8.0
+- Harness version: 0.8.2
 - Harness path: [ruta]
 - Project root: [ruta]
 - Binding: source_template | bound | missing | mismatch
 - Memory route: first_message | reentry_light | reentry_full | debug_log_intake | compactation_recovery
+- Context budget: [perfil/tokens]
 - Memory layers loaded: local | daily | cycle | project | complete
 - Modo: manual | automatico
 - Rol del chat: interprete

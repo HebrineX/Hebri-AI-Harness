@@ -1,18 +1,18 @@
-# Generic AI Adapter
+# Generic Ai Adapter
 
-Usar para cualquier IA sin adapter especifico.
+## Entrada minima 0.8.2
 
-## Entrada minima persistente
+Antes de actuar, leer solo:
+1. `PROJECT_BINDING.yaml`
+2. `orquestador/memory/local/session-pin.md`
+3. `orquestador/memory/memory-registry.yaml`
+4. `orquestador/memory/memory-routing.yaml`
+5. `orquestador/context-budget.yaml`
+6. entrypoint aplicable en `orquestador/entrypoints/`
 
-```text
-Usa Hebri-AI-Harness como contrato operativo obligatorio. Si existe `.hebrinex/`, lee `PROJECT_BINDING.yaml`, `orquestador/memory/local/session-pin.md`, `orquestador/memory/memory-registry.yaml` y `orquestador/method/session-contract.md` antes de actuar. No ejecutes acciones con efecto sin preflight y SI.
-```
+No usar memoria de la herramienta como evidencia. No cargar `infoHebri.md`. Preflight + `SI` antes de efectos.
+## Reglas
 
-## Reentry
-
-- Primero `entrypoints/reentry-light.md`.
-- `reentry-full.md` solo con aprobacion.
-
-## Limitacion
-
-No asumir memoria persistente de herramienta salvo que el operador lo confirme.
+- Este adapter traduce el contrato; no reemplaza .hebrinex.
+- Si se pierde foco, usar eentry-light.
+- Si hay logs/debug, usar debug-log-intake.

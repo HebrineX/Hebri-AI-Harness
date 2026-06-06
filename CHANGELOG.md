@@ -1,5 +1,37 @@
 # Changelog
 
+## [0.8.2] - 2026-06-06
+
+### Added
+- `orquestador/sdd/progress/templates/memory-closure-checklist.md` para cerrar memoria local, daily, cycle y project antes de `done`.
+- Validaciones en `init.sh` para drift operativo, presupuestos minimos y exclusion de `infoHebri.md`.
+
+### Changed
+- Version operativa actual a 0.8.2.
+- Adapters y presets usan entrada minima: `PROJECT_BINDING.yaml`, `session-pin.md`, `memory-registry.yaml`, `memory-routing.yaml`, `context-budget.yaml` y entrypoint.
+- Bootstrap y migracion excluyen materialmente `infoHebri.md`, `.git/` y temporales.
+
+### Fixed
+- `state.yaml` corrige gates pegados y separa correctamente `approvals`.
+- Referencias operativas antiguas quedan alineadas al contrato vigente.
+
+## [0.8.1] - 2026-06-06
+
+### Added
+- `orquestador/context-budget.yaml` with hard budgets for `memory_bootstrap`, `first_message`, `reentry_light`, `debug_log_intake`, `leader_light`, `leader_full` and `audit_global`.
+- `orquestador/method/session-contract-extended.md` for low-frequency rules that should not be loaded on every message.
+- `.gitignore` entry for `infoHebri.md` so personal documentation never becomes operational context.
+
+### Changed
+- `AGENTS.md` and `session-contract.md` now act as a lightweight kernel.
+- `context-profiles.md` now separates `leader_light` from `leader_full` and fixes the budget table drift.
+- `context-loading-policy.md` makes budget reporting mandatory and treats over-budget loading as a stop condition.
+- Entrypoints now deny full context by default and keep debug/log intake on the light route.
+- README documents the 70-80% token reduction target as a contract objective.
+
+### Fixed
+- Prevents `infoHebri.md` from being copied into consumer `.hebrinex` contexts.
+- Prevents logs/debug from triggering heavy leader context automatically.
 ## [0.8.0] - 2026-06-05
 
 ### Added

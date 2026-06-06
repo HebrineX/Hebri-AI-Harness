@@ -1,25 +1,24 @@
 # Memory Layer Policy
 
-Version: 0.8.0
+Version: 0.8.2
 
 ## Objetivo
 
-Definir como se cargan, actualizan e invalidan las capas de memoria del harness.
+Definir como se cargan, actualizan, invalidan y cierran las capas de memoria sin romper el presupuesto de contexto.
 
-## Capas
-
-| Capa | Autoridad | Se carga por defecto | Puede cerrar tareas |
+| Capa | Autoridad | Default | Cierre requerido |
 |---|---|---:|---:|
-| local | session pin y foco | si | no |
-| daily | leader del dia | si | no |
-| cycle | state/registry/gates | si hay ciclo | no sola |
-| project | decisiones estables | por perfil | no sola |
-| complete | evidencia historica | no | no sola |
+| local | session pin, active contract y foco | si | si |
+| daily | contexto fresco del dia | si, si existe | si |
+| cycle | state/registry/gates | si hay ciclo activo | si |
+| project | decisiones estables | por perfil | si hubo decision estable |
+| complete | evidencia historica | no | solo con aprobacion |
 
-## Regla de autoridad
-
-La memoria ayuda a cargar contexto. No reemplaza evidence, gate logs, approvals, state ni registry.
-
-## Drift
-
-Si una memoria contradice una fuente estructurada, el agente debe detenerse, reportar el conflicto y pedir resolucion o aplicar reentry full con SI.
+Reglas:
+1. `memory-registry.yaml` decide capas activas.
+2. `context-budget.yaml` decide cuanto se puede cargar.
+3. La memoria completa requiere motivo, read-set y aprobacion.
+4. La memoria no reemplaza evidence, gate logs, approvals, state ni registry.
+5. Si una memoria contradice una fuente estructurada, detenerse y reportar conflicto.
+6. Todo cierre operativo debe evaluar `orquestador/sdd/progress/templates/memory-closure-checklist.md`.
+7. No promover logs/debug/transitorio a memoria de proyecto.

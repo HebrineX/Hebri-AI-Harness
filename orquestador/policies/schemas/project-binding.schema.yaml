@@ -1,0 +1,27 @@
+schema: hebrinex.schema.project_binding
+version: "0.1"
+target: PROJECT_BINDING.yaml
+required_top_keys:
+  - schema
+  - version
+  - harness_version
+  - binding_mode
+  - harness_instance_id
+  - project_name
+  - project_root
+  - repo_remote
+  - source_repo
+  - created_at
+  - bound_at
+  - notes
+required_values:
+  schema: hebrinex.project_binding
+  harness_version: "0.8.2"
+allowed_values:
+  binding_mode:
+    - source_template
+    - bound
+rules:
+  - source_template puede tener project_root vacio.
+  - bound requiere project_root exacto y carpeta llamada .hebrinex.
+  - infoHebri.md no forma parte del binding ni del paquete bound.

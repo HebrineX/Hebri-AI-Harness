@@ -1,13 +1,18 @@
 # Gemini Adapter
 
-## Donde fijar instrucciones
+## Entrada minima 0.8.2
 
-- Instrucciones persistentes del proyecto si estan disponibles.
-- Prompt inicial de sesion.
-- `session-pin.md` para reentrada compacta.
+Antes de actuar, leer solo:
+1. `PROJECT_BINDING.yaml`
+2. `orquestador/memory/local/session-pin.md`
+3. `orquestador/memory/memory-registry.yaml`
+4. `orquestador/memory/memory-routing.yaml`
+5. `orquestador/context-budget.yaml`
+6. entrypoint aplicable en `orquestador/entrypoints/`
 
+No usar memoria de la herramienta como evidencia. No cargar `infoHebri.md`. Preflight + `SI` antes de efectos.
 ## Reglas
 
-- No asumir que Gemini conserva memoria entre sesiones.
-- Usar `memory-routing.yaml` para decidir que cargar.
-- Ante logs/debug, usar `debug-log-intake.md`.
+- Este adapter traduce el contrato; no reemplaza .hebrinex.
+- Si se pierde foco, usar eentry-light.
+- Si hay logs/debug, usar debug-log-intake.

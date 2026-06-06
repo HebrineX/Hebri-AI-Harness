@@ -1,14 +1,18 @@
 # Claude Code Adapter
 
-## Donde fijar instrucciones
+## Entrada minima 0.8.2
 
-- `CLAUDE.md` si el proyecto lo usa.
-- Instrucciones de proyecto/sistema de Claude.
-- `.hebrinex/orquestador/memory/local/session-pin.md`.
+Antes de actuar, leer solo:
+1. `PROJECT_BINDING.yaml`
+2. `orquestador/memory/local/session-pin.md`
+3. `orquestador/memory/memory-registry.yaml`
+4. `orquestador/memory/memory-routing.yaml`
+5. `orquestador/context-budget.yaml`
+6. entrypoint aplicable en `orquestador/entrypoints/`
 
+No usar memoria de la herramienta como evidencia. No cargar `infoHebri.md`. Preflight + `SI` antes de efectos.
 ## Reglas
 
-- No usar `CLAUDE.md` como reemplazo de `.hebrinex`.
-- Si Claude resume contexto, ejecutar `compactation-recovery.md`.
-- Si no hay subagentes reales, roles como bloques trazables.
-- Todo cambio con efecto requiere preflight y SI.
+- Este adapter traduce el contrato; no reemplaza .hebrinex.
+- Si se pierde foco, usar eentry-light.
+- Si hay logs/debug, usar debug-log-intake.

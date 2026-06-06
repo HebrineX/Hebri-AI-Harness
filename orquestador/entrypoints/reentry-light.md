@@ -1,8 +1,9 @@
 # Reentry Light
 
-Usar cuando hay compactacion, logs, cambio de tema o duda de foco sin requerir auditoria completa.
-
 Ruta: `reentry_light`.
+Presupuesto: <= 1800 tokens.
+
+Usar cuando hay compactacion, logs, cambio de tema o duda de foco sin auditoria completa.
 
 Leer:
 - `PROJECT_BINDING.yaml`
@@ -10,13 +11,15 @@ Leer:
 - `orquestador/memory/local/active-contract.md`
 - `orquestador/memory/local/current-focus.md`
 - `orquestador/memory/memory-registry.yaml`
-- memoria diaria activa si existe
-- memoria de ciclo activa si existe
-- `orquestador/sdd/progress/state.yaml`
-- `orquestador/sdd/progress/registry.yaml`
+- `orquestador/memory/memory-routing.yaml`
+- `orquestador/context-budget.yaml`
+- memoria diaria o de ciclo solo si `memory-registry.yaml` la marca activa
 
 No leer:
-- `orquestador/memory/complete/` salvo aprobacion.
-- todo el repo.
+- `orquestador/memory/complete/`
+- todo el repo
+- `AGENTS.md` completo salvo que falte contrato kernel
+- `session-contract-extended.md`
+- `infoHebri.md`
 
 Salida: estado reconstruido, bloqueos, siguiente paso y si requiere `SI`.

@@ -1,18 +1,7 @@
 ---
-description: "Primer mensaje operativo para proyectos con Hebri-AI-Harness 0.8.0"
+description: "Primer mensaje operativo para proyectos con Hebri-AI-Harness 0.8.2"
 ---
 
-# Primer mensaje Harness
+# Primer Mensaje Harness
 
-Ejecuta `orquestador/entrypoints/first-message.md`.
-
-Declarar:
-- harness detectado;
-- version;
-- binding;
-- memory route;
-- capas cargadas;
-- rol del chat;
-- leader visible;
-- proxima accion;
-- si requiere SI.
+Ejecuta `orquestador/entrypoints/first-message.md` y reporta contrato, binding, ruta de memoria, presupuesto, rol del chat, leader visible y si requiere `SI`.

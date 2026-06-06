@@ -1,86 +1,32 @@
-﻿schema: hebrinex.schema.state
+schema: hebrinex.schema.progress_state
 version: "0.2"
-required_fields:
+target: orquestador/sdd/progress/state.yaml
+required_top_keys:
   - schema
   - version
+  - updated_at
   - mode
-  - project_binding.status
-  - session_contract.status
-  - session_contract.chat_role
-  - session_contract.leader_visible
-  - active_cycle.status
+  - project_binding
+  - session_contract
+  - active_cycle
   - required_gates
-valid_modes:
-  - manual
-  - automatico
-valid_binding_statuses:
-  - source_template
-  - bound
-  - missing
-  - mismatch
-valid_cycle_statuses:
-  - pending
-  - spec_ready
-  - approved
-  - todo
-  - ready
-  - in_progress
-  - review
-  - done
-  - blocked
-  - cancelled
-  - legacy_unverified
-valid_roles:
-  - interpreter
-  - leader
-  - executor
-  - reviewer
-  - auditor
-  - reporter
-  - explorer
-  - spec_author
-  - implementer
-  - worker
-valid_profiles:
-  auditor:
-    - harness_compliance
-    - cost
-    - security
-    - architecture
-    - release
-    - pipeline
-    - detractor
-  reporter:
-    - operator
-    - technical
-    - executive
+  - conditional_gates
+  - approvals
+  - verification
+  - open_locks
+  - open_agents
+  - last_final_report
+required_values:
+  schema: hebrinex.progress.state
 required_gates:
   - G0_session_contract
+  - G0A_memory_registry_loaded
   - G1_context_ready
-  - G1A_clarification_complete
-  - G1B_analysis_complete
-  - G1C_blast_radius_declared
   - G2_dispatch_ready
-  - G2A_task_graph_ready
-  - G3_locks_acquired
-  - G4_execution_complete
-  - G5_review_or_validation
-  - G5A_detractor_pass_complete
-  - G5B_release_reconstruction_complete
+  - G5I_memory_consistency_complete
   - G6_agent_closure_complete
-  - G7_handoff_complete
-conditional_gates:
-  - G5C_deploy_migration_complete
-  - G5D_reference_drift_complete
-  - G5E_ci_pipeline_history_complete
-  - G5F_backlog_classification_complete
-  - G5G_audit_report_contract_complete
-  - G5H_final_report_crosslink_complete
-closure_requires:
-  - project_binding.status: bound | source_template
-  - session_contract.status: pass
-  - session_contract.leader_visible: true
-  - G6_agent_closure_complete: pass
-  - open_agents: []
-  - open_locks: []
-  - last_final_report: present
+hard_rules:
+  - No declarar done con open_agents u open_locks.
+  - No declarar done sin gate log, evidencia, verification si aplica y closure.
+  - No usar memoria conversacional como evidencia.
+  - full_context_load requiere approval.

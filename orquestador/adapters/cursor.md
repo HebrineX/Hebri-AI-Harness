@@ -1,13 +1,18 @@
 # Cursor Adapter
 
-## Donde fijar instrucciones
+## Entrada minima 0.8.2
 
-- Rules del proyecto si existen.
-- `.cursor/rules` si el proyecto lo usa.
-- `AGENTS.md` y `.hebrinex` como autoridad operativa.
+Antes de actuar, leer solo:
+1. `PROJECT_BINDING.yaml`
+2. `orquestador/memory/local/session-pin.md`
+3. `orquestador/memory/memory-registry.yaml`
+4. `orquestador/memory/memory-routing.yaml`
+5. `orquestador/context-budget.yaml`
+6. entrypoint aplicable en `orquestador/entrypoints/`
 
+No usar memoria de la herramienta como evidencia. No cargar `infoHebri.md`. Preflight + `SI` antes de efectos.
 ## Reglas
 
-- Las reglas de Cursor son adaptador, no fuente canonica.
-- Para cambios multiarchivo, leader visible + preflight.
-- Reentry light al cambiar de tarea o abrir logs.
+- Este adapter traduce el contrato; no reemplaza .hebrinex.
+- Si se pierde foco, usar eentry-light.
+- Si hay logs/debug, usar debug-log-intake.

@@ -1,0 +1,27 @@
+schema: hebrinex.schema.context_budget
+version: "0.1"
+target: orquestador/context-budget.yaml
+required_top_keys:
+  - schema
+  - version
+  - harness_version
+  - objective
+  - default_policy
+  - budgets
+  - deny_by_default
+  - required_context_report
+required_values:
+  schema: hebrinex.context_budget
+  harness_version: "0.8.2"
+required_budget_keys:
+  - memory_bootstrap
+  - first_message
+  - reentry_light
+  - debug_log_intake
+  - leader_light
+  - leader_full
+  - audit_global
+hard_rules:
+  - load_infohebri debe ser denied.
+  - full_context_requires_approval debe ser true.
+  - over_budget_action debe detener y pedir brief mas acotado.

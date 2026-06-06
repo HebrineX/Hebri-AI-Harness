@@ -1,24 +1,29 @@
 # First Message Entrypoint
 
-Objetivo: arrancar sin perder el contrato.
+Ruta: `first_message`.
+Presupuesto: <= 1800 tokens.
 
-1. Resolver `.hebrinex` segun `harness-resolution.md`.
-2. Leer `PROJECT_BINDING.yaml`.
-3. Leer `orquestador/memory/local/session-pin.md`.
-4. Leer `orquestador/memory/memory-registry.yaml`.
-5. Declarar contrato de sesion.
-6. Elegir perfil de contexto.
-7. No ejecutar acciones con efecto sin preflight y `SI`.
+Objetivo: arrancar con contrato sin cargar todo el harness.
+
+Leer:
+1. `PROJECT_BINDING.yaml`
+2. `orquestador/memory/local/session-pin.md`
+3. `orquestador/memory/memory-registry.yaml`
+4. `orquestador/memory/memory-routing.yaml`
+5. `orquestador/context-budget.yaml`
+
+No leer por defecto: README, CHANGELOG, manifest, init, prompts completos, memoria complete ni `infoHebri.md`.
 
 Salida minima:
 
 ```text
 Contrato detectado:
 - Harness: si/no
-- Version: 0.8.0
-- Binding: ...
+- Version:
+- Binding:
 - Memory route: first_message
-- Capas cargadas: local, project
+- Context budget: first_message <= 1800
+- Capas cargadas: local
 - Rol del chat: interprete
 - Leader visible: si/pendiente
 - Requiere SI antes de efectos: si
