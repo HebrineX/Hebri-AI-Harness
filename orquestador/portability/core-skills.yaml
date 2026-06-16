@@ -1,0 +1,23 @@
+schema: hebrinex.portability.core_skills
+version: "0.1"
+harness_version: "0.8.4"
+required_core_skills:
+  - session_contract
+  - harness_resolution
+  - context_loading
+  - memory_layers
+  - preflight
+  - evidence
+  - roles
+  - closure
+  - detractor_senior
+rules:
+  session_contract: "Declarar contrato antes de operar."
+  harness_resolution: "Validar PROJECT_BINDING.yaml y project_root."
+  context_loading: "Usar context-budget y entrypoint minimo."
+  memory_layers: "No confiar en memoria de herramienta como evidencia."
+  preflight: "Pedir SI antes de efectos."
+  evidence: "Cerrar con archivos/comandos verificables."
+  roles: "Chat interprete, leader visible, roles separados."
+  closure: "No done sin gates, locks, closures y memoria coherente."
+  detractor_senior: "Antes de implementar, validar solucion minima correcta."

@@ -1,0 +1,10 @@
+schema: hebrinex.schema.adapter_matrix
+version: "0.1"
+target: orquestador/portability/adapter-matrix.yaml
+required_hosts: [claude-code, codex, gemini, cursor, copilot, qwen, deepseek, generic-ai]
+required_entrypoints: [first_message, reentry_light, reentry_full, debug_log_intake, compactation_recovery]
+required_invariants:
+  - memory_reliability_untrusted_for_evidence
+  - preflight_required_before_effects
+  - no_infohebri
+  - no_complete_memory_by_default

@@ -1,6 +1,6 @@
 # Agent File Schema
 
-Version: 0.8.3
+Version: 0.8.4
 
 Todo archivo en `agents/` debe seguir esta estructura minima. El objetivo es que cada IA lea roles de forma estable y no reinvente permisos.
 

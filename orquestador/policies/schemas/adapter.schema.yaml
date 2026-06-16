@@ -1,0 +1,23 @@
+schema: hebrinex.schema.adapter
+version: "0.1"
+target: orquestador/adapters/*.yaml
+required_top_keys:
+  - schema
+  - version
+  - harness_version
+  - adapter_id
+  - host
+  - instruction_surfaces
+  - hook_surfaces
+  - context_entry_file
+  - persistent_instruction_file
+  - memory_reliability
+  - required_core_skills
+  - entrypoint_mapping
+  - preflight_enforcement
+  - evidence_policy
+required_values:
+  schema: hebrinex.adapter
+  harness_version: "0.8.4"
+  memory_reliability: untrusted_for_evidence
+  preflight_enforcement: required_before_effects

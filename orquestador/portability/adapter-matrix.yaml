@@ -1,0 +1,43 @@
+schema: hebrinex.portability.adapter_matrix
+version: "0.1"
+harness_version: "0.8.4"
+hosts:
+  - adapter_id: claude-code
+    persistent_instruction_file: CLAUDE.md
+    hook_support: session_start,user_prompt_submit,pre_tool_use,pre_compact,stop
+    subagents: partial_or_simulated
+  - adapter_id: codex
+    persistent_instruction_file: AGENTS.md
+    hook_support: app_or_plugin_dependent
+    subagents: tool_dependent_or_simulated
+  - adapter_id: gemini
+    persistent_instruction_file: AGENTS.md
+    hook_support: limited
+    subagents: simulated
+  - adapter_id: cursor
+    persistent_instruction_file: .cursor/rules
+    hook_support: limited
+    subagents: simulated
+  - adapter_id: copilot
+    persistent_instruction_file: .github/copilot-instructions.md
+    hook_support: limited
+    subagents: none_or_simulated
+  - adapter_id: qwen
+    persistent_instruction_file: host_prompt_or_agents
+    hook_support: unknown
+    subagents: simulated
+  - adapter_id: deepseek
+    persistent_instruction_file: host_prompt_or_agents
+    hook_support: unknown
+    subagents: simulated
+  - adapter_id: generic-ai
+    persistent_instruction_file: AGENTS.md_or_manual_prompt
+    hook_support: none
+    subagents: none_or_simulated
+required_entrypoints: [first_message, reentry_light, reentry_full, debug_log_intake, compactation_recovery]
+required_invariants:
+  - memory_reliability_untrusted_for_evidence
+  - preflight_required_before_effects
+  - no_infohebri
+  - no_complete_memory_by_default
+  - explicit_role_simulation_if_needed

@@ -1,6 +1,6 @@
 # Context Loading Policy
 
-Version: 0.8.3
+Version: 0.8.4
 
 ## Objetivo
 

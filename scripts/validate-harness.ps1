@@ -180,8 +180,8 @@ Assert-TopKeys 'orquestador/memory/memory-registry.yaml' @('schema','version','u
 Assert-TopKeys 'orquestador/sdd/progress/state.yaml' @('schema','version','updated_at','mode','project_binding','session_contract','active_cycle','required_gates','conditional_gates','approvals','verification','open_locks','open_agents','last_final_report')
 Assert-TopKeys 'orquestador/sdd/progress/registry.yaml' @('schema','version','updated_at','kanban_statuses','roles','profiles','cycles')
 
-if ((Get-ScalarValue 'PROJECT_BINDING.yaml' 'harness_version') -ne '0.8.3') { Add-Failure 'PROJECT_BINDING.yaml harness_version must be 0.8.3' }
-if ((Get-ScalarValue 'orquestador/context-budget.yaml' 'harness_version') -ne '0.8.3') { Add-Failure 'context-budget.yaml harness_version must be 0.8.3' }
+if ((Get-ScalarValue 'PROJECT_BINDING.yaml' 'harness_version') -ne '0.8.4') { Add-Failure 'PROJECT_BINDING.yaml harness_version must be 0.8.4' }
+if ((Get-ScalarValue 'orquestador/context-budget.yaml' 'harness_version') -ne '0.8.4') { Add-Failure 'context-budget.yaml harness_version must be 0.8.4' }
 if ((Get-ScalarValue 'PROJECT_BINDING.yaml' 'binding_mode') -notin @('source_template','bound')) { Add-Failure 'PROJECT_BINDING.yaml binding_mode invalid' }
 
 Assert-Contains 'orquestador/context-budget.yaml' 'load_infohebri:\s+denied' 'context-budget must deny infoHebri loading'
@@ -196,6 +196,10 @@ Assert-Contains 'agents/detractor-senior.md' 'Veredicto: aceptar \| simplificar 
 Assert-Contains 'orquestador/method/minimal-implementation-policy.md' 'Escalera Senior' 'minimal implementation policy missing senior ladder'
 Assert-Contains 'orquestador/sdd/progress/templates/detractor-senior-checklist.md' 'Dependencia instalada no lo resuelve mejor' 'detractor senior checklist missing dependency check'
 Assert-Contains 'prompts/detractor-senior.prompt.md' 'No implementes' 'detractor senior prompt must be read-only'
+Assert-Contains 'orquestador/portability/adapter-matrix.yaml' 'generic-ai' 'adapter matrix must include generic-ai fallback'
+Assert-Contains 'orquestador/portability/core-skills.yaml' 'detractor_senior' 'core skills must include detractor_senior'
+Assert-Contains 'orquestador/policies/schemas/adapter.schema.yaml' 'memory_reliability' 'adapter schema must require memory reliability'
+Assert-Contains 'scripts/check-adapter-drift.ps1' 'Adapter portability drift check' 'adapter drift checker missing success marker'
 Assert-NoContains 'orquestador/harness-manifest.txt' 'infoHebri[.]md' 'manifest must exclude infoHebri.md'
 
 Assert-PresetNotHeavyByDefault 'prompts/preset-codex.prompt.md'

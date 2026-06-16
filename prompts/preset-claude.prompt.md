@@ -1,5 +1,5 @@
 ---
-description: "Preset Claude alineado a Hebri-AI-Harness 0.8.3"
+description: "Preset Claude alineado a Hebri-AI-Harness 0.8.4"
 ---
 
 # Preset Claude

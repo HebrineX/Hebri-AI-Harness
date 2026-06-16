@@ -1,6 +1,6 @@
 # Deepseek Adapter
 
-## Entrada minima 0.8.3
+## Entrada minima 0.8.4
 
 Antes de actuar, leer solo:
 1. `PROJECT_BINDING.yaml`
@@ -14,5 +14,6 @@ No usar memoria de la herramienta como evidencia. No cargar `infoHebri.md`. Pref
 ## Reglas
 
 - Este adapter traduce el contrato; no reemplaza .hebrinex.
-- Si se pierde foco, usar eentry-light.
+- Si se pierde foco, usar
+reentry-light.
 - Si hay logs/debug, usar debug-log-intake.

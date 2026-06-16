@@ -1,6 +1,6 @@
 # Contrato de Sesion - Kernel
 
-Version: 0.8.3
+Version: 0.8.4
 
 Kernel obligatorio. Detalle: `session-contract-extended.md`, solo para auditoria, migracion, cierre complejo o conflicto.
 

@@ -1,0 +1,28 @@
+schema: hebrinex.adapter
+version: "0.1"
+harness_version: "0.8.4"
+adapter_id: gemini
+host: "Gemini"
+instruction_surfaces:
+  - AGENTS.md
+hook_surfaces:
+  - limited
+context_entry_file: AGENTS.md
+persistent_instruction_file: "AGENTS.md"
+supports_real_subagents: false
+supports_hooks: limited
+supports_filesystem_tools: guarded
+supports_network_tools: guarded
+memory_reliability: untrusted_for_evidence
+required_core_skills: [session_contract, harness_resolution, context_loading, memory_layers, preflight, evidence, roles, closure, detractor_senior]
+entrypoint_mapping:
+  first_message: orquestador/entrypoints/first-message.md
+  reentry_light: orquestador/entrypoints/reentry-light.md
+  reentry_full: orquestador/entrypoints/reentry-full.md
+  debug_log_intake: orquestador/entrypoints/debug-log-intake.md
+  compactation_recovery: orquestador/entrypoints/compactation-recovery.md
+preflight_enforcement: required_before_effects
+evidence_policy: filesystem_or_command_output_only
+unsupported_features: []
+fallbacks: [generic-ai]
+drift_sources: [orquestador/portability/core-skills.yaml, orquestador/portability/adapter-matrix.yaml]

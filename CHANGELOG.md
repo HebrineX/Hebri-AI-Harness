@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.8.4] - 2026-06-16
+
+### Added
+- `orquestador/portability/` con core portable y adapter matrix multi-IA.
+- Adapters `.yaml` para Claude Code, Codex, Gemini, Cursor, Copilot, Qwen, DeepSeek y Generic AI.
+- Schemas de adapter y matrix, mas `scripts/check-adapter-drift.ps1`.
+
+### Changed
+- Version operativa actual a 0.8.4.
+- `adapter-contract.md`, manifest, init y validator pasan a cubrir portabilidad multi-IA.
+
+### Rationale
+- Tomando como referencia Ponytail, el harness separa core comun de adapters host-specific para reducir drift y hacer auditable como cada IA carga el contrato.
+
 ## [0.8.3] - 2026-06-16
 
 ### Added
