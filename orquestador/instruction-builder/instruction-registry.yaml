@@ -1,0 +1,15 @@
+schema: hebrinex.instruction_registry
+version: "0.1"
+harness_version: "0.8.7"
+fragments:
+  - kernel
+  - preflight
+  - memory-routing
+  - roles
+  - claude-hooks
+  - denylists
+targets:
+  claude-code: {adapter: claude-code, persistent_file: CLAUDE.md, hooks: supported, memory_trust: untrusted}
+  codex: {adapter: codex, persistent_file: AGENTS.md, hooks: limited, memory_trust: untrusted}
+  gemini: {adapter: gemini, persistent_file: AGENTS.md, hooks: limited, memory_trust: untrusted}
+  generic-ai: {adapter: generic-ai, persistent_file: prompt, hooks: none, memory_trust: untrusted}

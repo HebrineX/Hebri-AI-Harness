@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.8.7] - 2026-06-16
+
+### Added
+- `orquestador/instruction-builder/` con registry, fragments y report templates.
+- Scripts `build-instructions` en modo check-only y `validate-drift` con pruebas negativas.
+- Schemas para instruction registry y Claude reentry state.
+
+### Changed
+- Version operativa actual a 0.8.7.
+- Presets/adapters pasan a tener una fuente canónica verificable para reducir drift entre IAs.
+
+### Rationale
+- Evita que cada IA mantenga copias divergentes del contrato: el core vive en fragments y el drift validator bloquea versiones, targets y denylists inconsistentes.
+
 ## [0.8.6] - 2026-06-16
 
 ### Added

@@ -1,0 +1,8 @@
+schema: hebrinex.instruction_build_report
+version: "0.1"
+harness_version: "0.8.7"
+generated_at: ""
+mode: check_only
+targets_checked: []
+fragments_hash: ""
+writes_performed: false

@@ -237,3 +237,22 @@ file scripts/claude-reentry.ps1
 file scripts/claude-reentry.sh
 file scripts/install-claude-hooks.ps1
 file scripts/install-claude-hooks.sh
+
+dir orquestador/instruction-builder
+dir orquestador/instruction-builder/fragments
+file orquestador/instruction-builder/README.md
+file orquestador/instruction-builder/instruction-registry.yaml
+file orquestador/instruction-builder/fragments/kernel.md
+file orquestador/instruction-builder/fragments/preflight.md
+file orquestador/instruction-builder/fragments/memory-routing.md
+file orquestador/instruction-builder/fragments/roles.md
+file orquestador/instruction-builder/fragments/claude-hooks.md
+file orquestador/instruction-builder/fragments/denylists.md
+file orquestador/policies/schemas/instruction-registry.schema.yaml
+file orquestador/policies/schemas/claude-reentry-state.schema.yaml
+file orquestador/sdd/progress/templates/instruction-build-report.yaml
+file orquestador/sdd/progress/templates/strong-drift-report.yaml
+file scripts/build-instructions.ps1
+file scripts/build-instructions.sh
+file scripts/validate-drift.ps1
+file scripts/validate-drift.sh

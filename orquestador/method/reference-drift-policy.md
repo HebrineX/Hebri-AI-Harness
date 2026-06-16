@@ -47,3 +47,7 @@ Bloquear si:
 - README declara otra version actual;
 - prompt de migracion apunta a una version vieja como objetivo actual;
 - no se puede justificar si una referencia es historica u operativa.
+
+## Instruction Builder 0.8.7
+
+Versiones, targets y denylists de instrucciones se validan con `scripts/validate-drift.ps1`. El builder corre check-only salvo aprobacion explicita de escritura.

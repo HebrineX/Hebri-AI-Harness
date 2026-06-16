@@ -1,6 +1,6 @@
 # Hebri-AI-Harness
 
-Referencia operativa actual: **0.8.6**.
+Referencia operativa actual: **0.8.7**.
 
 Sistema operativo para agentes IA basado en [Hebri-AI-Structure](https://github.com/HebrineX/Hebri-AI-Structure). Objetivo: contrato, trazabilidad y aprobaciones con 70-80% menos contexto frente a leer todo `.hebrinex`.
 
@@ -46,10 +46,10 @@ pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/validate-harness.ps1 -RunN
 
 Esta validacion revisa manifest, schemas, presupuestos, exclusion de `infoHebri.md`, migracion bound simulada y presets livianos por defecto. No reemplaza el contrato del harness; lo protege contra drift estructural.
 
-## 0.8.6 - Detractor Senior
+## 0.8.7 - Detractor Senior
 
 Antes de implementar, el leader debe pasar por uditor(profile: detractor_senior) o registrar bypass aprobado. El objetivo es llegar al mismo resultado con menos codigo, menos dependencias y menos abstracciones, sin sacrificar seguridad, datos, accesibilidad, contrato ni evidencia.
 
 ## Adapter portability
 
-Desde 0.8.6 el contrato portable vive en orquestador/portability/core-skills.yaml y la cobertura por IA en orquestador/portability/adapter-matrix.yaml. Los adapters .yaml son declarativos y se verifican con scripts/check-adapter-drift.ps1.
+Desde 0.8.7 el contrato portable vive en orquestador/portability/core-skills.yaml y la cobertura por IA en orquestador/portability/adapter-matrix.yaml. Los adapters .yaml son declarativos y se verifican con scripts/check-adapter-drift.ps1.

@@ -1,6 +1,6 @@
 # Context Profiles
 
-Version: 0.8.6
+Version: 0.8.7
 
 Objetivo: cargar el minimo contexto posible. El default debe ahorrar 70-80% frente a leer `AGENTS.md + session-contract + method/* + prompts/*`.
 
@@ -105,12 +105,12 @@ Leer output de auditor/reviewer/leader, audiencia objetivo, `agents/reporter.md`
 
 Si un agente necesita superar presupuesto, debe detenerse, explicar read-set y pedir autorizacion.
 
-## Runtime 0.8.6
+## Runtime 0.8.7
 
 - `runtime_status`: `PROJECT_BINDING.yaml`, `session-pin.md`, `context-budget.yaml` y `active-session` si existe. Maximo: 900 tokens.
 - `runtime_reentry`: runtime status + `state.yaml`/`registry.yaml` solo si entra en budget. Maximo: 1600 tokens.
 - `/harness audit` prepara preflight; no carga auditoria global automaticamente.
 
-## Claude 0.8.6
+## Claude 0.8.7
 
 - `claude_reentry`: binding + session pin + runtime Claude brief. No carga memoria completa.

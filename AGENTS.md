@@ -1,7 +1,7 @@
 # AGENTS.md - Kernel Operativo Hebri-AI-Harness
 
 Referencia metodologica: https://github.com/HebrineX/Hebri-AI-Structure
-Version operativa esperada: 0.8.6
+Version operativa esperada: 0.8.7
 
 ## Regla Raiz
 
@@ -93,6 +93,6 @@ El `SI` aprueba solo esa accion exacta.
 - Perfiles: `orquestador/context-profiles.md`
 - Presupuesto: `orquestador/context-budget.yaml`
 - Politica de carga: `orquestador/method/context-loading-policy.md`
-## Regla 0.8.6 - Detractor Senior
+## Regla 0.8.7 - Detractor Senior
 
 Antes de cualquier implementacion o cambio con escritura, el leader debe activar uditor(profile: detractor_senior) o registrar bypass aprobado. El pase valida necesidad, stdlib/plataforma/dependencias existentes, dependencia evitable, abstraccion prematura, archivos evitables y limites no negociables.
