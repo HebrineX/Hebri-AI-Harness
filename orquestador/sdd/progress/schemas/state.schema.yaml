@@ -22,11 +22,10 @@ required_gates:
   - G0_session_contract
   - G0A_memory_registry_loaded
   - G1_context_ready
-  - G2_dispatch_ready
-  - G5I_memory_consistency_complete
+  - G2_dispatch_ready`n  - G3A_detractor_senior_pre_implementation`n  - G5I_memory_consistency_complete
   - G6_agent_closure_complete
 hard_rules:
   - No declarar done con open_agents u open_locks.
   - No declarar done sin gate log, evidencia, verification si aplica y closure.
   - No usar memoria conversacional como evidencia.
-  - full_context_load requiere approval.
+  - full_context_load requiere approval.`n  - G3A_detractor_senior_pre_implementation requerido antes de escritura.

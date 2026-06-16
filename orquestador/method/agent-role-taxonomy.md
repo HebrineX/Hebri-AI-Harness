@@ -1,6 +1,6 @@
 # Agent Role Taxonomy
 
-Este archivo define la taxonomia minima de agentes para Hebri-AI-Harness 0.8.2.
+Este archivo define la taxonomia minima de agentes para Hebri-AI-Harness 0.8.3.
 
 ## Principio
 
@@ -31,8 +31,7 @@ auditor:
     - architecture
     - release
     - pipeline
-    - detractor
-reporter:
+    - detractor`n    - detractor_senior`nreporter:
   profiles:
     - operator
     - technical
@@ -50,6 +49,6 @@ executor:
 
 - No crear rol nuevo si alcanza con perfil de un rol existente.
 - El perfil no cambia las prohibiciones del rol base.
-- `auditor(profile: detractor)` solo objeta con evidencia o hipotesis verificable.
+- `auditor(profile: detractor)` solo objeta con evidencia o hipotesis verificable.`n- `auditor(profile: detractor_senior)` corre antes de implementar y valida solucion minima correcta.
 - `reporter` no altera veredictos: solo comunica.
 - El limite sigue siendo 5 agentes activos totales: 1 leader + 4 subagentes.

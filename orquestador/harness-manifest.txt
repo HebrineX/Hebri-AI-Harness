@@ -189,3 +189,8 @@ file orquestador/policies/schemas/memory-registry.schema.yaml
 file orquestador/policies/schemas/project-binding.schema.yaml
 file orquestador/policies/schemas/registry.schema.yaml
 file scripts/validate-harness.ps1
+file agents/_schema.md
+file agents/detractor-senior.md
+file orquestador/method/minimal-implementation-policy.md
+file orquestador/sdd/progress/templates/detractor-senior-checklist.md
+file prompts/detractor-senior.prompt.md

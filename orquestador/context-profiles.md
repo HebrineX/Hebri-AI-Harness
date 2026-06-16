@@ -1,6 +1,6 @@
 # Context Profiles
 
-Version: 0.8.2
+Version: 0.8.3
 
 Objetivo: cargar el minimo contexto posible. El default debe ahorrar 70-80% frente a leer `AGENTS.md + session-contract + method/* + prompts/*`.
 

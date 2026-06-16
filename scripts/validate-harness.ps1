@@ -180,8 +180,8 @@ Assert-TopKeys 'orquestador/memory/memory-registry.yaml' @('schema','version','u
 Assert-TopKeys 'orquestador/sdd/progress/state.yaml' @('schema','version','updated_at','mode','project_binding','session_contract','active_cycle','required_gates','conditional_gates','approvals','verification','open_locks','open_agents','last_final_report')
 Assert-TopKeys 'orquestador/sdd/progress/registry.yaml' @('schema','version','updated_at','kanban_statuses','roles','profiles','cycles')
 
-if ((Get-ScalarValue 'PROJECT_BINDING.yaml' 'harness_version') -ne '0.8.2') { Add-Failure 'PROJECT_BINDING.yaml harness_version must be 0.8.2' }
-if ((Get-ScalarValue 'orquestador/context-budget.yaml' 'harness_version') -ne '0.8.2') { Add-Failure 'context-budget.yaml harness_version must be 0.8.2' }
+if ((Get-ScalarValue 'PROJECT_BINDING.yaml' 'harness_version') -ne '0.8.3') { Add-Failure 'PROJECT_BINDING.yaml harness_version must be 0.8.3' }
+if ((Get-ScalarValue 'orquestador/context-budget.yaml' 'harness_version') -ne '0.8.3') { Add-Failure 'context-budget.yaml harness_version must be 0.8.3' }
 if ((Get-ScalarValue 'PROJECT_BINDING.yaml' 'binding_mode') -notin @('source_template','bound')) { Add-Failure 'PROJECT_BINDING.yaml binding_mode invalid' }
 
 Assert-Contains 'orquestador/context-budget.yaml' 'load_infohebri:\s+denied' 'context-budget must deny infoHebri loading'
@@ -190,6 +190,12 @@ Assert-Contains 'orquestador/memory/memory-registry.yaml' 'complete:\s*\n\s+enab
 Assert-Contains 'orquestador/memory/memory-registry.yaml' 'requires_approval:\s+true' 'complete memory must require approval'
 Assert-Contains 'orquestador/method/final-report-evidence-policy.md' 'memory-closure-checklist[.]md' 'final report policy must require memory closure evidence'
 Assert-Contains 'orquestador/sdd/progress/state.yaml' 'G5I_memory_consistency_complete' 'state must include memory consistency gate'
+Assert-Contains 'orquestador/sdd/progress/state.yaml' 'G3A_detractor_senior_pre_implementation' 'state must include detractor senior pre-implementation gate'
+Assert-Contains 'orquestador/method/agent-role-taxonomy.md' 'detractor_senior' 'detractor_senior profile missing from taxonomy'
+Assert-Contains 'agents/detractor-senior.md' 'Veredicto: aceptar \| simplificar \| bloquear \| pedir evidencia' 'detractor senior output contract missing'
+Assert-Contains 'orquestador/method/minimal-implementation-policy.md' 'Escalera Senior' 'minimal implementation policy missing senior ladder'
+Assert-Contains 'orquestador/sdd/progress/templates/detractor-senior-checklist.md' 'Dependencia instalada no lo resuelve mejor' 'detractor senior checklist missing dependency check'
+Assert-Contains 'prompts/detractor-senior.prompt.md' 'No implementes' 'detractor senior prompt must be read-only'
 Assert-NoContains 'orquestador/harness-manifest.txt' 'infoHebri[.]md' 'manifest must exclude infoHebri.md'
 
 Assert-PresetNotHeavyByDefault 'prompts/preset-codex.prompt.md'

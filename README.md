@@ -1,6 +1,6 @@
 # Hebri-AI-Harness
 
-Referencia operativa actual: **0.8.2**.
+Referencia operativa actual: **0.8.3**.
 
 Sistema operativo para agentes IA basado en [Hebri-AI-Structure](https://github.com/HebrineX/Hebri-AI-Structure). Objetivo: contrato, trazabilidad y aprobaciones con 70-80% menos contexto frente a leer todo `.hebrinex`.
 
@@ -11,7 +11,7 @@ Sistema operativo para agentes IA basado en [Hebri-AI-Structure](https://github.
 3. Declarar contrato de sesion.
 4. Elegir perfil minimo desde `orquestador/context-profiles.md`.
 5. Pedir `SI` antes de efectos.
-6. Cerrar con evidencia y `memory-closure-checklist.md` si hubo trabajo operativo.
+6. Ejecutar `auditor(profile: detractor_senior)` antes de implementar o escribir.`n7. Cerrar con evidencia y `memory-closure-checklist.md` si hubo trabajo operativo.
 
 ## Presupuestos
 
@@ -45,3 +45,7 @@ pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/validate-harness.ps1 -RunN
 ```
 
 Esta validacion revisa manifest, schemas, presupuestos, exclusion de `infoHebri.md`, migracion bound simulada y presets livianos por defecto. No reemplaza el contrato del harness; lo protege contra drift estructural.
+
+## 0.8.3 - Detractor Senior
+
+Antes de implementar, el leader debe pasar por uditor(profile: detractor_senior) o registrar bypass aprobado. El objetivo es llegar al mismo resultado con menos codigo, menos dependencias y menos abstracciones, sin sacrificar seguridad, datos, accesibilidad, contrato ni evidencia.

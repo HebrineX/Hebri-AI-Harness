@@ -1,6 +1,6 @@
 schema: hebrinex.context_budget
 version: "0.1"
-harness_version: "0.8.2"
+harness_version: "0.8.3"
 objective: "Reducir 70-80% el costo operativo frente a cargas completas."
 
 default_policy:

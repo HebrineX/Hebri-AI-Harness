@@ -11,3 +11,8 @@ requirements:
     result: pending
     reviewer_agent_id: ""
 verdict: pending
+minimal_solution_review:
+  gate: G3A_detractor_senior_pre_implementation
+  checklist: orquestador/sdd/progress/templates/detractor-senior-checklist.md
+  verdict: pending
+  evidence: []

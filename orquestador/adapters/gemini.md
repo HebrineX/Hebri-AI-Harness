@@ -1,6 +1,6 @@
 # Gemini Adapter
 
-## Entrada minima 0.8.2
+## Entrada minima 0.8.3
 
 Antes de actuar, leer solo:
 1. `PROJECT_BINDING.yaml`

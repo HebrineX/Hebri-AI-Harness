@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.8.3] - 2026-06-16
+
+### Added
+- `auditor(profile: detractor_senior)` como pase obligatorio antes de implementacion o escritura.
+- `agents/_schema.md` para estructura estable de agentes.
+- `agents/detractor-senior.md`, `minimal-implementation-policy.md`, `detractor-senior-checklist.md` y `prompts/detractor-senior.prompt.md`.
+- Gate `G3A_detractor_senior_pre_implementation` para validar solucion minima correcta antes de `G4_execution_complete`.
+
+### Changed
+- Version operativa actual a 0.8.3.
+- `multiagent-protocol.md`, `agent-role-taxonomy.md`, `state.yaml`, schema y validadores quedan alineados al nuevo pase pre-implementacion.
+
+### Rationale
+- Tomando como referencia Ponytail, el harness incorpora un senior detractor que busca menos codigo, menos dependencias y menos abstracciones, sin sacrificar seguridad, datos, accesibilidad, contrato ni evidencia.
 ## [0.8.2] - 2026-06-06
 
 ### Added

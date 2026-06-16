@@ -1,8 +1,8 @@
 ---
-description: "Migrar cualquier .hebrinex previo a Hebri-AI-Harness 0.8.2 sin contaminar proyectos"
+description: "Migrar cualquier .hebrinex previo a Hebri-AI-Harness 0.8.3 sin contaminar proyectos"
 ---
 
-# Migracion a Hebri-AI-Harness 0.8.2
+# Migracion a Hebri-AI-Harness 0.8.3
 
 Si no existe `.hebrinex/`, buscar fuente local libre `source_template`, copiarla a `<project_root>/.hebrinex/` excluyendo materialmente `infoHebri.md`, `.git/` y temporales, y vincular como `bound`.
 
