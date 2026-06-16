@@ -1,0 +1,9 @@
+{
+  "schema": "hebrinex.runtime.audit_report",
+  "version": "0.1",
+  "runtime_is_cache": true,
+  "authority_checked": [],
+  "drift_found": [],
+  "budget_status": "unknown",
+  "verdict": "pending"
+}

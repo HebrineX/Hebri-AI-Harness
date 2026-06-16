@@ -1,0 +1,11 @@
+{
+  "schema": "hebrinex.runtime.command_result",
+  "version": "0.1",
+  "command": "",
+  "status": "partial",
+  "read_set": [],
+  "write_set": [],
+  "over_budget": false,
+  "blocked_by": [],
+  "next_step": ""
+}

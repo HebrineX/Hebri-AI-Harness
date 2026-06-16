@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.8.5] - 2026-06-16
+
+### Added
+- `orquestador/runtime/` como control plane liviano para status, reentry, modo, audit y budget.
+- Templates JSON y schemas para `active-session`, comandos y reportes runtime.
+- `prompts/harness-runtime.prompt.md` para interpretar comandos `/harness` sin cargar todo el contrato.
+
+### Changed
+- Version operativa actual a 0.8.5.
+- Runtime queda declarado como cache no autoritativa; estado, registry, gates y evidencia siguen siendo la autoridad.
+
+### Rationale
+- Reduce reentry repetitivo y consumo de tokens: primero runtime/status, autoridad completa solo si entra en budget o hay aprobacion.
+
 ## [0.8.4] - 2026-06-16
 
 ### Added

@@ -1,6 +1,6 @@
 schema: hebrinex.adapter
 version: "0.1"
-harness_version: "0.8.4"
+harness_version: "0.8.5"
 adapter_id: claude-code
 host: "Claude Code"
 instruction_surfaces:

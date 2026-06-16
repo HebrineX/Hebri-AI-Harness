@@ -17,3 +17,9 @@ Todo comando debe clasificarse antes de ejecutarse. Si no encaja, usar `unknown`
 ## Regla
 
 La aprobacion cubre solo el comando declarado, el `cwd`, la clase y el alcance. Cualquier cambio requiere nuevo preflight.
+
+## Runtime Control
+
+| Clase | Ejemplos | Decision por defecto | Requiere SI |
+|---|---|---|---|
+| `runtime-control` | `/harness status`, `/harness budget`, `/harness reentry` | read-only salvo cambio de estado | solo si hay efecto |

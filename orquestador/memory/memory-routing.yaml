@@ -1,27 +1,11 @@
 schema: hebrinex.memory.routing
 version: "0.1"
 routes:
-  first_message:
-    entrypoint: orquestador/entrypoints/first-message.md
-    layers: [local, project]
-    complete_requires_approval: false
-  reentry_light:
-    entrypoint: orquestador/entrypoints/reentry-light.md
-    layers: [local, daily, cycle]
-    complete_requires_approval: false
-  reentry_full:
-    entrypoint: orquestador/entrypoints/reentry-full.md
-    layers: [local, daily, cycle, project, complete]
-    complete_requires_approval: true
-  debug_log_intake:
-    entrypoint: orquestador/entrypoints/debug-log-intake.md
-    layers: [local, daily, cycle]
-    complete_requires_approval: false
-  compactation_recovery:
-    entrypoint: orquestador/entrypoints/compactation-recovery.md
-    layers: [local, daily, cycle, project]
-    complete_requires_approval: false
-  audit_global:
-    entrypoint: orquestador/entrypoints/reentry-full.md
-    layers: [local, project, complete]
-    complete_requires_approval: true
+  first_message: {entrypoint: orquestador/entrypoints/first-message.md, layers: [local, project], complete_requires_approval: false}
+  reentry_light: {entrypoint: orquestador/entrypoints/reentry-light.md, layers: [local, daily, cycle], complete_requires_approval: false}
+  reentry_full: {entrypoint: orquestador/entrypoints/reentry-full.md, layers: [local, daily, cycle, project, complete], complete_requires_approval: true}
+  debug_log_intake: {entrypoint: orquestador/entrypoints/debug-log-intake.md, layers: [local, daily, cycle], complete_requires_approval: false}
+  compactation_recovery: {entrypoint: orquestador/entrypoints/compactation-recovery.md, layers: [local, daily, cycle, project], complete_requires_approval: false}
+  audit_global: {entrypoint: orquestador/entrypoints/reentry-full.md, layers: [local, project, complete], complete_requires_approval: true}
+  runtime_status: {entrypoint: orquestador/runtime/commands.md, layers: [local], complete_requires_approval: false}
+  runtime_reentry: {entrypoint: orquestador/runtime/commands.md, layers: [local, daily, cycle], complete_requires_approval: false}

@@ -101,6 +101,7 @@ function Assert-PresetNotHeavyByDefault([string]$RelativePath) {
   }
 }
 
+
 function Test-BoundCopySimulation() {
   $tempRoot = Join-Path ([IO.Path]::GetTempPath()) ('hebrinex-bound-test-' + [guid]::NewGuid().ToString('N'))
   $projectRoot = Join-Path $tempRoot 'project'
@@ -180,8 +181,8 @@ Assert-TopKeys 'orquestador/memory/memory-registry.yaml' @('schema','version','u
 Assert-TopKeys 'orquestador/sdd/progress/state.yaml' @('schema','version','updated_at','mode','project_binding','session_contract','active_cycle','required_gates','conditional_gates','approvals','verification','open_locks','open_agents','last_final_report')
 Assert-TopKeys 'orquestador/sdd/progress/registry.yaml' @('schema','version','updated_at','kanban_statuses','roles','profiles','cycles')
 
-if ((Get-ScalarValue 'PROJECT_BINDING.yaml' 'harness_version') -ne '0.8.4') { Add-Failure 'PROJECT_BINDING.yaml harness_version must be 0.8.4' }
-if ((Get-ScalarValue 'orquestador/context-budget.yaml' 'harness_version') -ne '0.8.4') { Add-Failure 'context-budget.yaml harness_version must be 0.8.4' }
+if ((Get-ScalarValue 'PROJECT_BINDING.yaml' 'harness_version') -ne '0.8.5') { Add-Failure 'PROJECT_BINDING.yaml harness_version must be 0.8.5' }
+if ((Get-ScalarValue 'orquestador/context-budget.yaml' 'harness_version') -ne '0.8.5') { Add-Failure 'context-budget.yaml harness_version must be 0.8.5' }
 if ((Get-ScalarValue 'PROJECT_BINDING.yaml' 'binding_mode') -notin @('source_template','bound')) { Add-Failure 'PROJECT_BINDING.yaml binding_mode invalid' }
 
 Assert-Contains 'orquestador/context-budget.yaml' 'load_infohebri:\s+denied' 'context-budget must deny infoHebri loading'
@@ -200,6 +201,13 @@ Assert-Contains 'orquestador/portability/adapter-matrix.yaml' 'generic-ai' 'adap
 Assert-Contains 'orquestador/portability/core-skills.yaml' 'detractor_senior' 'core skills must include detractor_senior'
 Assert-Contains 'orquestador/policies/schemas/adapter.schema.yaml' 'memory_reliability' 'adapter schema must require memory reliability'
 Assert-Contains 'scripts/check-adapter-drift.ps1' 'Adapter portability drift check' 'adapter drift checker missing success marker'
+Assert-Contains 'orquestador/runtime/active-session.template.json' 'non_authoritative' 'active-session must declare non_authoritative'
+Assert-Contains 'orquestador/runtime/README.md' 'No es autoridad' 'runtime README must state non-authority'
+Assert-Contains 'orquestador/runtime/commands.md' '/harness status' 'runtime commands must define status'
+Assert-Contains 'orquestador/context-budget.yaml' 'runtime_status' 'context-budget must define runtime_status'
+Assert-Contains 'orquestador/context-budget.yaml' 'runtime_reentry' 'context-budget must define runtime_reentry'
+Assert-Contains 'orquestador/memory/memory-routing.yaml' 'runtime_status' 'memory routing must define runtime_status'
+Assert-Contains 'prompts/harness-runtime.prompt.md' 'active-session es cache' 'runtime prompt must keep active-session non-authoritative'
 Assert-NoContains 'orquestador/harness-manifest.txt' 'infoHebri[.]md' 'manifest must exclude infoHebri.md'
 
 Assert-PresetNotHeavyByDefault 'prompts/preset-codex.prompt.md'
@@ -210,6 +218,13 @@ Assert-Budget 'memory_bootstrap' 1500 @('PROJECT_BINDING.yaml','orquestador/memo
 Assert-Budget 'first_message' 1800 @('PROJECT_BINDING.yaml','orquestador/memory/local/session-pin.md','orquestador/memory/memory-registry.yaml','orquestador/memory/memory-routing.yaml','orquestador/context-budget.yaml','orquestador/entrypoints/first-message.md')
 Assert-Budget 'debug_log_intake' 2000 @('PROJECT_BINDING.yaml','orquestador/memory/local/session-pin.md','orquestador/memory/memory-registry.yaml','orquestador/memory/memory-routing.yaml','orquestador/context-budget.yaml','orquestador/entrypoints/debug-log-intake.md','orquestador/entrypoints/reentry-light.md')
 Assert-Budget 'leader_light' 2400 @('PROJECT_BINDING.yaml','orquestador/memory/local/session-pin.md','orquestador/memory/memory-registry.yaml','orquestador/memory/memory-routing.yaml','orquestador/context-budget.yaml','orquestador/sdd/progress/state.yaml','orquestador/sdd/progress/registry.yaml','orquestador/method/session-contract.md')
+
+foreach ($jsonRel in @('orquestador/runtime/active-session.template.json','orquestador/runtime/schemas/active-session.schema.json','orquestador/runtime/schemas/harness-command.schema.json','orquestador/runtime/templates/command-result.template.json','orquestador/runtime/templates/budget-report.template.json','orquestador/runtime/templates/reentry-result.template.json','orquestador/sdd/progress/templates/runtime-audit-report.json')) {
+  try { [void](Read-HarnessText $jsonRel | ConvertFrom-Json) }
+  catch { Add-Failure "$jsonRel must be valid JSON" }
+}
+Assert-Budget 'runtime_status' 900 @('PROJECT_BINDING.yaml','orquestador/memory/local/session-pin.md','orquestador/context-budget.yaml','orquestador/runtime/active-session.template.json')
+Assert-Budget 'runtime_reentry' 1600 @('PROJECT_BINDING.yaml','orquestador/memory/local/session-pin.md','orquestador/context-budget.yaml','orquestador/runtime/active-session.template.json','orquestador/sdd/progress/state.yaml','orquestador/sdd/progress/registry.yaml')
 
 Test-BoundCopySimulation
 if ($RunNegativeTests) { Run-NegativeTests }

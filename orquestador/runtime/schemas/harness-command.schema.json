@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Hebri Runtime Command",
+  "type": "object",
+  "required": ["command", "mode", "read_set", "requires_si"],
+  "properties": {
+    "command": { "enum": ["status", "reentry", "manual", "automatico", "audit", "budget"] },
+    "mode": { "enum": ["manual", "automatico"] },
+    "read_set": { "type": "array", "items": { "type": "string" } },
+    "requires_si": { "type": "boolean" }
+  }
+}

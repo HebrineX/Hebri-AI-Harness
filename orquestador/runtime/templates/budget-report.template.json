@@ -1,0 +1,9 @@
+{
+  "schema": "hebrinex.runtime.budget_report",
+  "version": "0.1",
+  "profile": "runtime_status",
+  "estimated_tokens": 0,
+  "max_tokens": 900,
+  "over_budget": false,
+  "files_loaded": []
+}

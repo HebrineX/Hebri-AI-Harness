@@ -80,3 +80,9 @@ classes:
   secret_touch:
     decision: deny
     requires_approval: true
+
+
+runtime_control:
+  read_only_status: allowed
+  mode_change_persistent: requires_si
+  audit_global: requires_preflight

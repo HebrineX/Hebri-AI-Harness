@@ -1,0 +1,10 @@
+{
+  "schema": "hebrinex.runtime.reentry_result",
+  "version": "0.1",
+  "approvals_expired": true,
+  "contract_reconstructed": false,
+  "state_loaded": false,
+  "registry_loaded": false,
+  "requires_si_before_effects": true,
+  "next_step": ""
+}

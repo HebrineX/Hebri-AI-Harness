@@ -17,7 +17,7 @@ La linea 0.7.x se usa para endurecer huecos operativos sin cambiar la estructura
 | 0.7.7 | Implementado P0 | Cross-link final-report/evidence | Todo final report debe linkear gate log, verification matrix, agent closure y gaps abiertos |
 | 0.7.8 | Implementado P0 | Presets anti-desvio por IA | Codex, Claude y Gemini deben tener presets equivalentes y chequeables contra el contrato |
 | 0.7.9 | Implementado P0 | Optimizacion interna | Manifest central, init mas simple, bootstrap condensado y menor drift |
-| 0.8.4 | Implementado P0 | Memoria estratificada multi-IA | Memory registry, routing, entrypoints y adapters para evitar reentry manual constante |
+| 0.8.5 | Implementado P0 | Memoria estratificada multi-IA | Memory registry, routing, entrypoints y adapters para evitar reentry manual constante |
 ## P1 Candidatas
 
 - Migrar `registry.md` completamente a vista generada desde `registry.yaml` o `registry.jsonl`.

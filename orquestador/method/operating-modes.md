@@ -83,3 +83,7 @@ Cambiar de modo durante una sesion requiere registro en `PROGRESS.md` o en el ha
 ## Re-entry
 
 Despues de compactacion, cambio de cwd o cambio de proyecto, cualquier aprobacion pendiente expira. El leader debe completar el re-entry checklist, reconstruir estado y pedir un nuevo `SI` para acciones con efecto.
+
+## Comandos de modo
+
+`/harness manual` y `/harness automatico` solo preparan el cambio. Si modifican estado persistente, requieren preflight, `SI` y evidencia.

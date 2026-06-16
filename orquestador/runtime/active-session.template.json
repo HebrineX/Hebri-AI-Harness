@@ -1,0 +1,33 @@
+{
+  "schema": "hebrinex.runtime.active_session",
+  "version": "0.1",
+  "harness_version": "0.8.5",
+  "generated_at": "",
+  "project_root": "",
+  "harness_path": "",
+  "binding_status": "source_template",
+  "mode": "manual",
+  "chat_role": "interpreter",
+  "leader_visible": false,
+  "memory_route": "runtime_status",
+  "context_budget": {
+    "profile": "runtime_status",
+    "estimated_tokens": 0,
+    "over_budget": false
+  },
+  "active_cycle": {
+    "cycle_id": "",
+    "phase_id": "",
+    "slice_id": "",
+    "status": "pending"
+  },
+  "approvals": {
+    "active_approval_id": "",
+    "expired_on_reentry": true
+  },
+  "open_agents": [],
+  "open_locks": [],
+  "evidence_refs": [],
+  "source_refs": [],
+  "non_authoritative": true
+}
