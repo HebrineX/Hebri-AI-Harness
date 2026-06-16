@@ -1,0 +1,13 @@
+schema: hebrinex.claude_reentry_state
+version: "0.1"
+harness_version: "0.8.6"
+generated_at: ""
+brief_path: orquestador/runtime/claude/reentry-brief.md
+mode: warn
+last_binding_status: unknown
+approvals_expired: true
+hooks:
+  session_start: recommended
+  user_prompt_submit: recommended
+  pre_tool_use: optional_enforce
+non_authoritative: true

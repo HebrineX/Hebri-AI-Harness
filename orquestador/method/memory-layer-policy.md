@@ -1,6 +1,6 @@
 # Memory Layer Policy
 
-Version: 0.8.5
+Version: 0.8.6
 
 ## Objetivo
 

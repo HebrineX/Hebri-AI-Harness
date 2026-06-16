@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.8.6] - 2026-06-16
+
+### Added
+- Integracion Claude Code con templates de hooks, `CLAUDE.template.md` y reentry brief.
+- Scripts `claude-reentry` e instaladores preflight-only para hooks Claude.
+- Template `claude-reentry-state.yaml` para persistir estado de rehidratacion no autoritativo.
+
+### Changed
+- Version operativa actual a 0.8.6.
+- Claude deja de depender de memoria interna: reentry se reconstruye desde archivos del harness.
+
+### Rationale
+- Reduce fallos donde Claude pierde foco del harness: hooks/brief obligan reentrada verificable sin cargar todo el contexto.
+
 ## [0.8.5] - 2026-06-16
 
 ### Added

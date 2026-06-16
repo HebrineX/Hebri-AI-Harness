@@ -1,0 +1,10 @@
+{
+  "hooks": {
+    "SessionStart": [{ "command": "pwsh -NoProfile -ExecutionPolicy Bypass -File .hebrinex/scripts/claude-reentry.ps1" }],
+    "UserPromptSubmit": [{ "command": "pwsh -NoProfile -ExecutionPolicy Bypass -File .hebrinex/scripts/claude-reentry.ps1 -CheckOnly" }]
+  },
+  "hebrinex": {
+    "mode": "warn",
+    "brief": ".hebrinex/orquestador/runtime/claude/reentry-brief.md"
+  }
+}

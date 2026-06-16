@@ -12,7 +12,7 @@ required_top_keys:
   - required_context_report
 required_values:
   schema: hebrinex.context_budget
-  harness_version: "0.8.5"
+  harness_version: "0.8.6"
 required_budget_keys:
   - memory_bootstrap
   - first_message

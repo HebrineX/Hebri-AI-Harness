@@ -1,6 +1,6 @@
 # Indice del Sistema Operativo
 
-Desde 0.8.5, el orquestador tambien gobierna memoria operativa por capas en `memory/`, entrypoints de rehidratacion en `entrypoints/` y adapters por IA en `adapters/`.
+Desde 0.8.6, el orquestador tambien gobierna memoria operativa por capas en `memory/`, entrypoints de rehidratacion en `entrypoints/` y adapters por IA en `adapters/`.
 
 | Directorio / Archivo | Contenido | Responsabilidad |
 |---|---|---|

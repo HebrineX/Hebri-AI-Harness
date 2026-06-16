@@ -1,5 +1,5 @@
 ---
-description: "Preset Codex alineado a Hebri-AI-Harness 0.8.5"
+description: "Preset Codex alineado a Hebri-AI-Harness 0.8.6"
 ---
 
 # Preset Codex

@@ -1,6 +1,6 @@
 # Agent Role Taxonomy
 
-Este archivo define la taxonomia minima de agentes para Hebri-AI-Harness 0.8.5.
+Este archivo define la taxonomia minima de agentes para Hebri-AI-Harness 0.8.6.
 
 ## Principio
 

@@ -224,3 +224,16 @@ file orquestador/runtime/templates/budget-report.template.json
 file orquestador/runtime/templates/reentry-result.template.json
 file prompts/harness-runtime.prompt.md
 file orquestador/sdd/progress/templates/runtime-audit-report.json
+
+dir orquestador/integrations
+dir orquestador/integrations/claude
+file orquestador/integrations/claude/README.md
+file orquestador/integrations/claude/hooks-policy.md
+file orquestador/integrations/claude/settings.template.json
+file orquestador/integrations/claude/CLAUDE.template.md
+file orquestador/integrations/claude/reentry-brief.template.md
+file orquestador/sdd/progress/templates/claude-reentry-state.yaml
+file scripts/claude-reentry.ps1
+file scripts/claude-reentry.sh
+file scripts/install-claude-hooks.ps1
+file scripts/install-claude-hooks.sh
