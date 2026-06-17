@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.8.10] - 2026-06-17
+
+### Changed
+- Los context budgets pasan de hard gate inmediato a soft warning registrado; solo bloquean si el consumo supera 2x el presupuesto declarado.
+- `init.sh` resuelve PowerShell con fallback `pwsh -> powershell.exe -> powershell` para Windows sin PowerShell Core.
+- Version operativa actual a 0.8.10.
+
+### Rationale
+- El presupuesto debe guiar y registrar desvíos sin bloquear migraciones por prompts o metadatos apenas superiores al límite. El bloqueo queda reservado para exceso claro.
 ## [0.8.9] - 2026-06-17
 
 ### Fixed

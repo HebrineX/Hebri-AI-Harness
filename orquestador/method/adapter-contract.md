@@ -1,6 +1,6 @@
 # Adapter Contract
 
-Version: 0.8.9
+Version: 0.8.10
 
 Todo adapter debe usar esta entrada minima antes de actuar:
 
@@ -20,6 +20,6 @@ Requisitos:
 - prohibir memoria de herramienta como evidencia;
 - prohibir `infoHebri.md` como contexto operativo;
 - reportar presupuesto antes de cargar contexto amplio.
-## Portabilidad 0.8.9
+## Portabilidad 0.8.10
 
 El core portable vive en orquestador/portability/core-skills.yaml. La cobertura por host vive en orquestador/portability/adapter-matrix.yaml. Cada adapter .yaml debe declarar entrypoints, preflight, evidencia y memoria no confiable, y debe pasar scripts/check-adapter-drift.ps1.

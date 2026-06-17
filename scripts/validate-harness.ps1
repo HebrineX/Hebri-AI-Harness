@@ -5,9 +5,14 @@ param(
 
 $ErrorActionPreference = 'Stop'
 $script:Failures = New-Object System.Collections.Generic.List[string]
+$script:Warnings = New-Object System.Collections.Generic.List[string]
 
 function Add-Failure([string]$Message) {
   $script:Failures.Add($Message) | Out-Null
+}
+
+function Add-Warning([string]$Message) {
+  $script:Warnings.Add($Message) | Out-Null
 }
 
 function Resolve-HarnessPath([string]$RelativePath) {
@@ -86,8 +91,16 @@ function Estimate-Tokens([string[]]$RelativePaths) {
 
 function Assert-Budget([string]$Name, [int]$MaxTokens, [string[]]$RelativePaths) {
   $used = Estimate-Tokens $RelativePaths
-  if ($used -gt $MaxTokens) { Add-Failure "context budget exceeded: $Name uses $used > $MaxTokens estimated tokens" }
-  else { Write-Host "budget ${Name}: $used/$MaxTokens" }
+  $hardLimit = $MaxTokens * 2
+  if ($used -gt $hardLimit) {
+    Add-Failure "context budget hard limit exceeded: $Name uses $used > $hardLimit estimated tokens (soft budget $MaxTokens)"
+  }
+  elseif ($used -gt $MaxTokens) {
+    Add-Warning "context budget soft limit exceeded: $Name uses $used > $MaxTokens estimated tokens (hard limit $hardLimit)"
+  }
+  else {
+    Write-Host "budget ${Name}: $used/$MaxTokens"
+  }
 }
 
 function Assert-PresetNotHeavyByDefault([string]$RelativePath) {
@@ -181,8 +194,8 @@ Assert-TopKeys 'orquestador/memory/memory-registry.yaml' @('schema','version','u
 Assert-TopKeys 'orquestador/sdd/progress/state.yaml' @('schema','version','updated_at','mode','project_binding','session_contract','active_cycle','required_gates','conditional_gates','approvals','verification','open_locks','open_agents','last_final_report')
 Assert-TopKeys 'orquestador/sdd/progress/registry.yaml' @('schema','version','updated_at','kanban_statuses','roles','profiles','cycles')
 
-if ((Get-ScalarValue 'PROJECT_BINDING.yaml' 'harness_version') -ne '0.8.9') { Add-Failure 'PROJECT_BINDING.yaml harness_version must be 0.8.9' }
-if ((Get-ScalarValue 'orquestador/context-budget.yaml' 'harness_version') -ne '0.8.9') { Add-Failure 'context-budget.yaml harness_version must be 0.8.9' }
+if ((Get-ScalarValue 'PROJECT_BINDING.yaml' 'harness_version') -ne '0.8.10') { Add-Failure 'PROJECT_BINDING.yaml harness_version must be 0.8.10' }
+if ((Get-ScalarValue 'orquestador/context-budget.yaml' 'harness_version') -ne '0.8.10') { Add-Failure 'context-budget.yaml harness_version must be 0.8.10' }
 if ((Get-ScalarValue 'PROJECT_BINDING.yaml' 'binding_mode') -notin @('source_template','bound')) { Add-Failure 'PROJECT_BINDING.yaml binding_mode invalid' }
 
 Assert-Contains 'orquestador/context-budget.yaml' 'load_infohebri:\s+denied' 'context-budget must deny infoHebri loading'
@@ -214,7 +227,7 @@ Assert-Contains 'orquestador/integrations/claude/CLAUDE.template.md' 'reentry-br
 Assert-Contains 'orquestador/sdd/progress/templates/claude-reentry-state.yaml' 'non_authoritative: true' 'Claude reentry state must be non-authoritative'
 Assert-Contains 'scripts/install-claude-hooks.ps1' 'Preflight only' 'Claude hook installer must be preflight-only'
 Assert-Contains 'scripts/claude-reentry.ps1' 'Approvals expired' 'Claude reentry must expire approvals'
-Assert-Contains 'orquestador/instruction-builder/instruction-registry.yaml' '0.8.9' 'instruction registry must match harness version'
+Assert-Contains 'orquestador/instruction-builder/instruction-registry.yaml' '0.8.10' 'instruction registry must match harness version'
 Assert-Contains 'orquestador/instruction-builder/instruction-registry.yaml' 'generic-ai' 'instruction registry must include generic-ai target'
 Assert-Contains 'orquestador/instruction-builder/fragments/denylists.md' 'infoHebri.md' 'instruction denylists must mention infoHebri'
 Assert-Contains 'scripts/build-instructions.ps1' 'check-only passed' 'instruction builder must support check-only'
@@ -250,6 +263,11 @@ try { & (Resolve-HarnessPath 'scripts/regularize-registry.ps1') -Root $Root | Ou
 
 Test-BoundCopySimulation
 if ($RunNegativeTests) { Run-NegativeTests }
+
+if ($script:Warnings.Count -gt 0) {
+  Write-Host 'Validation warnings:'
+  foreach ($warning in $script:Warnings) { Write-Host "- $warning" }
+}
 
 if ($script:Failures.Count -gt 0) {
   Write-Host 'Validation failed:'

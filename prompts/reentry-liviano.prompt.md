@@ -4,6 +4,6 @@ description: "Reentry liviano sin cargar todo el harness"
 
 # Reentry Liviano
 
-Usa Hebri-AI-Harness 0.8.9. Lee `PROJECT_BINDING.yaml`, `session-pin.md`, `memory-registry.yaml`, `memory-routing.yaml`, `context-budget.yaml` y aplica `orquestador/entrypoints/reentry-light.md`.
+Usa Hebri-AI-Harness 0.8.10. Lee `PROJECT_BINDING.yaml`, `session-pin.md`, `memory-registry.yaml`, `memory-routing.yaml`, `context-budget.yaml` y aplica `orquestador/entrypoints/reentry-light.md`.
 
 No cargar `infoHebri.md`, `complete/`, prompts completos ni contrato extendido.
