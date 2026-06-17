@@ -1,6 +1,6 @@
 schema: hebrinex.adapter
 version: "0.1"
-harness_version: "0.8.8"
+harness_version: "0.8.9"
 adapter_id: codex
 host: "Codex"
 instruction_surfaces:

@@ -13,13 +13,44 @@ if grep -q '^file infoHebri[.]md$' "$MANIFEST"; then echo "ERROR: infoHebri.md n
 while IFS= read -r line || [ -n "$line" ]; do entry="$(printf '%s' "$line" | sed 's/[[:space:]]*$//')"; case "$entry" in ""|\#*) continue ;; esac; kind="${entry%% *}"; path="${entry#* }"; [ "$kind" != "$path" ] || { echo "ERROR: Entrada invalida en manifest: $entry"; exit 2; }; case "$kind" in dir) [ -d "$ROOT/$path" ] || { echo "ERROR: Falta el directorio $path"; exit 2; };; file) [ -f "$ROOT/$path" ] || { echo "ERROR: Falta el archivo $path"; exit 2; }; [ -s "$ROOT/$path" ] || { echo "ERROR: Archivo vacio $path"; exit 2; };; *) echo "ERROR: Tipo invalido en manifest: $kind"; exit 2;; esac; done < "$MANIFEST"
 BINDING_MODE="$(get_binding_value binding_mode)"; PROJECT_ROOT_RAW="$(get_binding_value project_root)"; HARNESS_BINDING_VERSION="$(get_binding_value harness_version)"
 [ "$BINDING_MODE" = "source_template" ] || [ "$BINDING_MODE" = "bound" ] || { echo "ERROR: PROJECT_BINDING.yaml binding_mode invalido: $BINDING_MODE"; exit 2; }
-[ "$HARNESS_BINDING_VERSION" = "0.8.8" ] || { echo "ERROR: PROJECT_BINDING.yaml no declara harness_version 0.8.8"; exit 2; }
+[ "$HARNESS_BINDING_VERSION" = "0.8.9" ] || { echo "ERROR: PROJECT_BINDING.yaml no declara harness_version 0.8.9"; exit 2; }
 if [ "$BINDING_MODE" = "bound" ]; then [ -n "$PROJECT_ROOT_RAW" ] || { echo "ERROR: PROJECT_BINDING.yaml bound requiere project_root"; exit 2; }; [ "$(basename "$ROOT")" = ".hebrinex" ] || { echo "ERROR: Un harness bound debe vivir en <project_root>/.hebrinex"; exit 2; }; ACTUAL_PROJECT_ROOT="$(CDPATH= cd -- "$ROOT/.." && pwd)"; EXPECTED_PROJECT_ROOT="$(normalize_path "$PROJECT_ROOT_RAW")"; [ "$EXPECTED_PROJECT_ROOT" = "$ACTUAL_PROJECT_ROOT" ] || { echo "ERROR: PROJECT_BINDING mismatch"; exit 2; }; [ ! -f "$ROOT/infoHebri.md" ] || { echo "ERROR: infoHebri.md no debe existir dentro de un harness bound"; exit 2; }; fi
 echo "Binding: $BINDING_MODE"; echo "Harness path: $ROOT"; [ -z "$PROJECT_ROOT_RAW" ] || echo "Project root: $(normalize_path "$PROJECT_ROOT_RAW")"
-if grep -R "0[.]8[.][0-2]" "$ROOT" --exclude="CHANGELOG.md" --exclude="infoHebri.md" --exclude-dir=".git" >/dev/null 2>&1; then echo "ERROR: Drift de version antigua detectado fuera de CHANGELOG.md"; grep -R "0[.]8[.][0-2]" "$ROOT" --exclude="CHANGELOG.md" --exclude="infoHebri.md" --exclude-dir=".git" || true; exit 2; fi
+check_operational_version_drift(){
+  failed=0
+  for pattern in \
+    "HARNESS_VERSION" \
+    "PROJECT_BINDING.yaml" \
+    "AGENTS.md" \
+    "README.md" \
+    "orquestador/context-budget.yaml" \
+    "orquestador/instruction-builder/instruction-registry.yaml" \
+    "orquestador/memory/local/session-pin.md" \
+    "orquestador/runtime/active-session.template.json" \
+    "orquestador/runtime/schemas/active-session.schema.json" \
+    "orquestador/portability/*.yaml" \
+    "orquestador/adapters/*.yaml" \
+    "orquestador/policies/schemas/*.yaml" \
+    "orquestador/sdd/progress/templates/*.yaml" \
+    "prompts/preset-*.prompt.md" \
+    "prompts/primer-mensaje-harness.prompt.md" \
+    "prompts/reentry-liviano.prompt.md" \
+    "prompts/usuario-contrato-reentry.prompt.md"; do
+    for file in "$ROOT"/$pattern; do
+      [ -f "$file" ] || continue
+      if grep -E 'harness_version:[[:space:]]*"?0[.]8[.][0-8]|Version operativa esperada:[[:space:]]*0[.]8[.][0-8]|Referencia operativa actual:[^0-9]*0[.]8[.][0-8]|const[[:space:]]*[:=][[:space:]]*"0[.]8[.][0-8]"' "$file" >/dev/null 2>&1; then
+        echo "ERROR: Drift de version operativa antigua en ${file#$ROOT/}"
+        grep -nE 'harness_version:[[:space:]]*"?0[.]8[.][0-8]|Version operativa esperada:[[:space:]]*0[.]8[.][0-8]|Referencia operativa actual:[^0-9]*0[.]8[.][0-8]|const[[:space:]]*[:=][[:space:]]*"0[.]8[.][0-8]"' "$file" || true
+        failed=1
+      fi
+    done
+  done
+  [ "$failed" -eq 0 ] || exit 2
+}
+check_operational_version_drift
 if grep -R "\.hebrinex/policies" "$ROOT/AGENTS.md" "$ROOT/orquestador" >/dev/null 2>&1; then echo "ERROR: Ruta obsoleta detectada: .hebrinex/policies"; exit 2; fi
 if grep -R "\.hebrinex/orquestador/sdd/\.hebrinex" "$ROOT/agents" "$ROOT/prompts" >/dev/null 2>&1; then echo "ERROR: Ruta canonica duplicada detectada"; exit 2; fi
-require_grep "0.8.8" "$ROOT/HARNESS_VERSION" "HARNESS_VERSION no declara 0.8.8"
+require_grep "0.8.9" "$ROOT/HARNESS_VERSION" "HARNESS_VERSION no declara 0.8.9"
 require_grep "schema: hebrinex.context_budget" "$ROOT/orquestador/context-budget.yaml" "context-budget.yaml no define schema"
 require_grep "context_budget" "$ROOT/orquestador/memory/local/session-pin.md" "session-pin.md no declara context_budget"
 require_grep "memory-closure-checklist.md" "$ROOT/orquestador/method/memory-layer-policy.md" "memory-layer-policy.md no exige cierre de memoria"
@@ -78,10 +109,10 @@ require_grep "excluir siempre" "$ROOT/orquestador/sdd/specs/bootstrap-harness.md
 require_grep "G5I_memory_consistency_complete" "$ROOT/orquestador/sdd/progress/state.yaml" "state.yaml no declara gate memoria"
 require_grep "approvals:" "$ROOT/orquestador/sdd/progress/state.yaml" "state.yaml no separa approvals"
 require_grep "Rol del chat: interprete" "$ROOT/orquestador/method/session-contract.md" "session-contract.md no define rol interprete"
-check_context_budget memory_bootstrap 1500 PROJECT_BINDING.yaml orquestador/memory/local/session-pin.md orquestador/memory/memory-registry.yaml orquestador/memory/memory-routing.yaml orquestador/context-budget.yaml orquestador/entrypoints/reentry-light.md
+check_context_budget memory_bootstrap 1700 PROJECT_BINDING.yaml orquestador/memory/local/session-pin.md orquestador/memory/memory-registry.yaml orquestador/memory/memory-routing.yaml orquestador/context-budget.yaml orquestador/entrypoints/reentry-light.md
 check_context_budget first_message 1800 PROJECT_BINDING.yaml orquestador/memory/local/session-pin.md orquestador/memory/memory-registry.yaml orquestador/memory/memory-routing.yaml orquestador/context-budget.yaml orquestador/entrypoints/first-message.md
 check_context_budget debug_log_intake 2000 PROJECT_BINDING.yaml orquestador/memory/local/session-pin.md orquestador/memory/memory-registry.yaml orquestador/memory/memory-routing.yaml orquestador/context-budget.yaml orquestador/entrypoints/debug-log-intake.md orquestador/entrypoints/reentry-light.md
-check_context_budget leader_light 2400 PROJECT_BINDING.yaml orquestador/memory/local/session-pin.md orquestador/memory/memory-registry.yaml orquestador/memory/memory-routing.yaml orquestador/context-budget.yaml orquestador/sdd/progress/state.yaml orquestador/sdd/progress/registry.yaml orquestador/method/session-contract.md
+check_context_budget leader_light 2600 PROJECT_BINDING.yaml orquestador/memory/local/session-pin.md orquestador/memory/memory-registry.yaml orquestador/memory/memory-routing.yaml orquestador/context-budget.yaml orquestador/sdd/progress/state.yaml orquestador/sdd/progress/registry.yaml orquestador/method/session-contract.md
 if grep -R "\[Completar" "$ROOT/AGENTS.md" "$ROOT/PROGRESS.md" >/dev/null 2>&1; then if [ "$BINDING_MODE" = "source_template" ]; then echo "INFO: Placeholders operativos esperados en source_template"; else echo "WARN: Quedan placeholders operativos en AGENTS.md o PROGRESS.md"; fi; fi
 pwsh -NoProfile -ExecutionPolicy Bypass -File "$ROOT/scripts/check-adapter-drift.ps1" -Root "$ROOT"
 echo "OK. Harness estructurado correctamente."

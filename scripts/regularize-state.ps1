@@ -27,18 +27,42 @@ function Ensure-TopBlock([string]$Text, [string]$Key, [string[]]$Block, [System.
   return $Text.TrimEnd() + "`n" + (($Block -join "`n") + "`n")
 }
 
-function Ensure-InlineListItems([string]$Text, [string]$Key, [string[]]$Items, [System.Collections.Generic.List[string]]$Changes) {
-  $pattern = '(?m)^' + [regex]::Escape($Key) + ':\s*\[(.*?)\]\s*$'
-  $match = [regex]::Match($Text, $pattern)
-  if (-not $match.Success) { return $Text }
-  $existing = @($match.Groups[1].Value -split ',' | ForEach-Object { $_.Trim() } | Where-Object { $_ })
-  $merged = New-Object System.Collections.Generic.List[string]
-  foreach ($item in $existing) { if (-not $merged.Contains($item)) { $merged.Add($item) | Out-Null } }
-  foreach ($item in $Items) {
-    if (-not $merged.Contains($item)) { $merged.Add($item) | Out-Null; $Changes.Add("add ${Key}: $item") | Out-Null }
+function Ensure-YamlListItems([string]$Text, [string]$Key, [string[]]$Items, [System.Collections.Generic.List[string]]$Changes) {
+  $inlinePattern = '(?m)^' + [regex]::Escape($Key) + ':\s*\[(.*?)\]\s*$'
+  $inlineMatch = [regex]::Match($Text, $inlinePattern)
+  if ($inlineMatch.Success) {
+    $existing = @($inlineMatch.Groups[1].Value -split ',' | ForEach-Object { $_.Trim() } | Where-Object { $_ })
+    $merged = New-Object System.Collections.Generic.List[string]
+    foreach ($item in $existing) { if (-not $merged.Contains($item)) { $merged.Add($item) | Out-Null } }
+    foreach ($item in $Items) {
+      if (-not $merged.Contains($item)) { $merged.Add($item) | Out-Null; $Changes.Add("add ${Key}: $item") | Out-Null }
+    }
+    $newLine = $Key + ': [' + (($merged.ToArray()) -join ', ') + ']'
+    return $Text.Substring(0, $inlineMatch.Index) + $newLine + $Text.Substring($inlineMatch.Index + $inlineMatch.Length)
   }
-  $newLine = $Key + ': [' + (($merged.ToArray()) -join ', ') + ']'
-  return $Text.Substring(0, $match.Index) + $newLine + $Text.Substring($match.Index + $match.Length)
+
+  $blockPattern = '(?ms)^' + [regex]::Escape($Key) + ':\s*\r?\n(?<body>(?:^[ \t]+-\s*[^\r\n]+\r?\n?)*)'
+  $blockMatch = [regex]::Match($Text, $blockPattern)
+  if ($blockMatch.Success) {
+    $body = $blockMatch.Groups['body'].Value
+    $existing = New-Object System.Collections.Generic.HashSet[string]
+    foreach ($line in ($body -split "\r?\n")) {
+      if ($line -match '^\s*-\s*(\S.*)$') { [void]$existing.Add($Matches[1].Trim()) }
+    }
+    $append = New-Object System.Collections.Generic.List[string]
+    foreach ($item in $Items) {
+      if (-not $existing.Contains($item)) { $append.Add("  - $item") | Out-Null; $Changes.Add("add ${Key}: $item") | Out-Null }
+    }
+    if ($append.Count -eq 0) { return $Text }
+    $newBlock = $blockMatch.Value.TrimEnd() + "`n" + (($append.ToArray()) -join "`n") + "`n"
+    return $Text.Substring(0, $blockMatch.Index) + $newBlock + $Text.Substring($blockMatch.Index + $blockMatch.Length)
+  }
+
+  $Changes.Add("add top-level key: $Key") | Out-Null
+  $lines = New-Object System.Collections.Generic.List[string]
+  $lines.Add($Key + ':') | Out-Null
+  foreach ($item in $Items) { $lines.Add("  - $item") | Out-Null }
+  return $Text.TrimEnd() + "`n" + (($lines.ToArray()) -join "`n") + "`n"
 }
 
 $text = [IO.File]::ReadAllText($StatePath)
@@ -60,7 +84,7 @@ $text = Ensure-TopBlock $text 'conditional_gates' @(
   'conditional_gates: [G5C_deploy_migration_complete, G5D_reference_drift_complete, G5E_ci_pipeline_history_complete, G5F_backlog_classification_complete, G5G_audit_report_contract_complete, G5H_final_report_crosslink_complete]'
 ) $changes
 
-$text = Ensure-InlineListItems $text 'required_gates' @('G3A_detractor_senior_pre_implementation','G5I_memory_consistency_complete','G6_agent_closure_complete') $changes
+$text = Ensure-YamlListItems $text 'required_gates' @('G3A_detractor_senior_pre_implementation','G5I_memory_consistency_complete','G6_agent_closure_complete') $changes
 
 if ($changes.Count -eq 0) {
   Write-Host 'OK. state.yaml already regularized.'

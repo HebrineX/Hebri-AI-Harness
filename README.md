@@ -1,6 +1,6 @@
 # Hebri-AI-Harness
 
-Referencia operativa actual: **0.8.8**.
+Referencia operativa actual: **0.8.9**.
 
 Sistema operativo para agentes IA basado en [Hebri-AI-Structure](https://github.com/HebrineX/Hebri-AI-Structure). Objetivo: contrato, trazabilidad y aprobaciones con 70-80% menos contexto frente a leer todo `.hebrinex`.
 
@@ -17,11 +17,11 @@ Sistema operativo para agentes IA basado en [Hebri-AI-Structure](https://github.
 
 | Ruta | Presupuesto |
 |---|---:|
-| `memory_bootstrap` | <= 1500 tokens |
+| `memory_bootstrap` | <= 1700 tokens |
 | `first_message` | <= 1800 tokens |
 | `reentry_light` | <= 1800 tokens |
 | `debug_log_intake` | <= 2000 tokens + logs |
-| `leader_light` | <= 2400 tokens |
+| `leader_light` | <= 2600 tokens |
 | `leader_full` | <= 8000 tokens y requiere motivo |
 | `audit_global` | <= 12000 tokens y requiere `SI` |
 
@@ -46,10 +46,10 @@ pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/validate-harness.ps1 -RunN
 
 Esta validacion revisa manifest, schemas, presupuestos, exclusion de `infoHebri.md`, migracion bound simulada y presets livianos por defecto. No reemplaza el contrato del harness; lo protege contra drift estructural.
 
-## 0.8.8 - Detractor Senior
+## Detractor Senior
 
-Antes de implementar, el leader debe pasar por uditor(profile: detractor_senior) o registrar bypass aprobado. El objetivo es llegar al mismo resultado con menos codigo, menos dependencias y menos abstracciones, sin sacrificar seguridad, datos, accesibilidad, contrato ni evidencia.
+Antes de implementar, el leader debe pasar por auditor(profile: detractor_senior) o registrar bypass aprobado. El objetivo es llegar al mismo resultado con menos codigo, menos dependencias y menos abstracciones, sin sacrificar seguridad, datos, accesibilidad, contrato ni evidencia.
 
 ## Adapter portability
 
-Desde 0.8.8 el contrato portable vive en orquestador/portability/core-skills.yaml y la cobertura por IA en orquestador/portability/adapter-matrix.yaml. Los adapters .yaml son declarativos y se verifican con scripts/check-adapter-drift.ps1.
+El contrato portable vive en orquestador/portability/core-skills.yaml y la cobertura por IA en orquestador/portability/adapter-matrix.yaml. Los adapters .yaml son declarativos y se verifican con scripts/check-adapter-drift.ps1.

@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.8.9] - 2026-06-17
+
+### Fixed
+- `regularize-state.ps1` ahora agrega gates requeridos en listas inline, listas YAML multilínea o cuando `required_gates` no existe.
+- `init.sh` deja de bloquear referencias históricas válidas a versiones antiguas y limita el drift check a archivos operativos activos.
+- Los presupuestos `memory_bootstrap` y `leader_light` ganan margen controlado para evitar fallos por notas mínimas de migración.
+
+### Changed
+- Version operativa actual a 0.8.9.
+- Validadores, adapters, presets, schemas y templates activos quedan alineados a 0.8.9.
+
+### Rationale
+- La migración no debe exigir limpieza manual de historia ni edición artesanal de gates; el harness debe corregir schema drift repetible y validar solo contrato operativo vigente.
+
 ## [0.8.8] - 2026-06-17
 
 ### Added

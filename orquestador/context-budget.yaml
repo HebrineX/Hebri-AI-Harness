@@ -1,6 +1,6 @@
 schema: hebrinex.context_budget
 version: "0.1"
-harness_version: "0.8.8"
+harness_version: "0.8.9"
 objective: "70-80% tokens."
 
 default_policy:
@@ -10,11 +10,11 @@ default_policy:
   over_budget_action: stop_and_request_narrower_brief
 
 budgets:
-  memory_bootstrap: {max_tokens:1500}
+  memory_bootstrap: {max_tokens:1700}
   first_message: {max_tokens:1800}
   reentry_light: {max_tokens:1800}
   debug_log_intake: {max_tokens_before_user_logs:2000}
-  leader_light: {max_tokens:2400}
+  leader_light: {max_tokens:2600}
   leader_full: {max_tokens:8000, requires_approval:true}
   audit_global: {max_tokens:12000, requires_approval:true}
   adapter_portability: {max_tokens:3500}

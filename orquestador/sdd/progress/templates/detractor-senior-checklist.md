@@ -1,6 +1,6 @@
 # Detractor Senior Checklist
 
-Version: 0.8.8
+Version: 0.8.9
 
 ## Identificacion
 

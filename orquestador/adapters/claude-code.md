@@ -1,6 +1,6 @@
 # Claude Code Adapter
 
-## Entrada minima 0.8.8
+## Entrada minima 0.8.9
 
 Antes de actuar, leer solo:
 1. `PROJECT_BINDING.yaml`
@@ -18,6 +18,6 @@ No usar memoria de la herramienta como evidencia. No cargar `infoHebri.md`. Pref
 reentry-light.
 - Si hay logs/debug, usar debug-log-intake.
 
-## Claude Integration 0.8.8
+## Claude Integration 0.8.9
 
 Usar `orquestador/integrations/claude/CLAUDE.template.md` y generar `orquestador/runtime/claude/reentry-brief.md` con `scripts/claude-reentry.*`. Hooks en modo `warn` por defecto.

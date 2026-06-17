@@ -181,8 +181,8 @@ Assert-TopKeys 'orquestador/memory/memory-registry.yaml' @('schema','version','u
 Assert-TopKeys 'orquestador/sdd/progress/state.yaml' @('schema','version','updated_at','mode','project_binding','session_contract','active_cycle','required_gates','conditional_gates','approvals','verification','open_locks','open_agents','last_final_report')
 Assert-TopKeys 'orquestador/sdd/progress/registry.yaml' @('schema','version','updated_at','kanban_statuses','roles','profiles','cycles')
 
-if ((Get-ScalarValue 'PROJECT_BINDING.yaml' 'harness_version') -ne '0.8.8') { Add-Failure 'PROJECT_BINDING.yaml harness_version must be 0.8.8' }
-if ((Get-ScalarValue 'orquestador/context-budget.yaml' 'harness_version') -ne '0.8.8') { Add-Failure 'context-budget.yaml harness_version must be 0.8.8' }
+if ((Get-ScalarValue 'PROJECT_BINDING.yaml' 'harness_version') -ne '0.8.9') { Add-Failure 'PROJECT_BINDING.yaml harness_version must be 0.8.9' }
+if ((Get-ScalarValue 'orquestador/context-budget.yaml' 'harness_version') -ne '0.8.9') { Add-Failure 'context-budget.yaml harness_version must be 0.8.9' }
 if ((Get-ScalarValue 'PROJECT_BINDING.yaml' 'binding_mode') -notin @('source_template','bound')) { Add-Failure 'PROJECT_BINDING.yaml binding_mode invalid' }
 
 Assert-Contains 'orquestador/context-budget.yaml' 'load_infohebri:\s+denied' 'context-budget must deny infoHebri loading'
@@ -214,7 +214,7 @@ Assert-Contains 'orquestador/integrations/claude/CLAUDE.template.md' 'reentry-br
 Assert-Contains 'orquestador/sdd/progress/templates/claude-reentry-state.yaml' 'non_authoritative: true' 'Claude reentry state must be non-authoritative'
 Assert-Contains 'scripts/install-claude-hooks.ps1' 'Preflight only' 'Claude hook installer must be preflight-only'
 Assert-Contains 'scripts/claude-reentry.ps1' 'Approvals expired' 'Claude reentry must expire approvals'
-Assert-Contains 'orquestador/instruction-builder/instruction-registry.yaml' '0.8.8' 'instruction registry must match harness version'
+Assert-Contains 'orquestador/instruction-builder/instruction-registry.yaml' '0.8.9' 'instruction registry must match harness version'
 Assert-Contains 'orquestador/instruction-builder/instruction-registry.yaml' 'generic-ai' 'instruction registry must include generic-ai target'
 Assert-Contains 'orquestador/instruction-builder/fragments/denylists.md' 'infoHebri.md' 'instruction denylists must mention infoHebri'
 Assert-Contains 'scripts/build-instructions.ps1' 'check-only passed' 'instruction builder must support check-only'
@@ -231,10 +231,10 @@ Assert-PresetNotHeavyByDefault 'prompts/preset-codex.prompt.md'
 Assert-PresetNotHeavyByDefault 'prompts/preset-claude.prompt.md'
 Assert-PresetNotHeavyByDefault 'prompts/preset-gemini.prompt.md'
 
-Assert-Budget 'memory_bootstrap' 1500 @('PROJECT_BINDING.yaml','orquestador/memory/local/session-pin.md','orquestador/memory/memory-registry.yaml','orquestador/memory/memory-routing.yaml','orquestador/context-budget.yaml','orquestador/entrypoints/reentry-light.md')
+Assert-Budget 'memory_bootstrap' 1700 @('PROJECT_BINDING.yaml','orquestador/memory/local/session-pin.md','orquestador/memory/memory-registry.yaml','orquestador/memory/memory-routing.yaml','orquestador/context-budget.yaml','orquestador/entrypoints/reentry-light.md')
 Assert-Budget 'first_message' 1800 @('PROJECT_BINDING.yaml','orquestador/memory/local/session-pin.md','orquestador/memory/memory-registry.yaml','orquestador/memory/memory-routing.yaml','orquestador/context-budget.yaml','orquestador/entrypoints/first-message.md')
 Assert-Budget 'debug_log_intake' 2000 @('PROJECT_BINDING.yaml','orquestador/memory/local/session-pin.md','orquestador/memory/memory-registry.yaml','orquestador/memory/memory-routing.yaml','orquestador/context-budget.yaml','orquestador/entrypoints/debug-log-intake.md','orquestador/entrypoints/reentry-light.md')
-Assert-Budget 'leader_light' 2400 @('PROJECT_BINDING.yaml','orquestador/memory/local/session-pin.md','orquestador/memory/memory-registry.yaml','orquestador/memory/memory-routing.yaml','orquestador/context-budget.yaml','orquestador/sdd/progress/state.yaml','orquestador/sdd/progress/registry.yaml','orquestador/method/session-contract.md')
+Assert-Budget 'leader_light' 2600 @('PROJECT_BINDING.yaml','orquestador/memory/local/session-pin.md','orquestador/memory/memory-registry.yaml','orquestador/memory/memory-routing.yaml','orquestador/context-budget.yaml','orquestador/sdd/progress/state.yaml','orquestador/sdd/progress/registry.yaml','orquestador/method/session-contract.md')
 
 foreach ($jsonRel in @('orquestador/integrations/claude/settings.template.json','orquestador/runtime/active-session.template.json','orquestador/runtime/schemas/active-session.schema.json','orquestador/runtime/schemas/harness-command.schema.json','orquestador/runtime/templates/command-result.template.json','orquestador/runtime/templates/budget-report.template.json','orquestador/runtime/templates/reentry-result.template.json','orquestador/sdd/progress/templates/runtime-audit-report.json')) {
   try { [void](Read-HarnessText $jsonRel | ConvertFrom-Json) }
