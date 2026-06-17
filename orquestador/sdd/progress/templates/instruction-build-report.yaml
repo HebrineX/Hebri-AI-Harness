@@ -1,6 +1,6 @@
 schema: hebrinex.instruction_build_report
 version: "0.1"
-harness_version: "0.8.7"
+harness_version: "0.8.8"
 generated_at: ""
 mode: check_only
 targets_checked: []

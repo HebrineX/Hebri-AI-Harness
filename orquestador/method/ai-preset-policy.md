@@ -1,6 +1,6 @@
 # AI Preset Policy
 
-Version: 0.8.7
+Version: 0.8.8
 
 Todo preset debe exigir:
 

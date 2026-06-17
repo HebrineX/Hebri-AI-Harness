@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.8.8] - 2026-06-17
+
+### Added
+- `scripts/regularize-state.ps1` para migrar `state.yaml` preservado desde versiones anteriores agregando keys/gates faltantes.
+- `scripts/regularize-registry.ps1` para migrar `registry.yaml` preservado agregando `kanban_statuses`, `roles` y `profiles` sin borrar ciclos.
+
+### Changed
+- `build-instructions.ps1` usa `SHA256.Create().ComputeHash(...)`, compatible con Windows PowerShell 5.1.
+- `init.sh` y `validate-harness.ps1` validan regularizers y bloquean APIs hash no compatibles.
+- Version operativa actual a 0.8.8.
+
+### Rationale
+- La migracion de proyectos debe preservar estado local, pero tambien regularizar schema drift de forma guiada y auditable.
+
 ## [0.8.7] - 2026-06-16
 
 ### Added

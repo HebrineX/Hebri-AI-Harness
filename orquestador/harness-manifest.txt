@@ -256,3 +256,6 @@ file scripts/build-instructions.ps1
 file scripts/build-instructions.sh
 file scripts/validate-drift.ps1
 file scripts/validate-drift.sh
+
+file scripts/regularize-state.ps1
+file scripts/regularize-registry.ps1

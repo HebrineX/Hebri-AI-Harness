@@ -181,8 +181,8 @@ Assert-TopKeys 'orquestador/memory/memory-registry.yaml' @('schema','version','u
 Assert-TopKeys 'orquestador/sdd/progress/state.yaml' @('schema','version','updated_at','mode','project_binding','session_contract','active_cycle','required_gates','conditional_gates','approvals','verification','open_locks','open_agents','last_final_report')
 Assert-TopKeys 'orquestador/sdd/progress/registry.yaml' @('schema','version','updated_at','kanban_statuses','roles','profiles','cycles')
 
-if ((Get-ScalarValue 'PROJECT_BINDING.yaml' 'harness_version') -ne '0.8.7') { Add-Failure 'PROJECT_BINDING.yaml harness_version must be 0.8.7' }
-if ((Get-ScalarValue 'orquestador/context-budget.yaml' 'harness_version') -ne '0.8.7') { Add-Failure 'context-budget.yaml harness_version must be 0.8.7' }
+if ((Get-ScalarValue 'PROJECT_BINDING.yaml' 'harness_version') -ne '0.8.8') { Add-Failure 'PROJECT_BINDING.yaml harness_version must be 0.8.8' }
+if ((Get-ScalarValue 'orquestador/context-budget.yaml' 'harness_version') -ne '0.8.8') { Add-Failure 'context-budget.yaml harness_version must be 0.8.8' }
 if ((Get-ScalarValue 'PROJECT_BINDING.yaml' 'binding_mode') -notin @('source_template','bound')) { Add-Failure 'PROJECT_BINDING.yaml binding_mode invalid' }
 
 Assert-Contains 'orquestador/context-budget.yaml' 'load_infohebri:\s+denied' 'context-budget must deny infoHebri loading'
@@ -214,11 +214,17 @@ Assert-Contains 'orquestador/integrations/claude/CLAUDE.template.md' 'reentry-br
 Assert-Contains 'orquestador/sdd/progress/templates/claude-reentry-state.yaml' 'non_authoritative: true' 'Claude reentry state must be non-authoritative'
 Assert-Contains 'scripts/install-claude-hooks.ps1' 'Preflight only' 'Claude hook installer must be preflight-only'
 Assert-Contains 'scripts/claude-reentry.ps1' 'Approvals expired' 'Claude reentry must expire approvals'
-Assert-Contains 'orquestador/instruction-builder/instruction-registry.yaml' '0[.]8[.]7' 'instruction registry must match harness version'
+Assert-Contains 'orquestador/instruction-builder/instruction-registry.yaml' '0.8.8' 'instruction registry must match harness version'
 Assert-Contains 'orquestador/instruction-builder/instruction-registry.yaml' 'generic-ai' 'instruction registry must include generic-ai target'
 Assert-Contains 'orquestador/instruction-builder/fragments/denylists.md' 'infoHebri.md' 'instruction denylists must mention infoHebri'
 Assert-Contains 'scripts/build-instructions.ps1' 'check-only passed' 'instruction builder must support check-only'
 Assert-Contains 'scripts/validate-drift.ps1' 'Strong drift validation passed' 'strong drift validator missing success marker'
+Assert-Contains 'scripts/regularize-state.ps1' 'CheckOnly: no files written' 'regularize-state must be check-only by default'
+Assert-Contains 'scripts/regularize-registry.ps1' 'CheckOnly: no files written' 'regularize-registry must be check-only by default'
+Assert-Contains 'scripts/regularize-state.ps1' 'Copy-Item' 'regularize-state must create backup before write'
+Assert-Contains 'scripts/regularize-registry.ps1' 'Copy-Item' 'regularize-registry must create backup before write'
+Assert-Contains 'scripts/build-instructions.ps1' 'ComputeHash' 'build-instructions must use PS 5.1 compatible ComputeHash'
+Assert-NoContains 'scripts/build-instructions.ps1' 'HashData|ToHexString' 'build-instructions must not use PS 7-only hash APIs'
 Assert-NoContains 'orquestador/harness-manifest.txt' 'infoHebri[.]md' 'manifest must exclude infoHebri.md'
 
 Assert-PresetNotHeavyByDefault 'prompts/preset-codex.prompt.md'
@@ -239,6 +245,8 @@ Assert-Budget 'runtime_reentry' 1600 @('PROJECT_BINDING.yaml','orquestador/memor
 
 try { & (Resolve-HarnessPath 'scripts/build-instructions.ps1') -Root $Root | Out-Null } catch { Add-Failure 'build-instructions.ps1 must pass check-only' }
 try { & (Resolve-HarnessPath 'scripts/validate-drift.ps1') -Root $Root -RunNegativeTests | Out-Null } catch { Add-Failure 'validate-drift.ps1 must pass negative tests' }
+try { & (Resolve-HarnessPath 'scripts/regularize-state.ps1') -Root $Root | Out-Null } catch { Add-Failure 'regularize-state.ps1 must pass on current state' }
+try { & (Resolve-HarnessPath 'scripts/regularize-registry.ps1') -Root $Root | Out-Null } catch { Add-Failure 'regularize-registry.ps1 must pass on current registry' }
 
 Test-BoundCopySimulation
 if ($RunNegativeTests) { Run-NegativeTests }

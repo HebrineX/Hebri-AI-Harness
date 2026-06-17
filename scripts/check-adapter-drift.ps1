@@ -12,7 +12,7 @@ foreach($id in $expected){
   $md = "orquestador/adapters/$id.md"
   $yt = T $yaml
   [void](T $md)
-  foreach($needle in @('harness_version: "0.8.7"','memory_reliability: untrusted_for_evidence','preflight_enforcement: required_before_effects','detractor_senior','first_message','reentry_light','reentry_full','debug_log_intake','compactation_recovery')){
+  foreach($needle in @('harness_version: "0.8.8"','memory_reliability: untrusted_for_evidence','preflight_enforcement: required_before_effects','detractor_senior','first_message','reentry_light','reentry_full','debug_log_intake','compactation_recovery')){
     if($yt -notmatch [regex]::Escape($needle)){ Fail "$yaml missing $needle" }
   }
 }

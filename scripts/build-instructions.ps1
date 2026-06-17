@@ -8,6 +8,14 @@ foreach ($f in $fragments) {
   if (-not (Test-Path -LiteralPath $path)) { Write-Error "missing fragment $f" }
 }
 $hashInput = ($fragments | ForEach-Object { Get-Content -Raw -LiteralPath (Join-Path $Root "orquestador/instruction-builder/fragments/$_.md") }) -join "`n---`n"
-$hash = [Convert]::ToHexString([Security.Cryptography.SHA256]::HashData([Text.Encoding]::UTF8.GetBytes($hashInput))).ToLowerInvariant()
+$sha256 = [System.Security.Cryptography.SHA256]::Create()
+try {
+  $bytes = [System.Text.Encoding]::UTF8.GetBytes($hashInput)
+  $hashBytes = $sha256.ComputeHash($bytes)
+  $hash = ([System.BitConverter]::ToString($hashBytes) -replace "-", "").ToLowerInvariant()
+}
+finally {
+  if ($sha256) { $sha256.Dispose() }
+}
 if ($WriteOutputs) { Write-Error "Writing generated instructions requires explicit implementation in a bound project" }
 Write-Host "OK. Instruction builder check-only passed. fragments_sha256=$hash"
