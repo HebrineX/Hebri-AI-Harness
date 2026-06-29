@@ -1,0 +1,52 @@
+schema: hebrinex.gate_registry
+version: "0.1"
+harness_version: "0.9.0"
+state_source:
+  path: orquestador/sdd/progress/state.yaml
+registry_source:
+  path: orquestador/sdd/progress/registry.yaml
+required_gates:
+  - id: G0_session_contract
+    purpose: "Contrato de sesion declarado."
+  - id: G0A_memory_registry_loaded
+    purpose: "Memoria operativa minima cargada."
+  - id: G1_context_ready
+    purpose: "Contexto requerido listo."
+  - id: G1A_clarification_complete
+    purpose: "Ambiguedades bloqueantes resueltas."
+  - id: G1B_analysis_complete
+    purpose: "Analisis inicial completo."
+  - id: G1C_blast_radius_declared
+    purpose: "Blast radius declarado."
+  - id: G2_dispatch_ready
+    purpose: "Despacho listo."
+  - id: G2A_task_graph_ready
+    purpose: "Grafo de tareas listo."
+  - id: G3_locks_acquired
+    purpose: "Locks tomados antes de escribir."
+  - id: G3A_detractor_senior_pre_implementation
+    purpose: "Detractor senior antes de implementar."
+  - id: G4_execution_complete
+    purpose: "Ejecucion completa."
+  - id: G5_review_or_validation
+    purpose: "Review o validacion ejecutada."
+  - id: G5A_detractor_pass_complete
+    purpose: "Pase detractor completo."
+  - id: G5B_release_reconstruction_complete
+    purpose: "Reconstruccion release completa si aplica."
+  - id: G5I_memory_consistency_complete
+    purpose: "Consistencia de memoria validada."
+  - id: G6_agent_closure_complete
+    purpose: "Cierre de agentes."
+  - id: G7_handoff_complete
+    purpose: "Handoff final."
+conditional_gates:
+  - id: G5C_deploy_migration_complete
+  - id: G5D_reference_drift_complete
+  - id: G5E_ci_pipeline_history_complete
+  - id: G5F_backlog_classification_complete
+  - id: G5G_audit_report_contract_complete
+  - id: G5H_final_report_crosslink_complete
+rules:
+  - "state.yaml debe contener todos los ids declarados aca."
+  - "Un gate condicional solo se exige cuando el scope toca su dominio."

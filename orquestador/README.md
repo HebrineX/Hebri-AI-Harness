@@ -1,6 +1,6 @@
 # Indice del Sistema Operativo
 
-Desde 0.8.10, el orquestador tambien gobierna memoria operativa por capas en `memory/`, entrypoints de rehidratacion en `entrypoints/` y adapters por IA en `adapters/`.
+Desde 0.9.0, el orquestador tambien gobierna memoria operativa por capas en `memory/`, entrypoints de rehidratacion en `entrypoints/` y adapters por IA en `adapters/`.
 
 | Directorio / Archivo | Contenido | Responsabilidad |
 |---|---|---|
@@ -51,3 +51,7 @@ Desde 0.8.10, el orquestador tambien gobierna memoria operativa por capas en `me
 - `context-profiles.md` define que leer por rol.
 - `method/global-rules.md` concentra reglas repetidas.
 - `sdd/specs/bootstrap-harness.md` conserva el brief largo de bootstrap fuera del prompt diario.
+
+## Registries canonicos
+
+Las rutas operativas se gobiernan desde orquestador/registry-index.yaml. Los documentos narrativos explican el criterio; los registries son la fuente verificable para prompts, adapters, perfiles, gates, policies y templates.

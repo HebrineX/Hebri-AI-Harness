@@ -48,6 +48,6 @@ Bloquear si:
 - prompt de migracion apunta a una version vieja como objetivo actual;
 - no se puede justificar si una referencia es historica u operativa.
 
-## Instruction Builder 0.8.10
+## Instruction Builder 0.9.0
 
 Versiones, targets y denylists de instrucciones se validan con `scripts/validate-drift.ps1`. El builder corre check-only salvo aprobacion explicita de escritura.

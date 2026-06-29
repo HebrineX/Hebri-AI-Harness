@@ -1,10 +1,10 @@
 # Context Profiles
 
-Version: 0.8.10
+Version: 0.9.0
 
-Objetivo: cargar el minimo contexto posible. El default debe ahorrar 70-80% frente a leer `AGENTS.md + session-contract + method/* + prompts/*`.
+Objetivo: cargar el minimo contexto posible. El default debe ahorrar 70-80% frente a leer `AGENTS.md + session-contract + method/* + prompts/**`.
 
-Antes de leer un perfil, revisar `orquestador/context-budget.yaml`.
+Antes de leer un perfil, revisar `orquestador/context-profile-registry.yaml`, `orquestador/context-budget.yaml` y `orquestador/prompt-registry.yaml` si el perfil carga prompts.
 
 ## `memory_bootstrap` <= 1500 tokens
 
@@ -57,7 +57,7 @@ Leer:
 - `orquestador/context/product.md`
 - `orquestador/context/architecture.md`
 - templates SDD necesarios
-- `prompts/spec-author.prompt.md`
+- `prompts/roles/spec-author.prompt.md`
 
 ## `implementer` <= 4000 tokens
 
@@ -67,11 +67,11 @@ Leer:
 - `orquestador/policies/risk-criteria.md`
 - `orquestador/policies/tool-policy.yaml`
 - lock activo si existe
-- `prompts/implementer.prompt.md`
+- `prompts/roles/implementer.prompt.md`
 
 ## `reviewer` <= 4000 tokens
 
-Leer spec activa, artefacto implementado, gate log/evidencia del alcance y `prompts/reviewer.prompt.md`.
+Leer spec activa, artefacto implementado, gate log/evidencia del alcance y `prompts/roles/reviewer.prompt.md`.
 
 ## `auditor` <= 4000 tokens
 
@@ -100,17 +100,17 @@ Leer output de auditor/reviewer/leader, audiencia objetivo, `agents/reporter.md`
 - `infoHebri.md`
 - `orquestador/memory/complete/*`
 - leer todo `orquestador/method/`
-- leer todo `prompts/`
+- leer todo `prompts/` o todas sus subcarpetas
 - leer todo `.hebrinex/`
 
 Si un agente necesita superar presupuesto, debe detenerse, explicar read-set y pedir autorizacion.
 
-## Runtime 0.8.10
+## Runtime 0.9.0
 
 - `runtime_status`: `PROJECT_BINDING.yaml`, `session-pin.md`, `context-budget.yaml` y `active-session` si existe. Maximo: 900 tokens.
 - `runtime_reentry`: runtime status + `state.yaml`/`registry.yaml` solo si entra en budget. Maximo: 1600 tokens.
 - `/harness audit` prepara preflight; no carga auditoria global automaticamente.
 
-## Claude 0.8.10
+## Claude 0.9.0
 
 - `claude_reentry`: binding + session pin + runtime Claude brief. No carga memoria completa.

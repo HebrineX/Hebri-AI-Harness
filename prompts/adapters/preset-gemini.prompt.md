@@ -1,5 +1,5 @@
 ---
-description: "Preset Gemini alineado a Hebri-AI-Harness 0.8.10"
+description: "Preset Gemini alineado a Hebri-AI-Harness 0.9.0"
 ---
 
 # Preset Gemini

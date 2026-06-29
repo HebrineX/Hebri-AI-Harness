@@ -1,0 +1,64 @@
+schema: hebrinex.adapter_registry
+version: "0.1"
+harness_version: "0.9.0"
+canonical_sources:
+  adapter_contract:
+    path: orquestador/method/adapter-contract.md
+  ai_preset_policy:
+    path: orquestador/method/ai-preset-policy.md
+  adapter_matrix:
+    path: orquestador/portability/adapter-matrix.yaml
+  core_skills:
+    path: orquestador/portability/core-skills.yaml
+  instruction_registry:
+    path: orquestador/instruction-builder/instruction-registry.yaml
+adapters:
+  - id: claude-code
+    doc:
+      path: orquestador/adapters/claude-code.md
+    config:
+      path: orquestador/adapters/claude-code.yaml
+    prompt:
+      path: prompts/adapters/preset-claude.prompt.md
+  - id: codex
+    doc:
+      path: orquestador/adapters/codex.md
+    config:
+      path: orquestador/adapters/codex.yaml
+    prompt:
+      path: prompts/adapters/preset-codex.prompt.md
+  - id: gemini
+    doc:
+      path: orquestador/adapters/gemini.md
+    config:
+      path: orquestador/adapters/gemini.yaml
+    prompt:
+      path: prompts/adapters/preset-gemini.prompt.md
+  - id: copilot
+    doc:
+      path: orquestador/adapters/copilot.md
+    config:
+      path: orquestador/adapters/copilot.yaml
+  - id: cursor
+    doc:
+      path: orquestador/adapters/cursor.md
+    config:
+      path: orquestador/adapters/cursor.yaml
+  - id: deepseek
+    doc:
+      path: orquestador/adapters/deepseek.md
+    config:
+      path: orquestador/adapters/deepseek.yaml
+  - id: qwen
+    doc:
+      path: orquestador/adapters/qwen.md
+    config:
+      path: orquestador/adapters/qwen.yaml
+  - id: generic-ai
+    doc:
+      path: orquestador/adapters/generic-ai.md
+    config:
+      path: orquestador/adapters/generic-ai.yaml
+rules:
+  - "El adapter YAML declara capacidades; el preset prompt solo adapta instrucciones al modelo."
+  - "Si se agrega una IA, actualizar este registry, adapter-matrix, instruction-registry y manifest."

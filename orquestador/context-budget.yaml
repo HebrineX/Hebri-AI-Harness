@@ -1,6 +1,6 @@
 schema: hebrinex.context_budget
 version: "0.1"
-harness_version: "0.8.10"
+harness_version: "0.9.0"
 objective: "70-80% tokens."
 
 default_policy:
@@ -27,7 +27,7 @@ deny_by_default:
   - README.md unless profile is docs/bootstrap/version_drift
   - orquestador/harness-manifest.txt unless profile is bootstrap/version_drift
   - init.sh unless profile is bootstrap/version_drift
-  - prompts/* unless selected profile explicitly requires one prompt
+  - prompts/** unless selected profile explicitly requires one prompt
 
 required_context_report:
   - memory_route

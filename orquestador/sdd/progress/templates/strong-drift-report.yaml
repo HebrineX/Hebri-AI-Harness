@@ -1,6 +1,6 @@
 schema: hebrinex.strong_drift_report
 version: "0.1"
-harness_version: "0.8.10"
+harness_version: "0.9.0"
 checked_at: ""
 drift_found: []
 negative_tests: pending

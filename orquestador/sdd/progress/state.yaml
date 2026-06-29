@@ -1,7 +1,7 @@
 schema: hebrinex.progress.state
 version: "0.2"
 updated_at: ""
-mode: manual
+mode: automatico
 project_binding:
   status: source_template
   source: "PROJECT_BINDING.yaml"

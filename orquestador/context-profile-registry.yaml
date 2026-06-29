@@ -1,0 +1,74 @@
+schema: hebrinex.context_profile_registry
+version: "0.1"
+harness_version: "0.9.0"
+source:
+  budget_file:
+    path: orquestador/context-budget.yaml
+  human_guide:
+    path: orquestador/context-profiles.md
+profiles:
+  - id: memory_bootstrap
+    max_tokens: 1700
+    read_set:
+      - path: PROJECT_BINDING.yaml
+      - path: orquestador/memory/local/session-pin.md
+      - path: orquestador/memory/memory-registry.yaml
+      - path: orquestador/memory/memory-routing.yaml
+  - id: first_message
+    max_tokens: 1800
+    extends: memory_bootstrap
+    read_set:
+      - path: orquestador/entrypoints/first-message.md
+  - id: reentry_light
+    max_tokens: 1800
+    extends: memory_bootstrap
+    read_set:
+      - path: orquestador/entrypoints/reentry-light.md
+  - id: debug_log_intake
+    max_tokens: 2000
+    extends: memory_bootstrap
+    read_set:
+      - path: orquestador/entrypoints/debug-log-intake.md
+  - id: leader_light
+    max_tokens: 2600
+    extends: memory_bootstrap
+    read_set:
+      - path: orquestador/sdd/progress/state.yaml
+      - path: orquestador/sdd/progress/registry.yaml
+      - path: orquestador/method/session-contract.md
+  - id: runtime_status
+    max_tokens: 900
+    read_set:
+      - path: PROJECT_BINDING.yaml
+      - path: orquestador/memory/local/session-pin.md
+      - path: orquestador/context-budget.yaml
+      - path: orquestador/runtime/active-session.template.json
+  - id: runtime_reentry
+    max_tokens: 1600
+    extends: runtime_status
+    read_set:
+      - path: orquestador/sdd/progress/state.yaml
+      - path: orquestador/sdd/progress/registry.yaml
+special_profiles:
+  - id: release
+    max_tokens: 6000
+  - id: deploy_migration
+    max_tokens: 6000
+  - id: version_drift
+    max_tokens: 4000
+  - id: ci_pipeline
+    max_tokens: 6000
+  - id: backlog
+    max_tokens: 4000
+  - id: preset_ai
+    max_tokens: 4000
+  - id: ai_engineering
+    max_tokens: 5000
+  - id: bootstrap
+    max_tokens: 8000
+  - id: audit_global
+    max_tokens: 12000
+    requires_approval: true
+rules:
+  - "El budget numerico vive en context-budget.yaml; este registry hace verificables los read-sets."
+  - "No cargar infoHebri.md ni complete memory sin aprobacion explicita."

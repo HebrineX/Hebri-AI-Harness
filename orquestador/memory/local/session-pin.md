@@ -5,7 +5,7 @@ Rehidrata contrato sin cargar todo.
 ```yaml
 schema: hebrinex.memory.session_pin
 version: "0.1"
-harness_version: "0.8.10"
+harness_version: "0.9.0"
 binding_source: PROJECT_BINDING.yaml
 memory_registry: orquestador/memory/memory-registry.yaml
 memory_routing: orquestador/memory/memory-routing.yaml
@@ -24,7 +24,7 @@ infohebri_operational_load: denied
 
 Si contradice binding/state/registry, detenerse y reconstruir.
 
-yaml
+```yaml
 runtime_active_session: orquestador/runtime/active-session.template.json
 runtime_is_authority: false
 ```

@@ -1,0 +1,69 @@
+schema: hebrinex.prompt_registry
+version: "0.1"
+harness_version: "0.9.0"
+root: prompts
+categories:
+  roles:
+    purpose: "Prompts de rol operativo; no son presets de IA."
+    files:
+      - prompts/roles/lider.prompt.md
+      - prompts/roles/implementer.prompt.md
+      - prompts/roles/reviewer.prompt.md
+      - prompts/roles/spec-author.prompt.md
+      - prompts/roles/worker.prompt.md
+  session:
+    purpose: "Inicio, re-entry, brief y recuperacion de contexto."
+    files:
+      - prompts/session/brief.prompt.md
+      - prompts/session/debug-log-intake.prompt.md
+      - prompts/session/reentry-completo.prompt.md
+      - prompts/session/reentry-liviano.prompt.md
+      - prompts/session/usuario-contrato-reentry.prompt.md
+  adapters:
+    purpose: "Presets por IA; la fuente canonica de capacidades sigue en orquestador/adapters/."
+    files:
+      - prompts/adapters/preset-claude.prompt.md
+      - prompts/adapters/preset-codex.prompt.md
+      - prompts/adapters/preset-gemini.prompt.md
+  migration:
+    purpose: "Reconstruccion, migracion, deploy y pipeline."
+    files:
+      - prompts/migration/migrar-harness-0-7.prompt.md
+      - prompts/migration/migrar-harness-0-8-10-a-0-9-0.prompt.md
+      - prompts/migration/reconstruir-ci-pipeline.prompt.md
+      - prompts/migration/reconstruir-deploy-migracion.prompt.md
+  audit:
+    purpose: "Auditoria, reporte, detractor y drift de referencias/version."
+    files:
+      - prompts/audit/auditar-memoria.prompt.md
+      - prompts/audit/auditar-y-reportar.prompt.md
+      - prompts/audit/detractor-senior.prompt.md
+      - prompts/audit/validar-referencias-version.prompt.md
+  runtime:
+    purpose: "Interfaz liviana de comandos /harness; runtime no autoritativo."
+    files:
+      - prompts/runtime/harness-runtime.prompt.md
+  bootstrap:
+    purpose: "Creacion, primer mensaje y arranque de proyecto."
+    files:
+      - prompts/bootstrap/arrancar-proyecto.prompt.md
+      - prompts/bootstrap/crear-harness.prompt.md
+      - prompts/bootstrap/primer-mensaje-harness.prompt.md
+  workflows:
+    purpose: "Tareas operativas repetibles del ciclo de trabajo."
+    files:
+      - prompts/workflows/actualizar-changelog.prompt.md
+      - prompts/workflows/actualizar-memoria-diaria.prompt.md
+      - prompts/workflows/cerrar-con-evidencia.prompt.md
+      - prompts/workflows/cerrar-memoria-ciclo.prompt.md
+      - prompts/workflows/cierre-fase.prompt.md
+      - prompts/workflows/clasificar-roadmap.prompt.md
+      - prompts/workflows/explorar.prompt.md
+      - prompts/workflows/plan-fase.prompt.md
+      - prompts/workflows/plan-slice.prompt.md
+      - prompts/workflows/registrar-gap.prompt.md
+      - prompts/workflows/revisar-spec.prompt.md
+rules:
+  - "No agregar prompts nuevos en la raiz de prompts/."
+  - "Si se mueve un prompt, actualizar este registro, manifest, context-profiles y validadores."
+  - "Los presets de IA no reemplazan adapters ni instruction-builder."

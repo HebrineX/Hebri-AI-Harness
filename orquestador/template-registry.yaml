@@ -1,0 +1,56 @@
+schema: hebrinex.template_registry
+version: "0.1"
+harness_version: "0.9.0"
+categories:
+  sdd_spec_templates:
+    files:
+      - path: orquestador/sdd/specs/_template/requirements.md
+      - path: orquestador/sdd/specs/_template/design.md
+      - path: orquestador/sdd/specs/_template/tasks.md
+  progress_templates:
+    files:
+      - path: orquestador/sdd/progress/templates/agent-closure.md
+      - path: orquestador/sdd/progress/templates/agent-profile-template.yaml
+      - path: orquestador/sdd/progress/templates/ai-preset-contract.md
+      - path: orquestador/sdd/progress/templates/analysis-checklist.md
+      - path: orquestador/sdd/progress/templates/approval-envelope.md
+      - path: orquestador/sdd/progress/templates/audit-report-contract.md
+      - path: orquestador/sdd/progress/templates/backlog-classification-matrix.yaml
+      - path: orquestador/sdd/progress/templates/blast-radius.md
+      - path: orquestador/sdd/progress/templates/changelog-reconstruction-checklist.md
+      - path: orquestador/sdd/progress/templates/ci-pipeline-history.yaml
+      - path: orquestador/sdd/progress/templates/clarification-checklist.md
+      - path: orquestador/sdd/progress/templates/claude-reentry-state.yaml
+      - path: orquestador/sdd/progress/templates/deploy-migration-checklist.md
+      - path: orquestador/sdd/progress/templates/detractor-pass.md
+      - path: orquestador/sdd/progress/templates/detractor-senior-checklist.md
+      - path: orquestador/sdd/progress/templates/final-report.md
+      - path: orquestador/sdd/progress/templates/final-report-crosslink-checklist.md
+      - path: orquestador/sdd/progress/templates/instruction-build-report.yaml
+      - path: orquestador/sdd/progress/templates/memory-closure-checklist.md
+      - path: orquestador/sdd/progress/templates/preflight-template.md
+      - path: orquestador/sdd/progress/templates/reentry-checklist.md
+      - path: orquestador/sdd/progress/templates/reference-drift-matrix.yaml
+      - path: orquestador/sdd/progress/templates/release-history-matrix.yaml
+      - path: orquestador/sdd/progress/templates/runtime-audit-report.json
+      - path: orquestador/sdd/progress/templates/strong-drift-report.yaml
+      - path: orquestador/sdd/progress/templates/task-graph.yaml
+      - path: orquestador/sdd/progress/templates/verification-matrix.yaml
+  runtime_templates:
+    files:
+      - path: orquestador/runtime/active-session.template.json
+      - path: orquestador/runtime/templates/budget-report.template.json
+      - path: orquestador/runtime/templates/command-result.template.json
+      - path: orquestador/runtime/templates/reentry-result.template.json
+  integration_templates:
+    files:
+      - path: orquestador/integrations/claude/CLAUDE.template.md
+      - path: orquestador/integrations/claude/reentry-brief.template.md
+      - path: orquestador/integrations/claude/settings.template.json
+  cycle_templates:
+    files:
+      - path: orquestador/sdd/progress/cycles/_template/audit.jsonl
+      - path: orquestador/sdd/progress/cycles/_template/gate-log.yaml
+rules:
+  - "Templates son artefactos base; no son evidencia de ciclo hasta copiarse/rellenarse."
+  - "Si se agrega un template, actualizar este registry y el manifest."

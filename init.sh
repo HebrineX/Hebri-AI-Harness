@@ -3,6 +3,15 @@ set -eu
 ROOT="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
 MANIFEST="$ROOT/orquestador/harness-manifest.txt"
 require_grep(){ pattern="$1"; file="$2"; message="$3"; if ! grep -q "$pattern" "$file"; then echo "ERROR: $message"; exit 2; fi; }
+check_registry_paths(){
+  registry="$1"
+  [ -f "$ROOT/$registry" ] || { echo "ERROR: Falta registry $registry"; exit 2; }
+  grep -E '^[[:space:]]*(-[[:space:]]+|path:[[:space:]]+)(agents|orquestador|prompts|scripts)/|^[[:space:]]*(-[[:space:]]+|path:[[:space:]]+)(README[.]md|CHANGELOG[.]md|HARNESS_VERSION|PROGRESS[.]md|PROJECT_BINDING[.]yaml|init[.]sh)' "$ROOT/$registry" | sed -E 's/^[[:space:]]*-[[:space:]]+//; s/^[[:space:]]*path:[[:space:]]+//; s/[[:space:]]+$//' | while IFS= read -r rel; do
+    [ -z "$rel" ] && continue
+    case "$rel" in *\** ) continue ;; esac
+    [ -e "$ROOT/$rel" ] || { echo "ERROR: $registry referencia ruta inexistente: $rel"; exit 2; }
+  done
+}
 estimate_tokens_for_files(){ total_chars=0; for rel in "$@"; do if [ -f "$ROOT/$rel" ]; then chars="$(wc -c < "$ROOT/$rel" | tr -d ' ')"; total_chars=$((total_chars + chars)); fi; done; echo $(((total_chars + 3) / 4)); }
 check_context_budget(){ name="$1"; max="$2"; shift 2; used="$(estimate_tokens_for_files "$@")"; hard=$((max * 2)); if [ "$used" -gt "$hard" ]; then echo "ERROR: Presupuesto de contexto excede limite duro para $name: $used > $hard tokens estimados (soft $max)"; exit 2; fi; if [ "$used" -gt "$max" ]; then echo "WARN: Presupuesto de contexto excedido para $name: $used > $max tokens estimados (limite duro $hard)"; fi; }
 get_binding_value(){ key="$1"; sed -n "s/^$key:[[:space:]]*//p" "$ROOT/PROJECT_BINDING.yaml" | head -n 1 | sed 's/^"//; s/"$//; s/\r$//'; }
@@ -20,7 +29,7 @@ if grep -q '^file infoHebri[.]md$' "$MANIFEST"; then echo "ERROR: infoHebri.md n
 while IFS= read -r line || [ -n "$line" ]; do entry="$(printf '%s' "$line" | sed 's/[[:space:]]*$//')"; case "$entry" in ""|\#*) continue ;; esac; kind="${entry%% *}"; path="${entry#* }"; [ "$kind" != "$path" ] || { echo "ERROR: Entrada invalida en manifest: $entry"; exit 2; }; case "$kind" in dir) [ -d "$ROOT/$path" ] || { echo "ERROR: Falta el directorio $path"; exit 2; };; file) [ -f "$ROOT/$path" ] || { echo "ERROR: Falta el archivo $path"; exit 2; }; [ -s "$ROOT/$path" ] || { echo "ERROR: Archivo vacio $path"; exit 2; };; *) echo "ERROR: Tipo invalido en manifest: $kind"; exit 2;; esac; done < "$MANIFEST"
 BINDING_MODE="$(get_binding_value binding_mode)"; PROJECT_ROOT_RAW="$(get_binding_value project_root)"; HARNESS_BINDING_VERSION="$(get_binding_value harness_version)"
 [ "$BINDING_MODE" = "source_template" ] || [ "$BINDING_MODE" = "bound" ] || { echo "ERROR: PROJECT_BINDING.yaml binding_mode invalido: $BINDING_MODE"; exit 2; }
-[ "$HARNESS_BINDING_VERSION" = "0.8.10" ] || { echo "ERROR: PROJECT_BINDING.yaml no declara harness_version 0.8.10"; exit 2; }
+[ "$HARNESS_BINDING_VERSION" = "0.9.0" ] || { echo "ERROR: PROJECT_BINDING.yaml no declara harness_version 0.9.0"; exit 2; }
 if [ "$BINDING_MODE" = "bound" ]; then [ -n "$PROJECT_ROOT_RAW" ] || { echo "ERROR: PROJECT_BINDING.yaml bound requiere project_root"; exit 2; }; [ "$(basename "$ROOT")" = ".hebrinex" ] || { echo "ERROR: Un harness bound debe vivir en <project_root>/.hebrinex"; exit 2; }; ACTUAL_PROJECT_ROOT="$(CDPATH= cd -- "$ROOT/.." && pwd)"; EXPECTED_PROJECT_ROOT="$(normalize_path "$PROJECT_ROOT_RAW")"; [ "$EXPECTED_PROJECT_ROOT" = "$ACTUAL_PROJECT_ROOT" ] || { echo "ERROR: PROJECT_BINDING mismatch"; exit 2; }; [ ! -f "$ROOT/infoHebri.md" ] || { echo "ERROR: infoHebri.md no debe existir dentro de un harness bound"; exit 2; }; fi
 echo "Binding: $BINDING_MODE"; echo "Harness path: $ROOT"; [ -z "$PROJECT_ROOT_RAW" ] || echo "Project root: $(normalize_path "$PROJECT_ROOT_RAW")"
 check_operational_version_drift(){
@@ -39,10 +48,10 @@ check_operational_version_drift(){
     "orquestador/adapters/*.yaml" \
     "orquestador/policies/schemas/*.yaml" \
     "orquestador/sdd/progress/templates/*.yaml" \
-    "prompts/preset-*.prompt.md" \
-    "prompts/primer-mensaje-harness.prompt.md" \
-    "prompts/reentry-liviano.prompt.md" \
-    "prompts/usuario-contrato-reentry.prompt.md"; do
+    "prompts/adapters/preset-*.prompt.md" \
+    "prompts/bootstrap/primer-mensaje-harness.prompt.md" \
+    "prompts/session/reentry-liviano.prompt.md" \
+    "prompts/session/usuario-contrato-reentry.prompt.md"; do
     for file in "$ROOT"/$pattern; do
       [ -f "$file" ] || continue
       if grep -E 'harness_version:[[:space:]]*"?0[.]8[.][0-9]([^0-9]|$)|Version operativa esperada:[[:space:]]*0[.]8[.][0-9]([^0-9]|$)|Referencia operativa actual:[^0-9]*0[.]8[.][0-9]([^0-9]|$)|const[[:space:]]*[:=][[:space:]]*"0[.]8[.][0-9]([^0-9]|$)"' "$file" >/dev/null 2>&1; then
@@ -57,12 +66,28 @@ check_operational_version_drift(){
 check_operational_version_drift
 if grep -R "\.hebrinex/policies" "$ROOT/AGENTS.md" "$ROOT/orquestador" >/dev/null 2>&1; then echo "ERROR: Ruta obsoleta detectada: .hebrinex/policies"; exit 2; fi
 if grep -R "\.hebrinex/orquestador/sdd/\.hebrinex" "$ROOT/agents" "$ROOT/prompts" >/dev/null 2>&1; then echo "ERROR: Ruta canonica duplicada detectada"; exit 2; fi
-require_grep "0.8.10" "$ROOT/HARNESS_VERSION" "HARNESS_VERSION no declara 0.8.10"
+require_grep "0.9.0" "$ROOT/HARNESS_VERSION" "HARNESS_VERSION no declara 0.9.0"
 require_grep "schema: hebrinex.context_budget" "$ROOT/orquestador/context-budget.yaml" "context-budget.yaml no define schema"
 require_grep "context_budget" "$ROOT/orquestador/memory/local/session-pin.md" "session-pin.md no declara context_budget"
 require_grep "memory-closure-checklist.md" "$ROOT/orquestador/method/memory-layer-policy.md" "memory-layer-policy.md no exige cierre de memoria"
 require_grep "memory-closure-checklist.md" "$ROOT/orquestador/method/final-report-evidence-policy.md" "final-report-evidence-policy.md no exige memory closure checklist"
 require_grep "memory-closure-checklist.md" "$ROOT/orquestador/harness-manifest.txt" "manifest no incluye memory closure checklist"
+require_grep "orquestador/registry-index.yaml" "$ROOT/orquestador/harness-manifest.txt" "registry-index.yaml no esta en manifest"
+require_grep "orquestador/prompt-registry.yaml" "$ROOT/orquestador/harness-manifest.txt" "prompt-registry.yaml no esta en manifest"
+require_grep "schema: hebrinex.prompt_registry" "$ROOT/orquestador/prompt-registry.yaml" "prompt-registry.yaml no define schema"
+require_grep "prompts/roles" "$ROOT/orquestador/prompt-registry.yaml" "prompt-registry no declara prompts de roles"
+require_grep "prompts/migration" "$ROOT/orquestador/prompt-registry.yaml" "prompt-registry no declara prompts de migracion"
+for registry in \
+  "orquestador/registry-index.yaml" \
+  "orquestador/prompt-registry.yaml" \
+  "orquestador/adapter-registry.yaml" \
+  "orquestador/context-profile-registry.yaml" \
+  "orquestador/gate-registry.yaml" \
+  "orquestador/policy-registry.yaml" \
+  "orquestador/template-registry.yaml"; do
+  require_grep "schema: hebrinex" "$ROOT/$registry" "$registry no define schema hebrinex"
+  check_registry_paths "$registry"
+done
 require_grep "scripts/validate-harness.ps1" "$ROOT/orquestador/harness-manifest.txt" "validate-harness.ps1 no esta en manifest"
 require_grep "project-binding.schema.yaml" "$ROOT/orquestador/harness-manifest.txt" "schema project-binding no esta en manifest"
 require_grep "context-budget.schema.yaml" "$ROOT/orquestador/harness-manifest.txt" "schema context-budget no esta en manifest"
@@ -73,7 +98,7 @@ require_grep "agents/_schema.md" "$ROOT/orquestador/harness-manifest.txt" "agent
 require_grep "agents/detractor-senior.md" "$ROOT/orquestador/harness-manifest.txt" "detractor senior agent no esta en manifest"
 require_grep "minimal-implementation-policy.md" "$ROOT/orquestador/harness-manifest.txt" "minimal implementation policy no esta en manifest"
 require_grep "detractor-senior-checklist.md" "$ROOT/orquestador/harness-manifest.txt" "detractor-senior-checklist.md no esta en manifest"
-require_grep "prompts/detractor-senior.prompt.md" "$ROOT/orquestador/harness-manifest.txt" "detractor senior prompt no esta en manifest"
+require_grep "prompts/audit/detractor-senior.prompt.md" "$ROOT/orquestador/harness-manifest.txt" "detractor senior prompt no esta en manifest"
 require_grep "orquestador/portability/core-skills.yaml" "$ROOT/orquestador/harness-manifest.txt" "portability core no esta en manifest"
 require_grep "orquestador/portability/adapter-matrix.yaml" "$ROOT/orquestador/harness-manifest.txt" "adapter matrix no esta en manifest"
 require_grep "orquestador/adapters/claude-code.yaml" "$ROOT/orquestador/harness-manifest.txt" "adapter yaml claude no esta en manifest"
@@ -83,7 +108,7 @@ require_grep "adapter_portability" "$ROOT/orquestador/context-budget.yaml" "cont
 require_grep "detractor_senior" "$ROOT/orquestador/portability/core-skills.yaml" "core portable no incluye detractor_senior"
 require_grep "orquestador/runtime/active-session.template.json" "$ROOT/orquestador/harness-manifest.txt" "active-session runtime no esta en manifest"
 require_grep "orquestador/runtime/commands.md" "$ROOT/orquestador/harness-manifest.txt" "runtime commands no esta en manifest"
-require_grep "prompts/harness-runtime.prompt.md" "$ROOT/orquestador/harness-manifest.txt" "prompt runtime no esta en manifest"
+require_grep "prompts/runtime/harness-runtime.prompt.md" "$ROOT/orquestador/harness-manifest.txt" "prompt runtime no esta en manifest"
 require_grep "runtime_status" "$ROOT/orquestador/context-budget.yaml" "context-budget no define runtime_status"
 require_grep "runtime_reentry" "$ROOT/orquestador/context-budget.yaml" "context-budget no define runtime_reentry"
 require_grep "runtime_status" "$ROOT/orquestador/memory/memory-routing.yaml" "memory-routing no define runtime_status"
@@ -108,10 +133,10 @@ if grep -q "HashData\|ToHexString" "$ROOT/scripts/build-instructions.ps1"; then 
 require_grep "G3A_detractor_senior_pre_implementation" "$ROOT/orquestador/sdd/progress/state.yaml" "state.yaml no declara G3A detractor senior"
 require_grep "detractor_senior" "$ROOT/orquestador/method/agent-role-taxonomy.md" "taxonomy no declara detractor_senior"
 require_grep "context-budget.yaml" "$ROOT/orquestador/adapters/generic-ai.md" "generic adapter no usa context-budget"
-require_grep "context-budget.yaml" "$ROOT/prompts/preset-codex.prompt.md" "preset codex no usa context-budget"
-require_grep "context-budget.yaml" "$ROOT/prompts/preset-claude.prompt.md" "preset claude no usa context-budget"
-require_grep "context-budget.yaml" "$ROOT/prompts/preset-gemini.prompt.md" "preset gemini no usa context-budget"
-require_grep "excluyendo materialmente" "$ROOT/prompts/migrar-harness-0-7.prompt.md" "prompt migracion no excluye materialmente infoHebri.md"
+require_grep "context-budget.yaml" "$ROOT/prompts/adapters/preset-codex.prompt.md" "preset codex no usa context-budget"
+require_grep "context-budget.yaml" "$ROOT/prompts/adapters/preset-claude.prompt.md" "preset claude no usa context-budget"
+require_grep "context-budget.yaml" "$ROOT/prompts/adapters/preset-gemini.prompt.md" "preset gemini no usa context-budget"
+require_grep "excluyendo materialmente" "$ROOT/prompts/migration/migrar-harness-0-7.prompt.md" "prompt migracion no excluye materialmente infoHebri.md"
 require_grep "excluir siempre" "$ROOT/orquestador/sdd/specs/bootstrap-harness.md" "bootstrap spec no define exclusiones materiales"
 require_grep "G5I_memory_consistency_complete" "$ROOT/orquestador/sdd/progress/state.yaml" "state.yaml no declara gate memoria"
 require_grep "approvals:" "$ROOT/orquestador/sdd/progress/state.yaml" "state.yaml no separa approvals"

@@ -1,0 +1,60 @@
+schema: hebrinex.policy_registry
+version: "0.1"
+harness_version: "0.9.0"
+categories:
+  session_and_context:
+    files:
+      - path: orquestador/method/session-contract.md
+      - path: orquestador/method/session-contract-extended.md
+      - path: orquestador/method/context-loading-policy.md
+      - path: orquestador/method/operating-modes.md
+      - path: orquestador/method/global-rules.md
+  sdd_and_workflow:
+    files:
+      - path: orquestador/method/sdd.md
+      - path: orquestador/method/ciclo-de-trabajo.md
+      - path: orquestador/method/backlog-policy.md
+      - path: orquestador/method/changelog-policy.md
+      - path: orquestador/method/evidence-reconstruction.md
+      - path: orquestador/method/final-report-evidence-policy.md
+  agents_and_autonomy:
+    files:
+      - path: orquestador/method/roles.md
+      - path: orquestador/method/agent-role-taxonomy.md
+      - path: orquestador/method/multiagent-protocol.md
+      - path: orquestador/method/autonomia.md
+      - path: orquestador/method/minimal-implementation-policy.md
+  risk_and_permissions:
+    files:
+      - path: orquestador/policies/permissions.md
+      - path: orquestador/policies/tool-policy.yaml
+      - path: orquestador/policies/command-taxonomy.md
+      - path: orquestador/policies/risk-criteria.md
+      - path: orquestador/policies/write-set-policy.md
+      - path: orquestador/policies/secret-denylist.md
+  integrations_and_runtime:
+    files:
+      - path: orquestador/method/adapter-contract.md
+      - path: orquestador/method/ai-preset-policy.md
+      - path: orquestador/method/ai-engineering.md
+      - path: orquestador/runtime/commands.md
+      - path: orquestador/integrations/claude/hooks-policy.md
+  reconstruction_domains:
+    files:
+      - path: orquestador/method/deploy-migration-policy.md
+      - path: orquestador/method/ci-pipeline-policy.md
+      - path: orquestador/method/reference-drift-policy.md
+      - path: orquestador/method/audit-reporting-policy.md
+  schemas:
+    files:
+      - path: orquestador/policies/schemas/project-binding.schema.yaml
+      - path: orquestador/policies/schemas/context-budget.schema.yaml
+      - path: orquestador/policies/schemas/memory-registry.schema.yaml
+      - path: orquestador/policies/schemas/registry.schema.yaml
+      - path: orquestador/policies/schemas/adapter.schema.yaml
+      - path: orquestador/policies/schemas/adapter-matrix.schema.yaml
+      - path: orquestador/policies/schemas/instruction-registry.schema.yaml
+      - path: orquestador/policies/schemas/claude-reentry-state.schema.yaml
+rules:
+  - "Las policies definen contrato; los prompts solo las invocan."
+  - "Si una policy nueva introduce gates, actualizar gate-registry.yaml."

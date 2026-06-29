@@ -1,6 +1,6 @@
 # Copilot Adapter
 
-## Entrada minima 0.8.10
+## Entrada minima 0.9.0
 
 Antes de actuar, leer solo:
 1. `PROJECT_BINDING.yaml`

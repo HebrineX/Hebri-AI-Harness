@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.9.0] - 2026-06-29
+
+### Changed
+- Reorganiza `prompts/` por responsabilidad: roles, session, adapters, migration, audit, runtime, bootstrap y workflows.
+- Agrega `orquestador/prompt-registry.yaml` como indice canonico de prompts para evitar mezclar presets IA, migraciones y roles en una carpeta plana.
+- Agrega registries canonicos para adapters, context profiles, gates, policies y templates, con `orquestador/registry-index.yaml` como indice general.
+- Agrega `prompts/migration/migrar-harness-0-8-10-a-0-9-0.prompt.md` para guiar upgrades desde 0.8.10.
+- Actualiza manifest, perfiles de contexto y validadores para usar las rutas nuevas y comprobar rutas declaradas en registries.
+
+### Fixed
+- Alinea el estado source-template al modo default `automatico`.
+- Corrige el cierre del bloque YAML runtime en `orquestador/memory/local/session-pin.md`.
 ## [0.8.10] - 2026-06-17
 
 ### Changed
@@ -70,7 +82,7 @@
 ### Added
 - `orquestador/runtime/` como control plane liviano para status, reentry, modo, audit y budget.
 - Templates JSON y schemas para `active-session`, comandos y reportes runtime.
-- `prompts/harness-runtime.prompt.md` para interpretar comandos `/harness` sin cargar todo el contrato.
+- `prompts/runtime/harness-runtime.prompt.md` para interpretar comandos `/harness` sin cargar todo el contrato.
 
 ### Changed
 - Version operativa actual a 0.8.5.
@@ -98,7 +110,7 @@
 ### Added
 - `auditor(profile: detractor_senior)` como pase obligatorio antes de implementacion o escritura.
 - `agents/_schema.md` para estructura estable de agentes.
-- `agents/detractor-senior.md`, `minimal-implementation-policy.md`, `detractor-senior-checklist.md` y `prompts/detractor-senior.prompt.md`.
+- `agents/detractor-senior.md`, `minimal-implementation-policy.md`, `detractor-senior-checklist.md` y `prompts/audit/detractor-senior.prompt.md`.
 - Gate `G3A_detractor_senior_pre_implementation` para validar solucion minima correcta antes de `G4_execution_complete`.
 
 ### Changed
@@ -185,7 +197,7 @@
 ### Added
 - `orquestador/method/final-report-evidence-policy.md`.
 - `orquestador/sdd/progress/templates/final-report-crosslink-checklist.md`.
-- `prompts/cerrar-con-evidencia.prompt.md`.
+- `prompts/workflows/cerrar-con-evidencia.prompt.md`.
 
 ### Rationale
 - Evita cierres `done` sin links verificables a gate log, audit trail, verification matrix, agent closure, locks, gaps y validaciones.
@@ -195,7 +207,7 @@
 ### Added
 - `orquestador/method/audit-reporting-policy.md`.
 - `orquestador/sdd/progress/templates/audit-report-contract.md`.
-- `prompts/auditar-y-reportar.prompt.md`.
+- `prompts/audit/auditar-y-reportar.prompt.md`.
 
 ### Rationale
 - Refuerza que el auditor define veredicto por evidencia y el reporter comunica sin alterar el resultado.
@@ -205,7 +217,7 @@
 ### Added
 - `orquestador/method/backlog-policy.md`.
 - `orquestador/sdd/progress/templates/backlog-classification-matrix.yaml`.
-- `prompts/clasificar-roadmap.prompt.md`.
+- `prompts/workflows/clasificar-roadmap.prompt.md`.
 
 ### Rationale
 - Ordena P0/P1/P2 por bloqueo, impacto, dependencia y criterio de cierre, no por preferencia del agente.
@@ -215,7 +227,7 @@
 ### Added
 - `orquestador/method/ci-pipeline-policy.md`.
 - `orquestador/sdd/progress/templates/ci-pipeline-history.yaml`.
-- `prompts/reconstruir-ci-pipeline.prompt.md`.
+- `prompts/migration/reconstruir-ci-pipeline.prompt.md`.
 
 ### Rationale
 - Evita colapsar iteraciones de CI/pipeline cuando el operador necesita documentar como se llego a un pipeline funcional.
@@ -225,7 +237,7 @@
 ### Added
 - `orquestador/method/reference-drift-policy.md`.
 - `orquestador/sdd/progress/templates/reference-drift-matrix.yaml`.
-- `prompts/validar-referencias-version.prompt.md`.
+- `prompts/audit/validar-referencias-version.prompt.md`.
 
 ### Rationale
 - Evita inconsistencias entre `HARNESS_VERSION`, `PROJECT_BINDING.yaml`, README, changelog, prompts e `init.sh`.
@@ -235,7 +247,7 @@
 ### Added
 - `orquestador/method/deploy-migration-policy.md`.
 - `orquestador/sdd/progress/templates/deploy-migration-checklist.md`.
-- `prompts/reconstruir-deploy-migracion.prompt.md`.
+- `prompts/migration/reconstruir-deploy-migracion.prompt.md`.
 
 ### Rationale
 - Evita documentar deploys o migraciones sin comandos, entorno, evidencia, version/ciclo y rollback.
@@ -246,7 +258,7 @@
 - `orquestador/method/changelog-policy.md` para bloquear cambios de changelog/release docs sin reconstruccion historica previa.
 - `orquestador/method/evidence-reconstruction.md` para tratar changelog, release notes, roadmap, deploy docs, reportes y auditorias como artefactos derivados de evidencia.
 - `orquestador/sdd/progress/templates/changelog-reconstruction-checklist.md` y `release-history-matrix.yaml` como evidencia obligatoria antes de editar historial/versiones.
-- `prompts/actualizar-changelog.prompt.md` para usar un flujo repetible ante pedidos de completar, ordenar o corregir changelog.
+- `prompts/workflows/actualizar-changelog.prompt.md` para usar un flujo repetible ante pedidos de completar, ordenar o corregir changelog.
 - Roadmap incremental `0.7.x` en `future-p1.md` para sumar controles omitidos como versiones chicas, sin salto estructural a 0.8.
 
 ### Changed
@@ -262,8 +274,8 @@
 - `PROJECT_BINDING.yaml` para distinguir harness fuente (`source_template`) de harness vinculado a un proyecto (`bound`).
 - `orquestador/method/harness-resolution.md` con reglas estrictas de bootstrap, copia, binding y anti-contaminacion entre proyectos.
 - `orquestador/sdd/progress/templates/reentry-checklist.md` para reanudar despues de compactacion sin perder contrato, ciclo ni approvals.
-- `prompts/migrar-harness-0-7.prompt.md` para migrar cualquier version previa a 0.7.0.
-- `prompts/usuario-contrato-reentry.prompt.md` para que el operador pueda exigir contrato, compactacion y re-entry cuando un agente pierde foco.
+- `prompts/migration/migrar-harness-0-7.prompt.md` para migrar cualquier version previa a 0.7.0.
+- `prompts/session/usuario-contrato-reentry.prompt.md` para que el operador pueda exigir contrato, compactacion y re-entry cuando un agente pierde foco.
 - Campos de `project_root`, `harness_path`, `binding_status`, `external_write_scope` e invalidacion en approval/preflight.
 
 ### Changed

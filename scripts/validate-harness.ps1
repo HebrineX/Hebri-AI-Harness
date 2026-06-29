@@ -115,6 +115,38 @@ function Assert-PresetNotHeavyByDefault([string]$RelativePath) {
 }
 
 
+function Get-RegistryReferencedPaths([string]$RelativePath) {
+  $text = Read-HarnessText $RelativePath
+  $paths = New-Object System.Collections.Generic.List[string]
+  foreach ($line in ($text -split "`n")) {
+    $candidate = $null
+    if ($line -match '^\s*path:\s*"?([^"#]+)"?\s*$') { $candidate = $Matches[1].Trim() }
+    elseif ($line -match '^\s*-\s+((agents|orquestador|prompts|scripts)/[^"#]+|README[.]md|CHANGELOG[.]md|HARNESS_VERSION|PROGRESS[.]md|PROJECT_BINDING[.]yaml|init[.]sh)\s*$') { $candidate = $Matches[1].Trim() }
+    if ([string]::IsNullOrWhiteSpace($candidate)) { continue }
+    $candidate = $candidate.Trim().Trim('"').Trim("'")
+    if ($candidate -match '[*]') { continue }
+    [void]$paths.Add($candidate)
+  }
+  return $paths
+}
+
+function Assert-RegistryReferencedPathsExist([string]$RelativePath) {
+  foreach ($rel in (Get-RegistryReferencedPaths $RelativePath)) {
+    $path = Resolve-HarnessPath $rel
+    if (-not (Test-Path -LiteralPath $path)) { Add-Failure "$RelativePath references missing path: $rel" }
+  }
+}
+
+function Assert-GateRegistryMatchesState() {
+  $gateRegistry = Read-HarnessText 'orquestador/gate-registry.yaml'
+  $state = Read-HarnessText 'orquestador/sdd/progress/state.yaml'
+  foreach ($line in ($gateRegistry -split "`n")) {
+    if ($line -match '^\s*-\s+id:\s*([A-Z0-9_]+)') {
+      $gateId = $Matches[1]
+      if ($state -notmatch [regex]::Escape($gateId)) { Add-Failure "gate-registry declares $gateId but state.yaml does not contain it" }
+    }
+  }
+}
 function Test-BoundCopySimulation() {
   $tempRoot = Join-Path ([IO.Path]::GetTempPath()) ('hebrinex-bound-test-' + [guid]::NewGuid().ToString('N'))
   $projectRoot = Join-Path $tempRoot 'project'
@@ -183,6 +215,13 @@ $yamlFiles = @(
   'PROJECT_BINDING.yaml',
   'orquestador/context-budget.yaml',
   'orquestador/memory/memory-registry.yaml',
+  'orquestador/registry-index.yaml',
+  'orquestador/prompt-registry.yaml',
+  'orquestador/adapter-registry.yaml',
+  'orquestador/context-profile-registry.yaml',
+  'orquestador/gate-registry.yaml',
+  'orquestador/policy-registry.yaml',
+  'orquestador/template-registry.yaml',
   'orquestador/sdd/progress/state.yaml',
   'orquestador/sdd/progress/registry.yaml'
 )
@@ -190,15 +229,41 @@ foreach ($rel in $yamlFiles) { Assert-YamlSubsetHealth $rel }
 
 Assert-TopKeys 'PROJECT_BINDING.yaml' @('schema','version','harness_version','binding_mode','harness_instance_id','project_name','project_root','repo_remote','source_repo','created_at','bound_at','notes')
 Assert-TopKeys 'orquestador/context-budget.yaml' @('schema','version','harness_version','objective','default_policy','budgets','deny_by_default','required_context_report')
+Assert-TopKeys 'orquestador/registry-index.yaml' @('schema','version','harness_version','registries','rules')
+Assert-TopKeys 'orquestador/prompt-registry.yaml' @('schema','version','harness_version','root','categories','rules')
+Assert-TopKeys 'orquestador/adapter-registry.yaml' @('schema','version','harness_version','canonical_sources','adapters','rules')
+Assert-TopKeys 'orquestador/context-profile-registry.yaml' @('schema','version','harness_version','source','profiles','special_profiles','rules')
+Assert-TopKeys 'orquestador/gate-registry.yaml' @('schema','version','harness_version','state_source','registry_source','required_gates','conditional_gates','rules')
+Assert-TopKeys 'orquestador/policy-registry.yaml' @('schema','version','harness_version','categories','rules')
+Assert-TopKeys 'orquestador/template-registry.yaml' @('schema','version','harness_version','categories','rules')
 Assert-TopKeys 'orquestador/memory/memory-registry.yaml' @('schema','version','updated_at','owner_role','binding_mode','active_layers','load_order_default','conflict_resolution')
 Assert-TopKeys 'orquestador/sdd/progress/state.yaml' @('schema','version','updated_at','mode','project_binding','session_contract','active_cycle','required_gates','conditional_gates','approvals','verification','open_locks','open_agents','last_final_report')
 Assert-TopKeys 'orquestador/sdd/progress/registry.yaml' @('schema','version','updated_at','kanban_statuses','roles','profiles','cycles')
 
-if ((Get-ScalarValue 'PROJECT_BINDING.yaml' 'harness_version') -ne '0.8.10') { Add-Failure 'PROJECT_BINDING.yaml harness_version must be 0.8.10' }
-if ((Get-ScalarValue 'orquestador/context-budget.yaml' 'harness_version') -ne '0.8.10') { Add-Failure 'context-budget.yaml harness_version must be 0.8.10' }
+if ((Get-ScalarValue 'PROJECT_BINDING.yaml' 'harness_version') -ne '0.9.0') { Add-Failure 'PROJECT_BINDING.yaml harness_version must be 0.9.0' }
+if ((Get-ScalarValue 'orquestador/context-budget.yaml' 'harness_version') -ne '0.9.0') { Add-Failure 'context-budget.yaml harness_version must be 0.9.0' }
 if ((Get-ScalarValue 'PROJECT_BINDING.yaml' 'binding_mode') -notin @('source_template','bound')) { Add-Failure 'PROJECT_BINDING.yaml binding_mode invalid' }
 
+foreach ($registryRel in @(
+  'orquestador/registry-index.yaml',
+  'orquestador/prompt-registry.yaml',
+  'orquestador/adapter-registry.yaml',
+  'orquestador/context-profile-registry.yaml',
+  'orquestador/gate-registry.yaml',
+  'orquestador/policy-registry.yaml',
+  'orquestador/template-registry.yaml'
+)) { Assert-RegistryReferencedPathsExist $registryRel }
+Assert-GateRegistryMatchesState
 Assert-Contains 'orquestador/context-budget.yaml' 'load_infohebri:\s+denied' 'context-budget must deny infoHebri loading'
+Assert-Contains 'orquestador/prompt-registry.yaml' 'prompts/roles' 'prompt registry must declare role prompts'
+Assert-Contains 'orquestador/prompt-registry.yaml' 'prompts/migration' 'prompt registry must declare migration prompts'
+Assert-Contains 'orquestador/prompt-registry.yaml' 'prompts/adapters' 'prompt registry must declare adapter prompts'
+Assert-Contains 'orquestador/registry-index.yaml' 'orquestador/prompt-registry.yaml' 'registry-index must include prompt registry'
+Assert-Contains 'orquestador/registry-index.yaml' 'orquestador/adapter-registry.yaml' 'registry-index must include adapter registry'
+Assert-Contains 'orquestador/context-profile-registry.yaml' 'leader_light' 'context profile registry must declare leader_light'
+Assert-Contains 'orquestador/gate-registry.yaml' 'G3A_detractor_senior_pre_implementation' 'gate registry must declare detractor gate'
+Assert-Contains 'orquestador/policy-registry.yaml' 'orquestador/policies/permissions.md' 'policy registry must include permissions policy'
+Assert-Contains 'orquestador/template-registry.yaml' 'verification-matrix.yaml' 'template registry must include verification matrix'
 Assert-Contains 'orquestador/context-budget.yaml' 'full_context_requires_approval:\s+true' 'full context must require approval'
 Assert-Contains 'orquestador/memory/memory-registry.yaml' 'complete:\s*\n\s+enabled:\s+false' 'complete memory must be disabled by default'
 Assert-Contains 'orquestador/memory/memory-registry.yaml' 'requires_approval:\s+true' 'complete memory must require approval'
@@ -209,7 +274,7 @@ Assert-Contains 'orquestador/method/agent-role-taxonomy.md' 'detractor_senior' '
 Assert-Contains 'agents/detractor-senior.md' 'Veredicto: aceptar \| simplificar \| bloquear \| pedir evidencia' 'detractor senior output contract missing'
 Assert-Contains 'orquestador/method/minimal-implementation-policy.md' 'Escalera Senior' 'minimal implementation policy missing senior ladder'
 Assert-Contains 'orquestador/sdd/progress/templates/detractor-senior-checklist.md' 'Dependencia instalada no lo resuelve mejor' 'detractor senior checklist missing dependency check'
-Assert-Contains 'prompts/detractor-senior.prompt.md' 'No implementes' 'detractor senior prompt must be read-only'
+Assert-Contains 'prompts/audit/detractor-senior.prompt.md' 'No implementes' 'detractor senior prompt must be read-only'
 Assert-Contains 'orquestador/portability/adapter-matrix.yaml' 'generic-ai' 'adapter matrix must include generic-ai fallback'
 Assert-Contains 'orquestador/portability/core-skills.yaml' 'detractor_senior' 'core skills must include detractor_senior'
 Assert-Contains 'orquestador/policies/schemas/adapter.schema.yaml' 'memory_reliability' 'adapter schema must require memory reliability'
@@ -220,14 +285,14 @@ Assert-Contains 'orquestador/runtime/commands.md' '/harness status' 'runtime com
 Assert-Contains 'orquestador/context-budget.yaml' 'runtime_status' 'context-budget must define runtime_status'
 Assert-Contains 'orquestador/context-budget.yaml' 'runtime_reentry' 'context-budget must define runtime_reentry'
 Assert-Contains 'orquestador/memory/memory-routing.yaml' 'runtime_status' 'memory routing must define runtime_status'
-Assert-Contains 'prompts/harness-runtime.prompt.md' 'active-session es cache' 'runtime prompt must keep active-session non-authoritative'
+Assert-Contains 'prompts/runtime/harness-runtime.prompt.md' 'active-session es cache' 'runtime prompt must keep active-session non-authoritative'
 Assert-Contains 'orquestador/integrations/claude/settings.template.json' 'SessionStart' 'Claude settings must declare SessionStart hook'
 Assert-Contains 'orquestador/integrations/claude/settings.template.json' 'UserPromptSubmit' 'Claude settings must declare UserPromptSubmit hook'
 Assert-Contains 'orquestador/integrations/claude/CLAUDE.template.md' 'reentry-brief' 'CLAUDE template must point to reentry brief'
 Assert-Contains 'orquestador/sdd/progress/templates/claude-reentry-state.yaml' 'non_authoritative: true' 'Claude reentry state must be non-authoritative'
 Assert-Contains 'scripts/install-claude-hooks.ps1' 'Preflight only' 'Claude hook installer must be preflight-only'
 Assert-Contains 'scripts/claude-reentry.ps1' 'Approvals expired' 'Claude reentry must expire approvals'
-Assert-Contains 'orquestador/instruction-builder/instruction-registry.yaml' '0.8.10' 'instruction registry must match harness version'
+Assert-Contains 'orquestador/instruction-builder/instruction-registry.yaml' '0.9.0' 'instruction registry must match harness version'
 Assert-Contains 'orquestador/instruction-builder/instruction-registry.yaml' 'generic-ai' 'instruction registry must include generic-ai target'
 Assert-Contains 'orquestador/instruction-builder/fragments/denylists.md' 'infoHebri.md' 'instruction denylists must mention infoHebri'
 Assert-Contains 'scripts/build-instructions.ps1' 'check-only passed' 'instruction builder must support check-only'
@@ -240,9 +305,9 @@ Assert-Contains 'scripts/build-instructions.ps1' 'ComputeHash' 'build-instructio
 Assert-NoContains 'scripts/build-instructions.ps1' 'HashData|ToHexString' 'build-instructions must not use PS 7-only hash APIs'
 Assert-NoContains 'orquestador/harness-manifest.txt' 'infoHebri[.]md' 'manifest must exclude infoHebri.md'
 
-Assert-PresetNotHeavyByDefault 'prompts/preset-codex.prompt.md'
-Assert-PresetNotHeavyByDefault 'prompts/preset-claude.prompt.md'
-Assert-PresetNotHeavyByDefault 'prompts/preset-gemini.prompt.md'
+Assert-PresetNotHeavyByDefault 'prompts/adapters/preset-codex.prompt.md'
+Assert-PresetNotHeavyByDefault 'prompts/adapters/preset-claude.prompt.md'
+Assert-PresetNotHeavyByDefault 'prompts/adapters/preset-gemini.prompt.md'
 
 Assert-Budget 'memory_bootstrap' 1700 @('PROJECT_BINDING.yaml','orquestador/memory/local/session-pin.md','orquestador/memory/memory-registry.yaml','orquestador/memory/memory-routing.yaml','orquestador/context-budget.yaml','orquestador/entrypoints/reentry-light.md')
 Assert-Budget 'first_message' 1800 @('PROJECT_BINDING.yaml','orquestador/memory/local/session-pin.md','orquestador/memory/memory-registry.yaml','orquestador/memory/memory-routing.yaml','orquestador/context-budget.yaml','orquestador/entrypoints/first-message.md')

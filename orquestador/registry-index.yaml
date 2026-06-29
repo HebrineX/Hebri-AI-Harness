@@ -1,0 +1,31 @@
+schema: hebrinex.registry_index
+version: "0.1"
+harness_version: "0.9.0"
+registries:
+  - id: prompts
+    path: orquestador/prompt-registry.yaml
+    source_level: canonical
+    purpose: "Prompts versionados por responsabilidad."
+  - id: adapters
+    path: orquestador/adapter-registry.yaml
+    source_level: canonical
+    purpose: "Adapters y matriz de portabilidad por IA."
+  - id: context_profiles
+    path: orquestador/context-profile-registry.yaml
+    source_level: canonical
+    purpose: "Perfiles de carga y read-sets verificables."
+  - id: gates
+    path: orquestador/gate-registry.yaml
+    source_level: canonical
+    purpose: "Gates requeridos y condicionales del ciclo."
+  - id: policies
+    path: orquestador/policy-registry.yaml
+    source_level: canonical
+    purpose: "Politicas operativas, permisos, riesgo y schemas."
+  - id: templates
+    path: orquestador/template-registry.yaml
+    source_level: canonical
+    purpose: "Templates SDD, runtime, audit y cierre."
+rules:
+  - "Todo archivo operativo nuevo debe pertenecer a un registry o estar justificado en el manifest."
+  - "Los docs narrativos explican; los registries gobiernan rutas y categorias."
