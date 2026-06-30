@@ -93,6 +93,14 @@ categories:
       - path: orquestador/testing/fixtures/negative/security-network-default-allow.yaml
       - path: orquestador/testing/fixtures/negative/security-path-traversal.yaml
       - path: orquestador/testing/fixtures/negative/migration-checkonly-writes.yaml
+      - path: orquestador/testing/fixtures/positive/command-readonly-safe.txt
+      - path: orquestador/testing/fixtures/negative/command-invoke-expression.txt
+      - path: orquestador/testing/fixtures/negative/command-curl-pipe.txt
+      - path: orquestador/testing/fixtures/negative/command-git-push.txt
+      - path: orquestador/testing/fixtures/negative/command-remove-recurse-force.txt
+      - path: orquestador/testing/fixtures/negative/command-unknown.txt
+      - path: orquestador/testing/fixtures/negative/command-secret-bearing.txt
+      - path: orquestador/testing/fixtures/negative/command-risk-mismatch.txt
 rules:
   - "Las policies definen contrato; los prompts solo las invocan."
   - "Si una policy nueva introduce gates, actualizar gate-registry.yaml."

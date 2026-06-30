@@ -4,7 +4,7 @@
   "type": "object",
   "required": ["command", "mode", "read_set", "requires_si"],
   "properties": {
-    "command": { "enum": ["status", "reentry", "manual", "automatico", "audit", "budget"] },
+    "command": { "enum": ["status", "reentry", "manual", "automatico", "audit", "budget", "command"] },
     "mode": { "enum": ["manual", "automatico"] },
     "read_set": { "type": "array", "items": { "type": "string" } },
     "requires_si": { "type": "boolean" }

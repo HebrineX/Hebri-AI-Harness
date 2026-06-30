@@ -5,7 +5,8 @@ param(
   [string]$CommandText = '',
   [string]$Purpose = '',
   [string]$ApprovalId = '',
-  [string]$RiskClass = ''
+  [string]$RiskClass = '',
+  [switch]$Json
 )
 
 $ErrorActionPreference = 'Stop'
@@ -64,6 +65,12 @@ function Redact-Command([string]$Text) {
   return [regex]::Replace($redacted, '(?i)bearer\s+[a-z0-9._\-]+', 'Bearer [REDACTED]')
 }
 
+function Test-SecretBearingCommand([string]$Text) {
+  return $Text -match '(?i)(^|\s)(\.env|[^ \t]*\.env|[^ \t]*\.key|[^ \t]*\.pem|[^ \t]*\.pfx|[^ \t]*credentials[^ \t]*|[^ \t]*token[^ \t]*)($|\s)' -or
+    $Text -match '(?i)(api[_-]?key|token|secret|password)\s*[:=]\s*\S+' -or
+    $Text -match '(?i)bearer\s+[a-z0-9._\-]+'
+}
+
 function Get-DetectedRiskClass([string]$Text, [string]$MatchedPattern) {
   $lower = $Text.ToLowerInvariant()
   $pattern = $MatchedPattern.ToLowerInvariant()
@@ -113,6 +120,11 @@ else {
     }
   }
 
+  if ([string]::IsNullOrWhiteSpace($matchedPattern) -and (Test-SecretBearingCommand $command)) {
+    $reason = 'secret_bearing_command_requires_approval'
+    $detectedRisk = 'secrets'
+  }
+
   if ([string]::IsNullOrWhiteSpace($matchedPattern) -and (Test-ShellComposition $command)) {
     $reason = 'composite_shell_requires_manual_review'
     $detectedRisk = Get-DetectedRiskClass $command ''
@@ -145,6 +157,49 @@ if (-not [string]::IsNullOrWhiteSpace($RiskClass) -and $RiskClass -ne $detectedR
 }
 
 $safeCommand = Redact-Command $command
+$effectiveApprovalId = $ApprovalId
+if ([string]::IsNullOrWhiteSpace($effectiveApprovalId)) { $effectiveApprovalId = 'COMMAND-GATEWAY-REQUIRED' }
+
+$preflight = [ordered]@{
+  enabled = $requiresPreflight
+  approval_id = $effectiveApprovalId
+  action = "Review command before any execution: $safeCommand"
+  cwd = $Root
+  read_set = 'orquestador/security/command-risk-registry.yaml, orquestador/security/secrets-policy.yaml'
+  write_set = 'none declared by gateway'
+  command_tool = $safeCommand
+  network_git_external = if ($detectedRisk -in @('network','git_remote')) { 'yes' } else { 'no by default' }
+  risk = $detectedRisk
+  verification = 'human review plus command evidence outside gateway'
+  expected_evidence = 'SI approval, command output, exit code and redacted logs'
+  requires_si = $requiresSi
+}
+
+$result = [ordered]@{
+  schema = 'hebrinex.command_gateway.result'
+  version = '0.2'
+  root = $Root
+  mode = 'CheckOnly'
+  command_text = $safeCommand
+  purpose = $Purpose
+  approval_id = $ApprovalId
+  decision = $decision
+  risk_class = $detectedRisk
+  requires_preflight = $requiresPreflight
+  requires_si = $requiresSi
+  writes = $false
+  executes = $false
+  matched_pattern = $matchedPattern
+  reason = $reason
+  generated_preflight = $preflight
+  next_step = if ($decision -eq 'allow') { 'external caller may request a separate execution approval if needed' } else { 'use generated_preflight before any execution' }
+}
+
+if ($Json) {
+  $result | ConvertTo-Json -Depth 8
+  if ($decision -eq 'allow') { exit 0 }
+  exit 2
+}
 
 Write-Output 'Hebri-AI-Harness Command Gateway'
 Write-Output "root=$Root"
@@ -160,6 +215,7 @@ Write-Output "writes=false"
 Write-Output "executes=false"
 Write-Output "matched_pattern=$matchedPattern"
 Write-Output "reason=$reason"
+Write-Output "structured_result_json=$(($result | ConvertTo-Json -Depth 8 -Compress))"
 
 if ($decision -eq 'allow') {
   Write-Output 'Command Gateway OK'

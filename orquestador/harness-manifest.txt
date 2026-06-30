@@ -318,6 +318,8 @@ file orquestador/testing/fixtures/negative/command-curl-pipe.txt
 file orquestador/testing/fixtures/negative/command-git-push.txt
 file orquestador/testing/fixtures/negative/command-remove-recurse-force.txt
 file orquestador/testing/fixtures/negative/command-unknown.txt
+file orquestador/testing/fixtures/negative/command-secret-bearing.txt
+file orquestador/testing/fixtures/negative/command-risk-mismatch.txt
 file scripts/audit-harness.ps1
 file scripts/validate-agent-contracts.ps1
 file scripts/validate-security-policy.ps1
@@ -363,7 +365,9 @@ file orquestador/runtime/active-session.template.json
 file orquestador/runtime/commands.md
 file orquestador/runtime/schemas/active-session.schema.json
 file orquestador/runtime/schemas/harness-command.schema.json
+file orquestador/runtime/schemas/command-gateway-result.schema.json
 file orquestador/runtime/templates/command-result.template.json
+file orquestador/runtime/templates/command-gateway-result.template.json
 file orquestador/runtime/templates/budget-report.template.json
 file orquestador/runtime/templates/reentry-result.template.json
 file prompts/runtime/harness-runtime.prompt.md

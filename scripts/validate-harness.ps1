@@ -379,6 +379,9 @@ Assert-Contains 'scripts/hebrinex.ps1' 'Hebri-AI-Harness CLI Core' 'hebrinex.ps1
 Assert-Contains 'scripts/validate-fixtures.ps1' 'Fixture validation OK' 'validate-fixtures.ps1 must expose success marker'
 Assert-Contains 'scripts/command-gateway.ps1' 'Command Gateway' 'command-gateway.ps1 must expose gateway marker'
 Assert-Contains 'scripts/validate-command-gateway.ps1' 'Command gateway validation OK' 'validate-command-gateway.ps1 must expose success marker'
+Assert-Contains 'scripts/command-gateway.ps1' 'hebrinex.command_gateway.result' 'command-gateway.ps1 must expose structured result schema'
+Assert-Contains 'orquestador/harness-manifest.txt' 'orquestador/runtime/schemas/command-gateway-result.schema.json' 'command gateway result schema must be in manifest'
+Assert-Contains 'orquestador/harness-manifest.txt' 'orquestador/runtime/templates/command-gateway-result.template.json' 'command gateway result template must be in manifest'
 Assert-Contains 'orquestador/policy-registry.yaml' 'validator_fixtures' 'policy registry must include validator fixtures'
 Assert-Contains 'orquestador/agents/agent-registry.yaml' 'HL0_agent_authority' 'agent registry must declare HL0 agent authority'
 Assert-Contains 'orquestador/agents/agent-registry.yaml' 'agent_definition_authority:\s*harness_only' 'agent registry must be harness-only'
@@ -400,7 +403,7 @@ Assert-Budget 'first_message' 1800 @('PROJECT_BINDING.yaml','orquestador/memory/
 Assert-Budget 'debug_log_intake' 2000 @('PROJECT_BINDING.yaml','orquestador/memory/local/session-pin.md','orquestador/memory/memory-registry.yaml','orquestador/memory/memory-routing.yaml','orquestador/context-budget.yaml','orquestador/entrypoints/debug-log-intake.md','orquestador/entrypoints/reentry-light.md')
 Assert-Budget 'leader_light' 2600 @('PROJECT_BINDING.yaml','orquestador/memory/local/session-pin.md','orquestador/memory/memory-registry.yaml','orquestador/memory/memory-routing.yaml','orquestador/context-budget.yaml','orquestador/sdd/progress/state.yaml','orquestador/sdd/progress/registry.yaml','orquestador/method/session-contract.md')
 
-foreach ($jsonRel in @('orquestador/integrations/claude/settings.template.json','orquestador/runtime/active-session.template.json','orquestador/runtime/schemas/active-session.schema.json','orquestador/runtime/schemas/harness-command.schema.json','orquestador/runtime/templates/command-result.template.json','orquestador/runtime/templates/budget-report.template.json','orquestador/runtime/templates/reentry-result.template.json','orquestador/sdd/progress/templates/runtime-audit-report.json')) {
+foreach ($jsonRel in @('orquestador/integrations/claude/settings.template.json','orquestador/runtime/active-session.template.json','orquestador/runtime/schemas/active-session.schema.json','orquestador/runtime/schemas/harness-command.schema.json','orquestador/runtime/schemas/command-gateway-result.schema.json','orquestador/runtime/templates/command-result.template.json','orquestador/runtime/templates/command-gateway-result.template.json','orquestador/runtime/templates/budget-report.template.json','orquestador/runtime/templates/reentry-result.template.json','orquestador/sdd/progress/templates/runtime-audit-report.json')) {
   try { [void](Read-HarnessText $jsonRel | ConvertFrom-Json) }
   catch { Add-Failure "$jsonRel must be valid JSON" }
 }

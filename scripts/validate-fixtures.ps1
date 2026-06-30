@@ -73,7 +73,15 @@ $fixtures = @(
   'orquestador/testing/fixtures/negative/agent-implementer-approve.yaml',
   'orquestador/testing/fixtures/negative/security-network-default-allow.yaml',
   'orquestador/testing/fixtures/negative/security-path-traversal.yaml',
-  'orquestador/testing/fixtures/negative/migration-checkonly-writes.yaml'
+  'orquestador/testing/fixtures/negative/migration-checkonly-writes.yaml',
+  'orquestador/testing/fixtures/positive/command-readonly-safe.txt',
+  'orquestador/testing/fixtures/negative/command-invoke-expression.txt',
+  'orquestador/testing/fixtures/negative/command-curl-pipe.txt',
+  'orquestador/testing/fixtures/negative/command-git-push.txt',
+  'orquestador/testing/fixtures/negative/command-remove-recurse-force.txt',
+  'orquestador/testing/fixtures/negative/command-unknown.txt',
+  'orquestador/testing/fixtures/negative/command-secret-bearing.txt',
+  'orquestador/testing/fixtures/negative/command-risk-mismatch.txt'
 )
 foreach ($rel in $fixtures) { Assert-File $rel }
 
@@ -86,6 +94,13 @@ Assert-FixtureRejected 'orquestador/testing/fixtures/negative/agent-implementer-
 Assert-FixtureRejected 'orquestador/testing/fixtures/negative/security-network-default-allow.yaml' 'default:\s*allow' 'network default allow must reject'
 Assert-FixtureRejected 'orquestador/testing/fixtures/negative/security-path-traversal.yaml' '[.][.]/|reject_dotdot_segments:\s*false' 'path traversal must reject'
 Assert-FixtureRejected 'orquestador/testing/fixtures/negative/migration-checkonly-writes.yaml' 'check_only_writes:\s*true|apply_requires_backup:\s*false' 'CheckOnly writes must reject'
+Assert-FixtureRejected 'orquestador/testing/fixtures/negative/command-invoke-expression.txt' 'Invoke-Expression|iex' 'Invoke-Expression command must reject'
+Assert-FixtureRejected 'orquestador/testing/fixtures/negative/command-curl-pipe.txt' 'curl[\s\S]*[|]' 'curl pipe command must reject'
+Assert-FixtureRejected 'orquestador/testing/fixtures/negative/command-git-push.txt' 'git push' 'git push command must reject'
+Assert-FixtureRejected 'orquestador/testing/fixtures/negative/command-remove-recurse-force.txt' 'Remove-Item[\s\S]*-Recurse[\s\S]*-Force|rm -rf' 'force recursive delete command must reject'
+Assert-FixtureRejected 'orquestador/testing/fixtures/negative/command-unknown.txt' 'whoami' 'unknown command must reject'
+Assert-FixtureRejected 'orquestador/testing/fixtures/negative/command-secret-bearing.txt' '[.]env|token|secret|password|credential' 'secret-bearing command must reject'
+Assert-FixtureRejected 'orquestador/testing/fixtures/negative/command-risk-mismatch.txt' 'Get-Content' 'declared risk mismatch fixture must start from safe command'
 
 if ($RunNegativeTests) {
   $bad = 'id: reviewer capabilities: { allow: [edit_approved_write_set] }'

@@ -14,6 +14,9 @@
 - `scripts/validate-command-gateway.ps1` y fixtures de comandos para cubrir
   comandos read-only, `Invoke-Expression`, pipes remotos, `git push`, borrado
   recursivo forzado y comandos desconocidos.
+- Schema/template `hebrinex.command_gateway.result` para decisiones
+  estructuradas del Command Gateway y preflight generado.
+- Fixtures de secretos y mismatch de riesgo declarado para el Command Gateway.
 
 ### Changed
 - `validate-harness.ps1` valida que la CLI exista, este en manifest y que sus
@@ -21,10 +24,14 @@
 - `validate-harness.ps1` y `audit-harness.ps1` integran validacion de fixtures.
 - `hebrinex.ps1` agrega el subcomando `command -CheckOnly` y delega la decision
   en el Command Gateway.
+- `hebrinex.ps1 command -CheckOnly -Json` emite una decision parseable por
+  maquina sin ejecutar comandos.
 
 ### Security
 - El gateway falla cerrado: comandos desconocidos o compuestos quedan
   bloqueados hasta preflight/aprobacion explicita y no se ejecutan en 0.10.3.
+- Comandos que apuntan a secretos quedan bloqueados aunque usen herramientas
+  read-only; los valores sensibles se redactan en la salida estructurada.
 
 ## [0.10.0] - 2026-06-30
 

@@ -76,6 +76,8 @@ delega en validadores y migrador existentes; no reemplaza `state.yaml`,
 `command -CheckOnly` tampoco ejecuta el comando recibido. Solo clasifica contra
 `orquestador/security/command-risk-registry.yaml`, redacciona secretos simples,
 bloquea comandos desconocidos o compuestos y devuelve si requiere preflight/SI.
+Con `-Json`, emite `hebrinex.command_gateway.result` para validacion automatica
+y genera un preflight estructurado para cualquier bloqueo.
 
 ## Detractor Senior
 

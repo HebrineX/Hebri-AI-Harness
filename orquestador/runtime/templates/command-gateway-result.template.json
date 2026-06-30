@@ -1,0 +1,32 @@
+{
+  "schema": "hebrinex.command_gateway.result",
+  "version": "0.2",
+  "root": "",
+  "mode": "CheckOnly",
+  "command_text": "",
+  "purpose": "",
+  "approval_id": "",
+  "decision": "block",
+  "risk_class": "unknown",
+  "requires_preflight": true,
+  "requires_si": true,
+  "writes": false,
+  "executes": false,
+  "matched_pattern": "",
+  "reason": "",
+  "generated_preflight": {
+    "enabled": true,
+    "approval_id": "COMMAND-GATEWAY-REQUIRED",
+    "action": "",
+    "cwd": "",
+    "read_set": "orquestador/security/command-risk-registry.yaml, orquestador/security/secrets-policy.yaml",
+    "write_set": "none declared by gateway",
+    "command_tool": "",
+    "network_git_external": "no by default",
+    "risk": "unknown",
+    "verification": "human review plus command evidence outside gateway",
+    "expected_evidence": "SI approval, command output, exit code and redacted logs",
+    "requires_si": true
+  },
+  "next_step": "use generated_preflight before any execution"
+}

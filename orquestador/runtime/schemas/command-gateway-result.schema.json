@@ -1,0 +1,71 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Hebri Command Gateway Result",
+  "type": "object",
+  "required": [
+    "schema",
+    "version",
+    "mode",
+    "command_text",
+    "decision",
+    "risk_class",
+    "requires_preflight",
+    "requires_si",
+    "writes",
+    "executes",
+    "reason",
+    "generated_preflight",
+    "next_step"
+  ],
+  "properties": {
+    "schema": { "const": "hebrinex.command_gateway.result" },
+    "version": { "const": "0.2" },
+    "root": { "type": "string" },
+    "mode": { "const": "CheckOnly" },
+    "command_text": { "type": "string" },
+    "purpose": { "type": "string" },
+    "approval_id": { "type": "string" },
+    "decision": { "enum": ["allow", "block"] },
+    "risk_class": {
+      "enum": ["read_only", "local_validation", "write", "destructive", "network", "git_remote", "secrets", "privileged", "unknown"]
+    },
+    "requires_preflight": { "type": "boolean" },
+    "requires_si": { "type": "boolean" },
+    "writes": { "const": false },
+    "executes": { "const": false },
+    "matched_pattern": { "type": "string" },
+    "reason": { "type": "string" },
+    "generated_preflight": {
+      "type": "object",
+      "required": [
+        "enabled",
+        "approval_id",
+        "action",
+        "cwd",
+        "read_set",
+        "write_set",
+        "command_tool",
+        "network_git_external",
+        "risk",
+        "verification",
+        "expected_evidence",
+        "requires_si"
+      ],
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "approval_id": { "type": "string" },
+        "action": { "type": "string" },
+        "cwd": { "type": "string" },
+        "read_set": { "type": "string" },
+        "write_set": { "type": "string" },
+        "command_tool": { "type": "string" },
+        "network_git_external": { "type": "string" },
+        "risk": { "type": "string" },
+        "verification": { "type": "string" },
+        "expected_evidence": { "type": "string" },
+        "requires_si": { "type": "boolean" }
+      }
+    },
+    "next_step": { "type": "string" }
+  }
+}
