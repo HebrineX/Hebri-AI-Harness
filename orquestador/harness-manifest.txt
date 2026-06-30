@@ -301,6 +301,7 @@ file scripts/validate-agent-contracts.ps1
 file scripts/validate-security-policy.ps1
 file scripts/validate-migration.ps1
 file scripts/migrate-harness.ps1
+file scripts/hebrinex.ps1
 
 file orquestador/policies/schemas/context-budget.schema.yaml
 file orquestador/policies/schemas/memory-registry.schema.yaml

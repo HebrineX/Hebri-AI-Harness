@@ -50,6 +50,24 @@ pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/validate-harness.ps1 -RunN
 
 Esta validacion revisa manifest, schemas, presupuestos, exclusion de documentacion personal/local, migracion bound simulada y presets livianos por defecto. No reemplaza el contrato del harness; lo protege contra drift estructural.
 
+## CLI Core
+
+`scripts/hebrinex.ps1` es la entrada unica liviana para operar scripts del
+harness sin cargar todo el contexto:
+
+```powershell
+pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/hebrinex.ps1 status
+pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/hebrinex.ps1 budget
+pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/hebrinex.ps1 preflight
+pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/hebrinex.ps1 validate -RunNegativeTests
+pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/hebrinex.ps1 audit -RunNegativeTests
+pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/hebrinex.ps1 migrate -CheckOnly
+```
+
+`status`, `budget`, `preflight` y `bootstrap -CheckOnly` no escriben. La CLI
+delega en validadores y migrador existentes; no reemplaza `state.yaml`,
+`registry.yaml`, gates ni evidencia.
+
 ## Detractor Senior
 
 Antes de implementar, el leader debe pasar por auditor(profile: detractor_senior) o registrar bypass aprobado. El objetivo es llegar al mismo resultado con menos codigo, menos dependencias y menos abstracciones, sin sacrificar seguridad, datos, accesibilidad, contrato ni evidencia.

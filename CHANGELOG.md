@@ -1,5 +1,15 @@
 # Changelog
 
+## [Unreleased]
+
+### Added
+- `scripts/hebrinex.ps1` como CLI Core liviana para `status`, `budget`,
+  `preflight`, `validate`, `audit`, `migrate` y `bootstrap -CheckOnly`.
+
+### Changed
+- `validate-harness.ps1` valida que la CLI exista, este en manifest y que sus
+  comandos read-only basicos funcionen.
+
 ## [0.10.0] - 2026-06-30
 
 ### Added

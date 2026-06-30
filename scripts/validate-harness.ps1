@@ -360,6 +360,8 @@ Assert-Contains 'orquestador/harness-manifest.txt' 'scripts/validate-agent-contr
 Assert-Contains 'orquestador/harness-manifest.txt' 'scripts/validate-security-policy.ps1' 'validate-security-policy.ps1 must be in manifest'
 Assert-Contains 'orquestador/harness-manifest.txt' 'scripts/validate-migration.ps1' 'validate-migration.ps1 must be in manifest'
 Assert-Contains 'orquestador/harness-manifest.txt' 'scripts/audit-harness.ps1' 'audit-harness.ps1 must be in manifest'
+Assert-Contains 'orquestador/harness-manifest.txt' 'scripts/hebrinex.ps1' 'hebrinex.ps1 must be in manifest'
+Assert-Contains 'scripts/hebrinex.ps1' 'Hebri-AI-Harness CLI Core' 'hebrinex.ps1 must expose CLI Core marker'
 Assert-Contains 'orquestador/agents/agent-registry.yaml' 'HL0_agent_authority' 'agent registry must declare HL0 agent authority'
 Assert-Contains 'orquestador/agents/agent-registry.yaml' 'agent_definition_authority:\s*harness_only' 'agent registry must be harness-only'
 Assert-Contains 'orquestador/agents/agent-registry.yaml' 'ai_may_define_agents:\s*false' 'agent registry must deny AI-defined agents'
@@ -391,6 +393,9 @@ try { & (Resolve-HarnessPath 'scripts/build-instructions.ps1') -Root $Root | Out
 try { & (Resolve-HarnessPath 'scripts/validate-drift.ps1') -Root $Root -RunNegativeTests | Out-Null } catch { Add-Failure 'validate-drift.ps1 must pass negative tests' }
 try { & (Resolve-HarnessPath 'scripts/regularize-state.ps1') -Root $Root | Out-Null } catch { Add-Failure 'regularize-state.ps1 must pass on current state' }
 try { & (Resolve-HarnessPath 'scripts/regularize-registry.ps1') -Root $Root | Out-Null } catch { Add-Failure 'regularize-registry.ps1 must pass on current registry' }
+try { & (Resolve-HarnessPath 'scripts/hebrinex.ps1') status -Root $Root *> $null } catch { Add-Failure 'hebrinex.ps1 status must pass read-only' }
+try { & (Resolve-HarnessPath 'scripts/hebrinex.ps1') budget -Root $Root *> $null } catch { Add-Failure 'hebrinex.ps1 budget must pass read-only' }
+try { & (Resolve-HarnessPath 'scripts/hebrinex.ps1') preflight -Root $Root -ApprovalId 'VALIDATE-HARNESS-CHECK' -Action 'check CLI preflight output' *> $null } catch { Add-Failure 'hebrinex.ps1 preflight must pass read-only' }
 
 Invoke-Validator 'validate-agent-contracts' 'scripts/validate-agent-contracts.ps1'
 Invoke-Validator 'validate-security-policy' 'scripts/validate-security-policy.ps1'
