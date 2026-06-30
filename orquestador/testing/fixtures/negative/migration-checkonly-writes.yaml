@@ -1,0 +1,4 @@
+schema: hebrinex.migration_registry
+authority:
+  check_only_writes: true
+  apply_requires_backup: false

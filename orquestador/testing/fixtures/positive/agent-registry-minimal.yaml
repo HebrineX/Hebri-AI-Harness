@@ -1,0 +1,13 @@
+schema: hebrinex.agent_registry
+version: "0.1"
+harness_version: "0.10.0"
+authority:
+  hard_lock_id: HL0_agent_authority
+  agent_definition_authority: harness_only
+  ai_may_define_agents: false
+roles:
+  - id: leader
+  - id: implementer
+  - id: reviewer
+limits:
+  max_active_agents_total: 5

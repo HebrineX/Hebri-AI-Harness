@@ -37,6 +37,8 @@ Si un proyecto no tiene `.hebrinex`, no se opera con un harness externo. Se copi
 - Agent Contract System: los agentes existen por contratos YAML gobernados por el harness, no por prompts ni autoasignacion de IA.
 - Seguridad AppSec verificable: permisos, write-scope, comandos, red, secretos, escalacion, logging y supply-chain se validan por registries.
 - Servicio de migracion: rutas 0.8.10/0.9.0 -> 0.10.0 con CheckOnly, Apply con backup, reporte y contrato post-migracion aplicado.
+- Schemas y fixtures de validacion cubren contratos de agentes, seguridad y
+  migracion con casos negativos.
 - `init.sh` bloquea drift de version operativo fuera de `CHANGELOG.md`.
 - `state.yaml` queda estructuralmente valido.
 - Adapters y presets usan entrada minima: binding, session pin, registry, routing, budget y entrypoint.

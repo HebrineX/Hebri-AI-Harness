@@ -1,0 +1,6 @@
+schema: hebrinex.agent_role_contract
+id: reviewer
+capabilities:
+  allow: [read_declared_files, inspect_diff, edit_approved_write_set]
+requires:
+  no_direct_edits: false

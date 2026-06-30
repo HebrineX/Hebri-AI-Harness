@@ -1,0 +1,23 @@
+schema: hebrinex.schema.agent_role_contract
+version: "0.1"
+target: orquestador/agents/role-contracts/*.yaml
+required_top_keys:
+  - schema
+  - version
+  - id
+  - role_type
+  - purpose
+  - authority
+  - security_profile
+  - capabilities
+  - requires
+  - handoff
+  - closure
+required_values:
+  schema: hebrinex.agent_role_contract
+hard_rules:
+  - Leader may not implement.
+  - Implementer may not approve work.
+  - Reviewer may not directly edit.
+  - Auditor may block but may not implement or approve.
+  - Reporter communicates evidence but does not change verdict.

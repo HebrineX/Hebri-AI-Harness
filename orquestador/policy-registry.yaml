@@ -79,6 +79,20 @@ categories:
       - path: orquestador/policies/schemas/adapter-matrix.schema.yaml
       - path: orquestador/policies/schemas/instruction-registry.schema.yaml
       - path: orquestador/policies/schemas/claude-reentry-state.schema.yaml
+      - path: orquestador/policies/schemas/agent-registry.schema.yaml
+      - path: orquestador/policies/schemas/agent-role-contract.schema.yaml
+      - path: orquestador/policies/schemas/security-policy.schema.yaml
+      - path: orquestador/policies/schemas/migration-registry.schema.yaml
+  validator_fixtures:
+    files:
+      - path: orquestador/testing/fixtures/README.md
+      - path: orquestador/testing/fixtures/positive/agent-registry-minimal.yaml
+      - path: orquestador/testing/fixtures/negative/agent-ai-defined-agent.yaml
+      - path: orquestador/testing/fixtures/negative/agent-reviewer-write.yaml
+      - path: orquestador/testing/fixtures/negative/agent-implementer-approve.yaml
+      - path: orquestador/testing/fixtures/negative/security-network-default-allow.yaml
+      - path: orquestador/testing/fixtures/negative/security-path-traversal.yaml
+      - path: orquestador/testing/fixtures/negative/migration-checkonly-writes.yaml
 rules:
   - "Las policies definen contrato; los prompts solo las invocan."
   - "Si una policy nueva introduce gates, actualizar gate-registry.yaml."

@@ -1,0 +1,18 @@
+schema: hebrinex.schema.security_policy
+version: "0.1"
+target: orquestador/security/*.yaml
+required_controls:
+  - command_injection
+  - path_traversal
+  - symlink_escape
+  - secret_leak
+  - network_abuse
+  - git_remote_abuse
+  - supply_chain_remote_code
+hard_rules:
+  - Unknown commands block.
+  - Network defaults to deny.
+  - Secrets default to deny and redact before chat/report.
+  - Writes outside project root block.
+  - Path traversal and symlink escape block.
+  - Remote script execution is denied.

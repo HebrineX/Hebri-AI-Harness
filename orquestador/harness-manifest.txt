@@ -217,6 +217,10 @@ dir orquestador/migration
 dir orquestador/migration/contracts
 dir orquestador/migration/reports
 dir orquestador/migration/versions
+dir orquestador/testing
+dir orquestador/testing/fixtures
+dir orquestador/testing/fixtures/positive
+dir orquestador/testing/fixtures/negative
 file orquestador/agents/agent-registry.yaml
 file orquestador/agents/capability-registry.yaml
 file orquestador/agents/context-packs/auditor-context.yaml
@@ -296,12 +300,25 @@ file orquestador/migration/migration-registry.yaml
 file orquestador/migration/reports/migration-report.template.yaml
 file orquestador/migration/versions/0.8.10-to-0.10.0.yaml
 file orquestador/migration/versions/0.9.0-to-0.10.0.yaml
+file orquestador/policies/schemas/agent-registry.schema.yaml
+file orquestador/policies/schemas/agent-role-contract.schema.yaml
+file orquestador/policies/schemas/security-policy.schema.yaml
+file orquestador/policies/schemas/migration-registry.schema.yaml
+file orquestador/testing/fixtures/README.md
+file orquestador/testing/fixtures/positive/agent-registry-minimal.yaml
+file orquestador/testing/fixtures/negative/agent-ai-defined-agent.yaml
+file orquestador/testing/fixtures/negative/agent-reviewer-write.yaml
+file orquestador/testing/fixtures/negative/agent-implementer-approve.yaml
+file orquestador/testing/fixtures/negative/security-network-default-allow.yaml
+file orquestador/testing/fixtures/negative/security-path-traversal.yaml
+file orquestador/testing/fixtures/negative/migration-checkonly-writes.yaml
 file scripts/audit-harness.ps1
 file scripts/validate-agent-contracts.ps1
 file scripts/validate-security-policy.ps1
 file scripts/validate-migration.ps1
 file scripts/migrate-harness.ps1
 file scripts/hebrinex.ps1
+file scripts/validate-fixtures.ps1
 
 file orquestador/policies/schemas/context-budget.schema.yaml
 file orquestador/policies/schemas/memory-registry.schema.yaml

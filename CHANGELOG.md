@@ -5,10 +5,15 @@
 ### Added
 - `scripts/hebrinex.ps1` como CLI Core liviana para `status`, `budget`,
   `preflight`, `validate`, `audit`, `migrate` y `bootstrap -CheckOnly`.
+- Schemas livianos para Agent Registry, Agent Role Contract, Security Policy y
+  Migration Registry.
+- Fixtures positivos/negativos y `scripts/validate-fixtures.ps1` para cubrir
+  roles invalidos, red default allow, path traversal y CheckOnly con escrituras.
 
 ### Changed
 - `validate-harness.ps1` valida que la CLI exista, este en manifest y que sus
   comandos read-only basicos funcionen.
+- `validate-harness.ps1` y `audit-harness.ps1` integran validacion de fixtures.
 
 ## [0.10.0] - 2026-06-30
 

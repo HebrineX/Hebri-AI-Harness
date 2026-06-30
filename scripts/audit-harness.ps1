@@ -35,6 +35,7 @@ Write-Host "Auditing Hebri-AI-Harness at $Root"
 Invoke-Validator 'validate-agent-contracts' (Join-Path $scriptRoot 'validate-agent-contracts.ps1')
 Invoke-Validator 'validate-security-policy' (Join-Path $scriptRoot 'validate-security-policy.ps1')
 Invoke-Validator 'validate-migration' (Join-Path $scriptRoot 'validate-migration.ps1')
+Invoke-Validator 'validate-fixtures' (Join-Path $scriptRoot 'validate-fixtures.ps1')
 
 if ($script:Failures.Count -gt 0) {
   Write-Host 'Harness audit FAILED'

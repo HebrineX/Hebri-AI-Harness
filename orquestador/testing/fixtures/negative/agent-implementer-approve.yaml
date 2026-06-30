@@ -1,0 +1,6 @@
+schema: hebrinex.agent_role_contract
+id: implementer
+authority:
+  may_approve_work: true
+capabilities:
+  allow: [approve_work]

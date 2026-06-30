@@ -259,6 +259,17 @@ $yamlFiles = @(
   'orquestador/migration/versions/0.8.10-to-0.10.0.yaml',
   'orquestador/migration/contracts/post-migration-contract.yaml',
   'orquestador/migration/reports/migration-report.template.yaml',
+  'orquestador/policies/schemas/agent-registry.schema.yaml',
+  'orquestador/policies/schemas/agent-role-contract.schema.yaml',
+  'orquestador/policies/schemas/security-policy.schema.yaml',
+  'orquestador/policies/schemas/migration-registry.schema.yaml',
+  'orquestador/testing/fixtures/positive/agent-registry-minimal.yaml',
+  'orquestador/testing/fixtures/negative/agent-ai-defined-agent.yaml',
+  'orquestador/testing/fixtures/negative/agent-reviewer-write.yaml',
+  'orquestador/testing/fixtures/negative/agent-implementer-approve.yaml',
+  'orquestador/testing/fixtures/negative/security-network-default-allow.yaml',
+  'orquestador/testing/fixtures/negative/security-path-traversal.yaml',
+  'orquestador/testing/fixtures/negative/migration-checkonly-writes.yaml',
   'orquestador/sdd/progress/state.yaml',
   'orquestador/sdd/progress/registry.yaml'
 )
@@ -361,7 +372,10 @@ Assert-Contains 'orquestador/harness-manifest.txt' 'scripts/validate-security-po
 Assert-Contains 'orquestador/harness-manifest.txt' 'scripts/validate-migration.ps1' 'validate-migration.ps1 must be in manifest'
 Assert-Contains 'orquestador/harness-manifest.txt' 'scripts/audit-harness.ps1' 'audit-harness.ps1 must be in manifest'
 Assert-Contains 'orquestador/harness-manifest.txt' 'scripts/hebrinex.ps1' 'hebrinex.ps1 must be in manifest'
+Assert-Contains 'orquestador/harness-manifest.txt' 'scripts/validate-fixtures.ps1' 'validate-fixtures.ps1 must be in manifest'
 Assert-Contains 'scripts/hebrinex.ps1' 'Hebri-AI-Harness CLI Core' 'hebrinex.ps1 must expose CLI Core marker'
+Assert-Contains 'scripts/validate-fixtures.ps1' 'Fixture validation OK' 'validate-fixtures.ps1 must expose success marker'
+Assert-Contains 'orquestador/policy-registry.yaml' 'validator_fixtures' 'policy registry must include validator fixtures'
 Assert-Contains 'orquestador/agents/agent-registry.yaml' 'HL0_agent_authority' 'agent registry must declare HL0 agent authority'
 Assert-Contains 'orquestador/agents/agent-registry.yaml' 'agent_definition_authority:\s*harness_only' 'agent registry must be harness-only'
 Assert-Contains 'orquestador/agents/agent-registry.yaml' 'ai_may_define_agents:\s*false' 'agent registry must deny AI-defined agents'
@@ -400,6 +414,7 @@ try { & (Resolve-HarnessPath 'scripts/hebrinex.ps1') preflight -Root $Root -Appr
 Invoke-Validator 'validate-agent-contracts' 'scripts/validate-agent-contracts.ps1'
 Invoke-Validator 'validate-security-policy' 'scripts/validate-security-policy.ps1'
 Invoke-Validator 'validate-migration' 'scripts/validate-migration.ps1'
+Invoke-Validator 'validate-fixtures' 'scripts/validate-fixtures.ps1'
 Invoke-Validator 'audit-harness' 'scripts/audit-harness.ps1'
 
 Test-BoundCopySimulation

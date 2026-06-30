@@ -1,0 +1,31 @@
+schema: hebrinex.schema.agent_registry
+version: "0.1"
+target: orquestador/agents/agent-registry.yaml
+required_top_keys:
+  - schema
+  - version
+  - harness_version
+  - status
+  - authority
+  - resolution
+  - roles
+  - limits
+required_values:
+  schema: hebrinex.agent_registry
+  harness_version: "0.10.0"
+  agent_definition_authority: harness_only
+  ai_may_define_agents: false
+required_roles:
+  - leader
+  - implementer
+  - reviewer
+  - auditor
+  - reporter
+  - spec-author
+  - worker
+hard_rules:
+  - Unknown role blocks.
+  - Missing role contract blocks.
+  - Missing security profile blocks.
+  - Prompt or docs conflicts lose to registry.
+  - Max active agents total is 5.

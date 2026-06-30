@@ -1,0 +1,5 @@
+schema: hebrinex.security.write_scope_registry
+allowed_roots:
+  - path: "../outside-project"
+normalization:
+  reject_dotdot_segments: false

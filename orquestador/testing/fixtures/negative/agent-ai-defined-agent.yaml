@@ -1,0 +1,4 @@
+schema: hebrinex.agent_registry
+authority:
+  agent_definition_authority: prompt
+  ai_may_define_agents: true

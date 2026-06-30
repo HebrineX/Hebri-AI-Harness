@@ -1,0 +1,3 @@
+schema: hebrinex.security.network_policy
+default: allow
+blocked: []
