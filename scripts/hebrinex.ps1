@@ -1,6 +1,6 @@
 param(
   [Parameter(Position = 0)]
-  [ValidateSet('help','status','budget','preflight','validate','audit','migrate','bootstrap')]
+  [ValidateSet('help','status','budget','preflight','validate','audit','migrate','bootstrap','command')]
   [string]$Command = 'help',
   [string]$Root = (Split-Path -Parent $PSScriptRoot),
   [switch]$RunNegativeTests,
@@ -13,7 +13,10 @@ param(
   [string]$ReadSet = '',
   [string]$WriteSet = '',
   [string]$Risk = 'bajo',
-  [string]$Verification = ''
+  [string]$Verification = '',
+  [string]$CommandText = '',
+  [string]$Purpose = '',
+  [string]$RiskClass = ''
 )
 
 $ErrorActionPreference = 'Stop'
@@ -113,6 +116,7 @@ function Show-Help() {
   Write-Host '  hebrinex.ps1 audit [-RunNegativeTests]'
   Write-Host '  hebrinex.ps1 migrate -CheckOnly|-Apply [-TargetVersion 0.10.0]'
   Write-Host '  hebrinex.ps1 bootstrap -CheckOnly [-ProjectRoot <path>]'
+  Write-Host '  hebrinex.ps1 command -CheckOnly -CommandText <command> [-Purpose <text>]'
 }
 
 $Root = (Resolve-Path -LiteralPath $Root).Path
@@ -211,5 +215,13 @@ switch ($Command) {
     Write-Host ' - ensure consumer .gitignore excludes .hebrinex/'
     Write-Host ' - run validate-harness.ps1 and init.sh'
     Write-Host 'writes=false'
+  }
+  'command' {
+    if (-not $CheckOnly -or $Apply) {
+      throw 'command currently supports -CheckOnly only. Apply belongs to a later slice.'
+    }
+    $scriptPath = Resolve-HarnessPath 'scripts/command-gateway.ps1'
+    & $scriptPath -Root $Root -CheckOnly -CommandText $CommandText -Purpose $Purpose -ApprovalId $ApprovalId -RiskClass $RiskClass
+    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
   }
 }

@@ -9,11 +9,22 @@
   Migration Registry.
 - Fixtures positivos/negativos y `scripts/validate-fixtures.ps1` para cubrir
   roles invalidos, red default allow, path traversal y CheckOnly con escrituras.
+- `scripts/command-gateway.ps1` como Command Gateway inicial en modo
+  `CheckOnly`, sin ejecucion arbitraria de comandos.
+- `scripts/validate-command-gateway.ps1` y fixtures de comandos para cubrir
+  comandos read-only, `Invoke-Expression`, pipes remotos, `git push`, borrado
+  recursivo forzado y comandos desconocidos.
 
 ### Changed
 - `validate-harness.ps1` valida que la CLI exista, este en manifest y que sus
   comandos read-only basicos funcionen.
 - `validate-harness.ps1` y `audit-harness.ps1` integran validacion de fixtures.
+- `hebrinex.ps1` agrega el subcomando `command -CheckOnly` y delega la decision
+  en el Command Gateway.
+
+### Security
+- El gateway falla cerrado: comandos desconocidos o compuestos quedan
+  bloqueados hasta preflight/aprobacion explicita y no se ejecutan en 0.10.3.
 
 ## [0.10.0] - 2026-06-30
 

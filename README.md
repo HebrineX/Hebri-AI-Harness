@@ -39,6 +39,8 @@ Si un proyecto no tiene `.hebrinex`, no se opera con un harness externo. Se copi
 - Servicio de migracion: rutas 0.8.10/0.9.0 -> 0.10.0 con CheckOnly, Apply con backup, reporte y contrato post-migracion aplicado.
 - Schemas y fixtures de validacion cubren contratos de agentes, seguridad y
   migracion con casos negativos.
+- Command Gateway inicial: `hebrinex command -CheckOnly` clasifica comandos,
+  bloquea patrones riesgosos y no ejecuta comandos arbitrarios.
 - `init.sh` bloquea drift de version operativo fuera de `CHANGELOG.md`.
 - `state.yaml` queda estructuralmente valido.
 - Adapters y presets usan entrada minima: binding, session pin, registry, routing, budget y entrypoint.
@@ -64,11 +66,16 @@ pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/hebrinex.ps1 preflight
 pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/hebrinex.ps1 validate -RunNegativeTests
 pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/hebrinex.ps1 audit -RunNegativeTests
 pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/hebrinex.ps1 migrate -CheckOnly
+pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/hebrinex.ps1 command -CheckOnly -CommandText "Get-Content README.md"
 ```
 
 `status`, `budget`, `preflight` y `bootstrap -CheckOnly` no escriben. La CLI
 delega en validadores y migrador existentes; no reemplaza `state.yaml`,
 `registry.yaml`, gates ni evidencia.
+
+`command -CheckOnly` tampoco ejecuta el comando recibido. Solo clasifica contra
+`orquestador/security/command-risk-registry.yaml`, redacciona secretos simples,
+bloquea comandos desconocidos o compuestos y devuelve si requiere preflight/SI.
 
 ## Detractor Senior
 

@@ -373,8 +373,12 @@ Assert-Contains 'orquestador/harness-manifest.txt' 'scripts/validate-migration.p
 Assert-Contains 'orquestador/harness-manifest.txt' 'scripts/audit-harness.ps1' 'audit-harness.ps1 must be in manifest'
 Assert-Contains 'orquestador/harness-manifest.txt' 'scripts/hebrinex.ps1' 'hebrinex.ps1 must be in manifest'
 Assert-Contains 'orquestador/harness-manifest.txt' 'scripts/validate-fixtures.ps1' 'validate-fixtures.ps1 must be in manifest'
+Assert-Contains 'orquestador/harness-manifest.txt' 'scripts/command-gateway.ps1' 'command-gateway.ps1 must be in manifest'
+Assert-Contains 'orquestador/harness-manifest.txt' 'scripts/validate-command-gateway.ps1' 'validate-command-gateway.ps1 must be in manifest'
 Assert-Contains 'scripts/hebrinex.ps1' 'Hebri-AI-Harness CLI Core' 'hebrinex.ps1 must expose CLI Core marker'
 Assert-Contains 'scripts/validate-fixtures.ps1' 'Fixture validation OK' 'validate-fixtures.ps1 must expose success marker'
+Assert-Contains 'scripts/command-gateway.ps1' 'Command Gateway' 'command-gateway.ps1 must expose gateway marker'
+Assert-Contains 'scripts/validate-command-gateway.ps1' 'Command gateway validation OK' 'validate-command-gateway.ps1 must expose success marker'
 Assert-Contains 'orquestador/policy-registry.yaml' 'validator_fixtures' 'policy registry must include validator fixtures'
 Assert-Contains 'orquestador/agents/agent-registry.yaml' 'HL0_agent_authority' 'agent registry must declare HL0 agent authority'
 Assert-Contains 'orquestador/agents/agent-registry.yaml' 'agent_definition_authority:\s*harness_only' 'agent registry must be harness-only'
@@ -410,11 +414,13 @@ try { & (Resolve-HarnessPath 'scripts/regularize-registry.ps1') -Root $Root | Ou
 try { & (Resolve-HarnessPath 'scripts/hebrinex.ps1') status -Root $Root *> $null } catch { Add-Failure 'hebrinex.ps1 status must pass read-only' }
 try { & (Resolve-HarnessPath 'scripts/hebrinex.ps1') budget -Root $Root *> $null } catch { Add-Failure 'hebrinex.ps1 budget must pass read-only' }
 try { & (Resolve-HarnessPath 'scripts/hebrinex.ps1') preflight -Root $Root -ApprovalId 'VALIDATE-HARNESS-CHECK' -Action 'check CLI preflight output' *> $null } catch { Add-Failure 'hebrinex.ps1 preflight must pass read-only' }
+try { & (Resolve-HarnessPath 'scripts/hebrinex.ps1') command -Root $Root -CheckOnly -CommandText 'Get-Content README.md' *> $null } catch { Add-Failure 'hebrinex.ps1 command must pass read-only CheckOnly' }
 
 Invoke-Validator 'validate-agent-contracts' 'scripts/validate-agent-contracts.ps1'
 Invoke-Validator 'validate-security-policy' 'scripts/validate-security-policy.ps1'
 Invoke-Validator 'validate-migration' 'scripts/validate-migration.ps1'
 Invoke-Validator 'validate-fixtures' 'scripts/validate-fixtures.ps1'
+Invoke-Validator 'validate-command-gateway' 'scripts/validate-command-gateway.ps1'
 Invoke-Validator 'audit-harness' 'scripts/audit-harness.ps1'
 
 Test-BoundCopySimulation
