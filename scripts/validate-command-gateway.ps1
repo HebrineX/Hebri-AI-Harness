@@ -110,7 +110,7 @@ Assert-File 'orquestador/runtime/schemas/command-gateway-result.schema.json'
 Assert-File 'orquestador/runtime/templates/command-gateway-result.template.json'
 
 Assert-Contains 'scripts/command-gateway.ps1' 'Command Gateway' 'command gateway must expose marker'
-Assert-Contains 'scripts/command-gateway.ps1' 'executes=false' 'command gateway must be non-executing in 0.10.3'
+Assert-Contains 'scripts/command-gateway.ps1' 'executes=false' 'command gateway must be non-executing'
 Assert-Contains 'scripts/command-gateway.ps1' 'hebrinex.command_gateway.result' 'command gateway must emit structured result schema'
 Assert-Contains 'orquestador/runtime/schemas/command-gateway-result.schema.json' 'hebrinex.command_gateway.result' 'command gateway schema must declare result schema'
 Assert-Contains 'orquestador/runtime/templates/command-gateway-result.template.json' '"executes": false' 'command gateway template must never execute'

@@ -9,7 +9,7 @@ Al copiar fuente a `<project_root>/.hebrinex/`, excluir siempre:
 - `.git/`
 - archivos temporales o logs locales
 
-Luego actualizar `PROJECT_BINDING.yaml` a `binding_mode: bound`, `harness_version: "0.10.0"`, `project_root`, `project_name`, `repo_remote`, `bound_at` y `harness_instance_id`.
+Luego actualizar `PROJECT_BINDING.yaml` a `binding_mode: bound`, `harness_version: "0.10.4"`, `project_root`, `project_name`, `repo_remote`, `bound_at` y `harness_instance_id`.
 
 Entrada minima post-bootstrap: `PROJECT_BINDING.yaml`, `session-pin.md`, `memory-registry.yaml`, `memory-routing.yaml`, `context-budget.yaml` y entrypoint aplicable.
 

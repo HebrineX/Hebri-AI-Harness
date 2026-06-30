@@ -5,6 +5,7 @@ function Fail($m){ $failures.Add($m) | Out-Null }
 function P($rel){ Join-Path $Root $rel }
 function T($rel){ if(!(Test-Path -LiteralPath (P $rel))){ Fail "missing $rel"; return '' }; [IO.File]::ReadAllText((P $rel)) }
 $expected = @('claude-code','codex','gemini','cursor','copilot','qwen','deepseek','generic-ai')
+$version = (T 'HARNESS_VERSION').Trim()
 $matrix = T 'orquestador/portability/adapter-matrix.yaml'
 foreach($id in $expected){
   if($matrix -notmatch "adapter_id: $([regex]::Escape($id))"){ Fail "adapter matrix missing $id" }
@@ -12,7 +13,7 @@ foreach($id in $expected){
   $md = "orquestador/adapters/$id.md"
   $yt = T $yaml
   [void](T $md)
-  foreach($needle in @('harness_version: "0.10.0"','memory_reliability: untrusted_for_evidence','preflight_enforcement: required_before_effects','detractor_senior','first_message','reentry_light','reentry_full','debug_log_intake','compactation_recovery')){
+  foreach($needle in @("harness_version: `"$version`"",'memory_reliability: untrusted_for_evidence','preflight_enforcement: required_before_effects','detractor_senior','first_message','reentry_light','reentry_full','debug_log_intake','compactation_recovery')){
     if($yt -notmatch [regex]::Escape($needle)){ Fail "$yaml missing $needle" }
   }
 }

@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.10.4] - 2026-06-30
+
 ### Added
 - `scripts/hebrinex.ps1` como CLI Core liviana para `status`, `budget`,
   `preflight`, `validate`, `audit`, `migrate` y `bootstrap -CheckOnly`.
@@ -29,7 +31,7 @@
 
 ### Security
 - El gateway falla cerrado: comandos desconocidos o compuestos quedan
-  bloqueados hasta preflight/aprobacion explicita y no se ejecutan en 0.10.3.
+  bloqueados hasta preflight/aprobacion explicita y no se ejecutan en esta rama 0.10.x.
 - Comandos que apuntan a secretos quedan bloqueados aunque usen herramientas
   read-only; los valores sensibles se redactan en la salida estructurada.
 

@@ -213,6 +213,8 @@ function Run-NegativeTests() {
 
 $Root = (Resolve-Path -LiteralPath $Root).Path
 Write-Host "Validating Hebri-AI-Harness at $Root"
+$currentHarnessVersion = (Read-HarnessText 'HARNESS_VERSION').Trim()
+if ($currentHarnessVersion -notmatch '^0[.][0-9]+[.][0-9]+$') { Add-Failure 'HARNESS_VERSION must be SemVer 0.x.y' }
 
 $manifestText = Read-HarnessText 'orquestador/harness-manifest.txt'
 if ($manifestText -match '(?m)^file\s+infoHebri[.]md\s*$') { Add-Failure 'manifest must not include infoHebri.md' }
@@ -294,8 +296,8 @@ Assert-TopKeys 'orquestador/memory/memory-registry.yaml' @('schema','version','u
 Assert-TopKeys 'orquestador/sdd/progress/state.yaml' @('schema','version','updated_at','mode','project_binding','session_contract','active_cycle','required_gates','conditional_gates','approvals','verification','open_locks','open_agents','last_final_report')
 Assert-TopKeys 'orquestador/sdd/progress/registry.yaml' @('schema','version','updated_at','kanban_statuses','roles','profiles','cycles')
 
-if ((Get-ScalarValue 'PROJECT_BINDING.yaml' 'harness_version') -ne '0.10.0') { Add-Failure 'PROJECT_BINDING.yaml harness_version must be 0.10.0' }
-if ((Get-ScalarValue 'orquestador/context-budget.yaml' 'harness_version') -ne '0.10.0') { Add-Failure 'context-budget.yaml harness_version must be 0.10.0' }
+if ((Get-ScalarValue 'PROJECT_BINDING.yaml' 'harness_version') -ne $currentHarnessVersion) { Add-Failure "PROJECT_BINDING.yaml harness_version must be $currentHarnessVersion" }
+if ((Get-ScalarValue 'orquestador/context-budget.yaml' 'harness_version') -ne $currentHarnessVersion) { Add-Failure "context-budget.yaml harness_version must be $currentHarnessVersion" }
 if ((Get-ScalarValue 'PROJECT_BINDING.yaml' 'binding_mode') -notin @('source_template','bound')) { Add-Failure 'PROJECT_BINDING.yaml binding_mode invalid' }
 
 foreach ($registryRel in @(
@@ -352,7 +354,7 @@ Assert-Contains 'orquestador/integrations/claude/CLAUDE.template.md' 'reentry-br
 Assert-Contains 'orquestador/sdd/progress/templates/claude-reentry-state.yaml' 'non_authoritative: true' 'Claude reentry state must be non-authoritative'
 Assert-Contains 'scripts/install-claude-hooks.ps1' 'Preflight only' 'Claude hook installer must be preflight-only'
 Assert-Contains 'scripts/claude-reentry.ps1' 'Approvals expired' 'Claude reentry must expire approvals'
-Assert-Contains 'orquestador/instruction-builder/instruction-registry.yaml' '0.10.0' 'instruction registry must match harness version'
+Assert-Contains 'orquestador/instruction-builder/instruction-registry.yaml' ([regex]::Escape($currentHarnessVersion)) 'instruction registry must match harness version'
 Assert-Contains 'orquestador/instruction-builder/instruction-registry.yaml' 'generic-ai' 'instruction registry must include generic-ai target'
 Assert-Contains 'orquestador/instruction-builder/fragments/denylists.md' 'infoHebri.md' 'instruction denylists must mention infoHebri'
 Assert-Contains 'scripts/build-instructions.ps1' 'check-only passed' 'instruction builder must support check-only'
@@ -375,6 +377,7 @@ Assert-Contains 'orquestador/harness-manifest.txt' 'scripts/hebrinex.ps1' 'hebri
 Assert-Contains 'orquestador/harness-manifest.txt' 'scripts/validate-fixtures.ps1' 'validate-fixtures.ps1 must be in manifest'
 Assert-Contains 'orquestador/harness-manifest.txt' 'scripts/command-gateway.ps1' 'command-gateway.ps1 must be in manifest'
 Assert-Contains 'orquestador/harness-manifest.txt' 'scripts/validate-command-gateway.ps1' 'validate-command-gateway.ps1 must be in manifest'
+Assert-Contains 'orquestador/harness-manifest.txt' 'scripts/validate-release.ps1' 'validate-release.ps1 must be in manifest'
 Assert-Contains 'scripts/hebrinex.ps1' 'Hebri-AI-Harness CLI Core' 'hebrinex.ps1 must expose CLI Core marker'
 Assert-Contains 'scripts/validate-fixtures.ps1' 'Fixture validation OK' 'validate-fixtures.ps1 must expose success marker'
 Assert-Contains 'scripts/command-gateway.ps1' 'Command Gateway' 'command-gateway.ps1 must expose gateway marker'
@@ -392,7 +395,7 @@ Assert-Contains 'orquestador/security/threat-model.yaml' 'path_traversal' 'threa
 Assert-Contains 'orquestador/security/secrets-policy.yaml' 'default' 'secrets policy must define a default posture'
 Assert-Contains 'orquestador/migration/migration-registry.yaml' 'check_only_writes:\s*false' 'migration registry must keep CheckOnly no-write'
 Assert-Contains 'orquestador/migration/migration-registry.yaml' 'apply_requires_backup:\s*true' 'migration registry must require backup for Apply'
-if ((Get-ScalarValue 'PROJECT_BINDING.yaml' 'binding_mode') -eq 'source_template') { Assert-Contains 'orquestador/migration/contracts/post-migration-contract.yaml' 'migration_status:\s*not_applied' 'source template post-migration contract must remain not_applied' } else { Assert-Contains 'orquestador/migration/contracts/post-migration-contract.yaml' 'migration_status:\s*applied' 'bound post-migration contract must be applied in 0.10.0' }
+if ((Get-ScalarValue 'PROJECT_BINDING.yaml' 'binding_mode') -eq 'source_template') { Assert-Contains 'orquestador/migration/contracts/post-migration-contract.yaml' 'migration_status:\s*not_applied' 'source template post-migration contract must remain not_applied' } else { Assert-Contains 'orquestador/migration/contracts/post-migration-contract.yaml' 'migration_status:\s*applied' 'bound post-migration contract must be applied' }
 
 Assert-PresetNotHeavyByDefault 'prompts/adapters/preset-codex.prompt.md'
 Assert-PresetNotHeavyByDefault 'prompts/adapters/preset-claude.prompt.md'
@@ -419,6 +422,7 @@ try { & (Resolve-HarnessPath 'scripts/hebrinex.ps1') budget -Root $Root *> $null
 try { & (Resolve-HarnessPath 'scripts/hebrinex.ps1') preflight -Root $Root -ApprovalId 'VALIDATE-HARNESS-CHECK' -Action 'check CLI preflight output' *> $null } catch { Add-Failure 'hebrinex.ps1 preflight must pass read-only' }
 try { & (Resolve-HarnessPath 'scripts/hebrinex.ps1') command -Root $Root -CheckOnly -CommandText 'Get-Content README.md' *> $null } catch { Add-Failure 'hebrinex.ps1 command must pass read-only CheckOnly' }
 
+Invoke-Validator 'validate-release' 'scripts/validate-release.ps1'
 Invoke-Validator 'validate-agent-contracts' 'scripts/validate-agent-contracts.ps1'
 Invoke-Validator 'validate-security-policy' 'scripts/validate-security-policy.ps1'
 Invoke-Validator 'validate-migration' 'scripts/validate-migration.ps1'

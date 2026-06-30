@@ -176,7 +176,7 @@ $bindingText = Read-HarnessText 'PROJECT_BINDING.yaml'
 $bindingMode = Get-Scalar $bindingText 'binding_mode'
 $contractText = Read-HarnessText 'orquestador/migration/contracts/post-migration-contract.yaml'
 Assert-TextContains $contractText 'agent_authority:\s*harness_only' 'post migration contract must keep harness_only authority'
-if ($RequireApplied -or ($currentHarnessVersion -eq '0.10.0' -and $bindingMode -eq 'bound')) {
+if ($RequireApplied -or ($currentHarnessVersion -match '^0[.]10[.][0-9]+$' -and $bindingMode -eq 'bound')) {
   Assert-AppliedMigrationEvidence
 }
 else {
@@ -198,7 +198,7 @@ if ($currentHarnessVersion -in @('0.8.10', '0.9.0')) {
     Add-Failure 'migrate-harness CheckOnly changed file tree signature'
   }
 }
-elseif ($currentHarnessVersion -ne '0.10.0') {
+elseif ($currentHarnessVersion -notmatch '^0[.]10[.][0-9]+$') {
   Add-Failure "unsupported HARNESS_VERSION for migration validation: $currentHarnessVersion"
 }
 

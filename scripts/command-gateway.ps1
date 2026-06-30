@@ -91,7 +91,7 @@ if (($CheckOnly -and $Apply) -or (-not $CheckOnly -and -not $Apply)) {
   throw 'command-gateway requires exactly one mode: -CheckOnly. -Apply is reserved for a later slice.'
 }
 if ($Apply) {
-  throw 'command-gateway Apply is not implemented in 0.10.3. This gateway does not execute arbitrary commands.'
+  throw 'command-gateway Apply is not implemented in this release. This gateway does not execute arbitrary commands.'
 }
 
 $Root = (Resolve-Path -LiteralPath $Root).Path

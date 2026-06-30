@@ -25,11 +25,13 @@ resolve_powershell(){
 PSH="$(resolve_powershell)"
 echo "Verificando estructura del Hebri-AI-Harness..."
 [ -s "$MANIFEST" ] || { echo "ERROR: Falta el manifiesto orquestador/harness-manifest.txt"; exit 2; }
+HARNESS_RELEASE_VERSION="$(tr -d '\r\n' < "$ROOT/HARNESS_VERSION")"
+printf '%s' "$HARNESS_RELEASE_VERSION" | grep -Eq '^0[.][0-9]+[.][0-9]+$' || { echo "ERROR: HARNESS_VERSION no es SemVer 0.x.y"; exit 2; }
 if grep -q '^file infoHebri[.]md$' "$MANIFEST"; then echo "ERROR: infoHebri.md no debe figurar en el manifest"; exit 2; fi
 while IFS= read -r line || [ -n "$line" ]; do entry="$(printf '%s' "$line" | sed 's/[[:space:]]*$//')"; case "$entry" in ""|\#*) continue ;; esac; kind="${entry%% *}"; path="${entry#* }"; [ "$kind" != "$path" ] || { echo "ERROR: Entrada invalida en manifest: $entry"; exit 2; }; case "$kind" in dir) [ -d "$ROOT/$path" ] || { echo "ERROR: Falta el directorio $path"; exit 2; };; file) [ -f "$ROOT/$path" ] || { echo "ERROR: Falta el archivo $path"; exit 2; }; [ -s "$ROOT/$path" ] || { echo "ERROR: Archivo vacio $path"; exit 2; };; *) echo "ERROR: Tipo invalido en manifest: $kind"; exit 2;; esac; done < "$MANIFEST"
 BINDING_MODE="$(get_binding_value binding_mode)"; PROJECT_ROOT_RAW="$(get_binding_value project_root)"; HARNESS_BINDING_VERSION="$(get_binding_value harness_version)"
 [ "$BINDING_MODE" = "source_template" ] || [ "$BINDING_MODE" = "bound" ] || { echo "ERROR: PROJECT_BINDING.yaml binding_mode invalido: $BINDING_MODE"; exit 2; }
-[ "$HARNESS_BINDING_VERSION" = "0.10.0" ] || { echo "ERROR: PROJECT_BINDING.yaml no declara harness_version 0.10.0"; exit 2; }
+[ "$HARNESS_BINDING_VERSION" = "$HARNESS_RELEASE_VERSION" ] || { echo "ERROR: PROJECT_BINDING.yaml no declara harness_version $HARNESS_RELEASE_VERSION"; exit 2; }
 if [ "$BINDING_MODE" = "bound" ]; then [ -n "$PROJECT_ROOT_RAW" ] || { echo "ERROR: PROJECT_BINDING.yaml bound requiere project_root"; exit 2; }; [ "$(basename "$ROOT")" = ".hebrinex" ] || { echo "ERROR: Un harness bound debe vivir en <project_root>/.hebrinex"; exit 2; }; ACTUAL_PROJECT_ROOT="$(CDPATH= cd -- "$ROOT/.." && pwd)"; EXPECTED_PROJECT_ROOT="$(normalize_path "$PROJECT_ROOT_RAW")"; [ "$EXPECTED_PROJECT_ROOT" = "$ACTUAL_PROJECT_ROOT" ] || { echo "ERROR: PROJECT_BINDING mismatch"; exit 2; }; [ ! -f "$ROOT/infoHebri.md" ] || { echo "ERROR: infoHebri.md no debe existir dentro de un harness bound"; exit 2; }; fi
 echo "Binding: $BINDING_MODE"; echo "Harness path: $ROOT"; [ -z "$PROJECT_ROOT_RAW" ] || echo "Project root: $(normalize_path "$PROJECT_ROOT_RAW")"
 check_operational_version_drift(){
@@ -66,7 +68,7 @@ check_operational_version_drift(){
 check_operational_version_drift
 if grep -R --exclude-dir=backups "\.hebrinex/policies" "$ROOT/AGENTS.md" "$ROOT/orquestador" >/dev/null 2>&1; then echo "ERROR: Ruta obsoleta detectada: .hebrinex/policies"; exit 2; fi
 if grep -R --exclude-dir=backups "\.hebrinex/orquestador/sdd/\.hebrinex" "$ROOT/agents" "$ROOT/prompts" >/dev/null 2>&1; then echo "ERROR: Ruta canonica duplicada detectada"; exit 2; fi
-require_grep "0.10.0" "$ROOT/HARNESS_VERSION" "HARNESS_VERSION no declara 0.10.0"
+require_grep "$HARNESS_RELEASE_VERSION" "$ROOT/HARNESS_VERSION" "HARNESS_VERSION no declara $HARNESS_RELEASE_VERSION"
 require_grep "schema: hebrinex.context_budget" "$ROOT/orquestador/context-budget.yaml" "context-budget.yaml no define schema"
 require_grep "context_budget" "$ROOT/orquestador/memory/local/session-pin.md" "session-pin.md no declara context_budget"
 require_grep "memory-closure-checklist.md" "$ROOT/orquestador/method/memory-layer-policy.md" "memory-layer-policy.md no exige cierre de memoria"
@@ -104,6 +106,7 @@ require_grep "scripts/validate-security-policy.ps1" "$ROOT/orquestador/harness-m
 require_grep "scripts/validate-migration.ps1" "$ROOT/orquestador/harness-manifest.txt" "validate-migration.ps1 no esta en manifest"
 require_grep "scripts/audit-harness.ps1" "$ROOT/orquestador/harness-manifest.txt" "audit-harness.ps1 no esta en manifest"
 require_grep "scripts/migrate-harness.ps1" "$ROOT/orquestador/harness-manifest.txt" "migrate-harness.ps1 no esta en manifest"
+require_grep "scripts/validate-release.ps1" "$ROOT/orquestador/harness-manifest.txt" "validate-release.ps1 no esta en manifest"
 require_grep "project-binding.schema.yaml" "$ROOT/orquestador/harness-manifest.txt" "schema project-binding no esta en manifest"
 require_grep "context-budget.schema.yaml" "$ROOT/orquestador/harness-manifest.txt" "schema context-budget no esta en manifest"
 require_grep "memory-registry.schema.yaml" "$ROOT/orquestador/harness-manifest.txt" "schema memory-registry no esta en manifest"
@@ -147,13 +150,14 @@ require_grep "command_injection" "$ROOT/orquestador/security/threat-model.yaml" 
 require_grep "path_traversal" "$ROOT/orquestador/security/threat-model.yaml" "threat-model no cubre path traversal"
 require_grep "check_only_writes:[[:space:]]*false" "$ROOT/orquestador/migration/migration-registry.yaml" "migration-registry no mantiene CheckOnly sin escrituras"
 require_grep "apply_requires_backup:[[:space:]]*true" "$ROOT/orquestador/migration/migration-registry.yaml" "migration-registry no exige backup para Apply"
-if [ "$BINDING_MODE" = "source_template" ]; then require_grep "migration_status:[[:space:]]*not_applied" "$ROOT/orquestador/migration/contracts/post-migration-contract.yaml" "post-migration-contract source_template debe estar not_applied"; else require_grep "migration_status:[[:space:]]*applied" "$ROOT/orquestador/migration/contracts/post-migration-contract.yaml" "post-migration-contract bound debe estar applied en 0.10.0"; fi
+if [ "$BINDING_MODE" = "source_template" ]; then require_grep "migration_status:[[:space:]]*not_applied" "$ROOT/orquestador/migration/contracts/post-migration-contract.yaml" "post-migration-contract source_template debe estar not_applied"; else require_grep "migration_status:[[:space:]]*applied" "$ROOT/orquestador/migration/contracts/post-migration-contract.yaml" "post-migration-contract bound debe estar applied"; fi
 require_grep "ComputeHash" "$ROOT/scripts/build-instructions.ps1" "build-instructions.ps1 debe usar ComputeHash compatible PS 5.1"
 if grep -q "HashData\|ToHexString" "$ROOT/scripts/build-instructions.ps1"; then echo "ERROR: build-instructions.ps1 usa APIs incompatibles con Windows PowerShell 5.1"; exit 2; fi
 "$PSH" -NoProfile -ExecutionPolicy Bypass -File "$ROOT/scripts/regularize-state.ps1" -Root "$ROOT"
 "$PSH" -NoProfile -ExecutionPolicy Bypass -File "$ROOT/scripts/regularize-registry.ps1" -Root "$ROOT"
 "$PSH" -NoProfile -ExecutionPolicy Bypass -File "$ROOT/scripts/build-instructions.ps1" -Root "$ROOT"
 "$PSH" -NoProfile -ExecutionPolicy Bypass -File "$ROOT/scripts/validate-drift.ps1" -Root "$ROOT" -RunNegativeTests
+"$PSH" -NoProfile -ExecutionPolicy Bypass -File "$ROOT/scripts/validate-release.ps1" -Root "$ROOT"
 "$PSH" -NoProfile -ExecutionPolicy Bypass -File "$ROOT/scripts/validate-agent-contracts.ps1" -Root "$ROOT" -RunNegativeTests
 "$PSH" -NoProfile -ExecutionPolicy Bypass -File "$ROOT/scripts/validate-security-policy.ps1" -Root "$ROOT" -RunNegativeTests
 "$PSH" -NoProfile -ExecutionPolicy Bypass -File "$ROOT/scripts/validate-migration.ps1" -Root "$ROOT" -RunNegativeTests

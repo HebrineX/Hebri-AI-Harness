@@ -182,6 +182,15 @@ switch ($Command) {
       throw 'migrate requires exactly one mode: -CheckOnly or -Apply'
     }
     $currentVersion = (Read-HarnessText 'HARNESS_VERSION').Trim()
+    if ($CheckOnly -and $currentVersion -match '^0[.]10[.][0-9]+$' -and $TargetVersion -eq '0.10.0') {
+      Write-Host 'Hebri-AI-Harness migration CheckOnly'
+      Write-Host "root=$Root"
+      Write-Host "detected_version=$currentVersion"
+      Write-Host "target_version=$TargetVersion"
+      Write-Host 'migration_required=false'
+      Write-Host 'writes=false'
+      break
+    }
     if ($currentVersion -eq $TargetVersion) {
       if ($CheckOnly) {
         Write-Host 'Hebri-AI-Harness migration CheckOnly'
