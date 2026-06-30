@@ -1,0 +1,7 @@
+schema: hebrinex.context_pack
+version: "0.1"
+id: reporter-context
+role_id: reporter
+required_refs: [final_status, evidence_refs, changed_files, risks, next_steps]
+denied_by_default: [secrets, raw_logs_with_sensitive_data]
+load_strategy: evidence_summary_only

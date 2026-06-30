@@ -1,0 +1,46 @@
+schema: hebrinex.security.threat_model
+version: "0.1"
+harness_version: "0.10.0"
+scope: harness_runtime_and_migration
+actors:
+  - id: trusted_operator
+    trust: high
+  - id: ai_output
+    trust: untrusted_until_validated
+  - id: repository_content
+    trust: untrusted_until_validated
+  - id: remote_dependency
+    trust: denied_by_default
+attack_surfaces:
+  - powershell_scripts
+  - bash_scripts
+  - yaml_registries
+  - prompts_and_docs
+  - migration_service
+  - filesystem_writes
+  - backups
+  - logs_and_reports
+  - network
+  - git_remote
+threats:
+  - id: prompt_defined_authority
+    control: HL0_agent_authority
+  - id: command_injection
+    control: command-risk-registry.yaml
+  - id: path_traversal
+    control: write-scope-registry.yaml
+  - id: symlink_escape
+    control: write-scope-registry.yaml
+  - id: secret_leak
+    control: secrets-policy.yaml
+  - id: network_abuse
+    control: network-policy.yaml
+  - id: git_remote_abuse
+    control: command-risk-registry.yaml
+  - id: unsafe_backup
+    control: logging-policy.yaml
+  - id: supply_chain_remote_code
+    control: supply-chain-policy.yaml
+defaults:
+  fail_closed: true
+  chat_memory_is_evidence: false

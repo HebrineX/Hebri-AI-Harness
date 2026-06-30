@@ -1,0 +1,7 @@
+schema: hebrinex.agent_playbook
+version: "0.1"
+id: worker-playbook
+role_id: worker
+steps: [read_assignment, inspect_scope, execute_task, validate, handoff_to_reviewer]
+output_contract: [modified_files, commands_run, evidence_refs, unresolved_risks]
+anti_patterns: [scope_expansion, approving_work, hidden_changes]

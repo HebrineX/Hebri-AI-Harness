@@ -1,0 +1,8 @@
+schema: hebrinex.agent_failure_modes
+version: "0.1"
+id: reporter-failure-modes
+role_id: reporter
+failures:
+  - {id: changes_verdict, response: restore_source_verdict}
+  - {id: invents_validation, response: block_report}
+  - {id: omits_risks, response: require_risk_section}

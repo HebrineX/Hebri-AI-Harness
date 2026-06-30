@@ -103,6 +103,25 @@ function Assert-Budget([string]$Name, [int]$MaxTokens, [string[]]$RelativePaths)
   }
 }
 
+function Invoke-Validator([string]$Name, [string]$RelativePath) {
+  $path = Resolve-HarnessPath $RelativePath
+  if (-not (Test-Path -LiteralPath $path -PathType Leaf)) {
+    Add-Failure "missing validator: $Name ($RelativePath)"
+    return
+  }
+
+  Write-Host "validator ${Name}"
+  if ($RunNegativeTests) {
+    & $path -Root $Root -RunNegativeTests
+  }
+  else {
+    & $path -Root $Root
+  }
+  if ($LASTEXITCODE -ne 0) {
+    Add-Failure "$Name failed with exit code $LASTEXITCODE"
+  }
+}
+
 function Assert-PresetNotHeavyByDefault([string]$RelativePath) {
   $text = Read-HarnessText $RelativePath
   $hasAgents = $text -match 'AGENTS[.]md'
@@ -222,6 +241,24 @@ $yamlFiles = @(
   'orquestador/gate-registry.yaml',
   'orquestador/policy-registry.yaml',
   'orquestador/template-registry.yaml',
+  'orquestador/agents/agent-registry.yaml',
+  'orquestador/agents/capability-registry.yaml',
+  'orquestador/agents/lifecycle-registry.yaml',
+  'orquestador/agents/model-adapter-profiles.yaml',
+  'orquestador/security/permission-registry.yaml',
+  'orquestador/security/command-risk-registry.yaml',
+  'orquestador/security/write-scope-registry.yaml',
+  'orquestador/security/network-policy.yaml',
+  'orquestador/security/secrets-policy.yaml',
+  'orquestador/security/escalation-policy.yaml',
+  'orquestador/security/logging-policy.yaml',
+  'orquestador/security/supply-chain-policy.yaml',
+  'orquestador/security/threat-model.yaml',
+  'orquestador/migration/migration-registry.yaml',
+  'orquestador/migration/versions/0.9.0-to-0.10.0.yaml',
+  'orquestador/migration/versions/0.8.10-to-0.10.0.yaml',
+  'orquestador/migration/contracts/post-migration-contract.yaml',
+  'orquestador/migration/reports/migration-report.template.yaml',
   'orquestador/sdd/progress/state.yaml',
   'orquestador/sdd/progress/registry.yaml'
 )
@@ -236,12 +273,18 @@ Assert-TopKeys 'orquestador/context-profile-registry.yaml' @('schema','version',
 Assert-TopKeys 'orquestador/gate-registry.yaml' @('schema','version','harness_version','state_source','registry_source','required_gates','conditional_gates','rules')
 Assert-TopKeys 'orquestador/policy-registry.yaml' @('schema','version','harness_version','categories','rules')
 Assert-TopKeys 'orquestador/template-registry.yaml' @('schema','version','harness_version','categories','rules')
+Assert-TopKeys 'orquestador/agents/agent-registry.yaml' @('schema','version','harness_version','status','authority','resolution','roles','limits')
+Assert-TopKeys 'orquestador/agents/capability-registry.yaml' @('schema','version','harness_version','defaults','capabilities','role_defaults')
+Assert-TopKeys 'orquestador/agents/lifecycle-registry.yaml' @('schema','version','harness_version','states','transitions','rules')
+Assert-TopKeys 'orquestador/security/permission-registry.yaml' @('schema','version','harness_version','precedence','defaults','permissions','role_denies')
+Assert-TopKeys 'orquestador/security/threat-model.yaml' @('schema','version','harness_version','scope','actors','attack_surfaces','threats','defaults')
+Assert-TopKeys 'orquestador/migration/migration-registry.yaml' @('schema','version','harness_version','status','authority','supported_targets','routes','required_contracts','required_report_template','required_validators','preserve_by_default','rules')
 Assert-TopKeys 'orquestador/memory/memory-registry.yaml' @('schema','version','updated_at','owner_role','binding_mode','active_layers','load_order_default','conflict_resolution')
 Assert-TopKeys 'orquestador/sdd/progress/state.yaml' @('schema','version','updated_at','mode','project_binding','session_contract','active_cycle','required_gates','conditional_gates','approvals','verification','open_locks','open_agents','last_final_report')
 Assert-TopKeys 'orquestador/sdd/progress/registry.yaml' @('schema','version','updated_at','kanban_statuses','roles','profiles','cycles')
 
-if ((Get-ScalarValue 'PROJECT_BINDING.yaml' 'harness_version') -ne '0.9.0') { Add-Failure 'PROJECT_BINDING.yaml harness_version must be 0.9.0' }
-if ((Get-ScalarValue 'orquestador/context-budget.yaml' 'harness_version') -ne '0.9.0') { Add-Failure 'context-budget.yaml harness_version must be 0.9.0' }
+if ((Get-ScalarValue 'PROJECT_BINDING.yaml' 'harness_version') -ne '0.10.0') { Add-Failure 'PROJECT_BINDING.yaml harness_version must be 0.10.0' }
+if ((Get-ScalarValue 'orquestador/context-budget.yaml' 'harness_version') -ne '0.10.0') { Add-Failure 'context-budget.yaml harness_version must be 0.10.0' }
 if ((Get-ScalarValue 'PROJECT_BINDING.yaml' 'binding_mode') -notin @('source_template','bound')) { Add-Failure 'PROJECT_BINDING.yaml binding_mode invalid' }
 
 foreach ($registryRel in @(
@@ -260,9 +303,15 @@ Assert-Contains 'orquestador/prompt-registry.yaml' 'prompts/migration' 'prompt r
 Assert-Contains 'orquestador/prompt-registry.yaml' 'prompts/adapters' 'prompt registry must declare adapter prompts'
 Assert-Contains 'orquestador/registry-index.yaml' 'orquestador/prompt-registry.yaml' 'registry-index must include prompt registry'
 Assert-Contains 'orquestador/registry-index.yaml' 'orquestador/adapter-registry.yaml' 'registry-index must include adapter registry'
+Assert-Contains 'orquestador/registry-index.yaml' 'orquestador/agents/agent-registry.yaml' 'registry-index must include agent registry'
+Assert-Contains 'orquestador/registry-index.yaml' 'orquestador/security/permission-registry.yaml' 'registry-index must include security permission registry'
+Assert-Contains 'orquestador/registry-index.yaml' 'orquestador/migration/migration-registry.yaml' 'registry-index must include migration registry'
 Assert-Contains 'orquestador/context-profile-registry.yaml' 'leader_light' 'context profile registry must declare leader_light'
 Assert-Contains 'orquestador/gate-registry.yaml' 'G3A_detractor_senior_pre_implementation' 'gate registry must declare detractor gate'
 Assert-Contains 'orquestador/policy-registry.yaml' 'orquestador/policies/permissions.md' 'policy registry must include permissions policy'
+Assert-Contains 'orquestador/policy-registry.yaml' 'orquestador/agents/agent-registry.yaml' 'policy registry must include agent contract system'
+Assert-Contains 'orquestador/policy-registry.yaml' 'orquestador/security/threat-model.yaml' 'policy registry must include AppSec threat model'
+Assert-Contains 'orquestador/policy-registry.yaml' 'orquestador/migration/migration-registry.yaml' 'policy registry must include migration service'
 Assert-Contains 'orquestador/template-registry.yaml' 'verification-matrix.yaml' 'template registry must include verification matrix'
 Assert-Contains 'orquestador/context-budget.yaml' 'full_context_requires_approval:\s+true' 'full context must require approval'
 Assert-Contains 'orquestador/memory/memory-registry.yaml' 'complete:\s*\n\s+enabled:\s+false' 'complete memory must be disabled by default'
@@ -292,7 +341,7 @@ Assert-Contains 'orquestador/integrations/claude/CLAUDE.template.md' 'reentry-br
 Assert-Contains 'orquestador/sdd/progress/templates/claude-reentry-state.yaml' 'non_authoritative: true' 'Claude reentry state must be non-authoritative'
 Assert-Contains 'scripts/install-claude-hooks.ps1' 'Preflight only' 'Claude hook installer must be preflight-only'
 Assert-Contains 'scripts/claude-reentry.ps1' 'Approvals expired' 'Claude reentry must expire approvals'
-Assert-Contains 'orquestador/instruction-builder/instruction-registry.yaml' '0.9.0' 'instruction registry must match harness version'
+Assert-Contains 'orquestador/instruction-builder/instruction-registry.yaml' '0.10.0' 'instruction registry must match harness version'
 Assert-Contains 'orquestador/instruction-builder/instruction-registry.yaml' 'generic-ai' 'instruction registry must include generic-ai target'
 Assert-Contains 'orquestador/instruction-builder/fragments/denylists.md' 'infoHebri.md' 'instruction denylists must mention infoHebri'
 Assert-Contains 'scripts/build-instructions.ps1' 'check-only passed' 'instruction builder must support check-only'
@@ -304,6 +353,23 @@ Assert-Contains 'scripts/regularize-registry.ps1' 'Copy-Item' 'regularize-regist
 Assert-Contains 'scripts/build-instructions.ps1' 'ComputeHash' 'build-instructions must use PS 5.1 compatible ComputeHash'
 Assert-NoContains 'scripts/build-instructions.ps1' 'HashData|ToHexString' 'build-instructions must not use PS 7-only hash APIs'
 Assert-NoContains 'orquestador/harness-manifest.txt' 'infoHebri[.]md' 'manifest must exclude infoHebri.md'
+Assert-Contains 'orquestador/harness-manifest.txt' 'orquestador/agents/agent-registry.yaml' 'agent registry must be in manifest'
+Assert-Contains 'orquestador/harness-manifest.txt' 'orquestador/security/permission-registry.yaml' 'security permission registry must be in manifest'
+Assert-Contains 'orquestador/harness-manifest.txt' 'orquestador/migration/migration-registry.yaml' 'migration registry must be in manifest'
+Assert-Contains 'orquestador/harness-manifest.txt' 'scripts/validate-agent-contracts.ps1' 'validate-agent-contracts.ps1 must be in manifest'
+Assert-Contains 'orquestador/harness-manifest.txt' 'scripts/validate-security-policy.ps1' 'validate-security-policy.ps1 must be in manifest'
+Assert-Contains 'orquestador/harness-manifest.txt' 'scripts/validate-migration.ps1' 'validate-migration.ps1 must be in manifest'
+Assert-Contains 'orquestador/harness-manifest.txt' 'scripts/audit-harness.ps1' 'audit-harness.ps1 must be in manifest'
+Assert-Contains 'orquestador/agents/agent-registry.yaml' 'HL0_agent_authority' 'agent registry must declare HL0 agent authority'
+Assert-Contains 'orquestador/agents/agent-registry.yaml' 'agent_definition_authority:\s*harness_only' 'agent registry must be harness-only'
+Assert-Contains 'orquestador/agents/agent-registry.yaml' 'ai_may_define_agents:\s*false' 'agent registry must deny AI-defined agents'
+Assert-Contains 'orquestador/agents/capability-registry.yaml' 'missing_capability: block' 'capability registry must fail closed on missing capability'
+Assert-Contains 'orquestador/security/threat-model.yaml' 'command_injection' 'threat model must include command injection'
+Assert-Contains 'orquestador/security/threat-model.yaml' 'path_traversal' 'threat model must include path traversal'
+Assert-Contains 'orquestador/security/secrets-policy.yaml' 'default' 'secrets policy must define a default posture'
+Assert-Contains 'orquestador/migration/migration-registry.yaml' 'check_only_writes:\s*false' 'migration registry must keep CheckOnly no-write'
+Assert-Contains 'orquestador/migration/migration-registry.yaml' 'apply_requires_backup:\s*true' 'migration registry must require backup for Apply'
+if ((Get-ScalarValue 'PROJECT_BINDING.yaml' 'binding_mode') -eq 'source_template') { Assert-Contains 'orquestador/migration/contracts/post-migration-contract.yaml' 'migration_status:\s*not_applied' 'source template post-migration contract must remain not_applied' } else { Assert-Contains 'orquestador/migration/contracts/post-migration-contract.yaml' 'migration_status:\s*applied' 'bound post-migration contract must be applied in 0.10.0' }
 
 Assert-PresetNotHeavyByDefault 'prompts/adapters/preset-codex.prompt.md'
 Assert-PresetNotHeavyByDefault 'prompts/adapters/preset-claude.prompt.md'
@@ -325,6 +391,11 @@ try { & (Resolve-HarnessPath 'scripts/build-instructions.ps1') -Root $Root | Out
 try { & (Resolve-HarnessPath 'scripts/validate-drift.ps1') -Root $Root -RunNegativeTests | Out-Null } catch { Add-Failure 'validate-drift.ps1 must pass negative tests' }
 try { & (Resolve-HarnessPath 'scripts/regularize-state.ps1') -Root $Root | Out-Null } catch { Add-Failure 'regularize-state.ps1 must pass on current state' }
 try { & (Resolve-HarnessPath 'scripts/regularize-registry.ps1') -Root $Root | Out-Null } catch { Add-Failure 'regularize-registry.ps1 must pass on current registry' }
+
+Invoke-Validator 'validate-agent-contracts' 'scripts/validate-agent-contracts.ps1'
+Invoke-Validator 'validate-security-policy' 'scripts/validate-security-policy.ps1'
+Invoke-Validator 'validate-migration' 'scripts/validate-migration.ps1'
+Invoke-Validator 'audit-harness' 'scripts/audit-harness.ps1'
 
 Test-BoundCopySimulation
 if ($RunNegativeTests) { Run-NegativeTests }

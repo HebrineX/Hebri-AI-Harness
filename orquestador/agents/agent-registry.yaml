@@ -1,0 +1,83 @@
+schema: hebrinex.agent_registry
+version: "0.1"
+harness_version: "0.10.0"
+status: active
+authority:
+  hard_lock_id: HL0_agent_authority
+  agent_definition_authority: harness_only
+  runtime_instantiation: harness_controlled
+  ai_may_define_agents: false
+  ai_may_modify_agent_contracts: false
+  ai_may_escalate_capabilities: false
+  prompt_may_define_roles: false
+  docs_may_define_roles: false
+resolution:
+  missing_registry_entry: block
+  missing_role_contract: block
+  missing_security_profile: block
+  missing_runtime_profile: block
+  prompt_conflict: registry_wins
+  docs_conflict: registry_wins
+roles:
+  - id: leader
+    slot: 0
+    contract: orquestador/agents/role-contracts/leader.yaml
+    security_profile: orquestador/agents/security-profiles/release-manager.yaml
+    runtime_profile: orquestador/agents/runtime-profiles/leader-runtime.yaml
+    context_pack: orquestador/agents/context-packs/leader-context.yaml
+    tool_pack: orquestador/agents/tool-packs/leader-tools.yaml
+    playbook: orquestador/agents/playbooks/leader-playbook.yaml
+    rubric: orquestador/agents/evaluation-rubrics/leader-quality.yaml
+  - id: implementer
+    contract: orquestador/agents/role-contracts/implementer.yaml
+    security_profile: orquestador/agents/security-profiles/write-scoped.yaml
+    runtime_profile: orquestador/agents/runtime-profiles/implementer-runtime.yaml
+    context_pack: orquestador/agents/context-packs/implementer-context.yaml
+    tool_pack: orquestador/agents/tool-packs/implementer-tools.yaml
+    playbook: orquestador/agents/playbooks/implementer-playbook.yaml
+    rubric: orquestador/agents/evaluation-rubrics/implementer-quality.yaml
+  - id: reviewer
+    contract: orquestador/agents/role-contracts/reviewer.yaml
+    security_profile: orquestador/agents/security-profiles/reviewer-readonly.yaml
+    runtime_profile: orquestador/agents/runtime-profiles/reviewer-runtime.yaml
+    context_pack: orquestador/agents/context-packs/reviewer-context.yaml
+    tool_pack: orquestador/agents/tool-packs/reviewer-tools.yaml
+    playbook: orquestador/agents/playbooks/reviewer-playbook.yaml
+    rubric: orquestador/agents/evaluation-rubrics/reviewer-quality.yaml
+  - id: auditor
+    contract: orquestador/agents/role-contracts/auditor.yaml
+    security_profile: orquestador/agents/security-profiles/auditor-blocking.yaml
+    runtime_profile: orquestador/agents/runtime-profiles/auditor-runtime.yaml
+    context_pack: orquestador/agents/context-packs/auditor-context.yaml
+    tool_pack: orquestador/agents/tool-packs/auditor-tools.yaml
+    playbook: orquestador/agents/playbooks/auditor-playbook.yaml
+    rubric: orquestador/agents/evaluation-rubrics/auditor-quality.yaml
+  - id: reporter
+    contract: orquestador/agents/role-contracts/reporter.yaml
+    security_profile: orquestador/agents/security-profiles/read-only.yaml
+    runtime_profile: orquestador/agents/runtime-profiles/reporter-runtime.yaml
+    context_pack: orquestador/agents/context-packs/reporter-context.yaml
+    tool_pack: orquestador/agents/tool-packs/reporter-tools.yaml
+    playbook: orquestador/agents/playbooks/reporter-playbook.yaml
+    rubric: orquestador/agents/evaluation-rubrics/reporter-quality.yaml
+  - id: spec-author
+    contract: orquestador/agents/role-contracts/spec-author.yaml
+    security_profile: orquestador/agents/security-profiles/write-scoped.yaml
+    runtime_profile: orquestador/agents/runtime-profiles/spec-author-runtime.yaml
+    context_pack: orquestador/agents/context-packs/spec-author-context.yaml
+    tool_pack: orquestador/agents/tool-packs/spec-author-tools.yaml
+    playbook: orquestador/agents/playbooks/spec-author-playbook.yaml
+    rubric: orquestador/agents/evaluation-rubrics/spec-author-quality.yaml
+  - id: worker
+    contract: orquestador/agents/role-contracts/worker.yaml
+    security_profile: orquestador/agents/security-profiles/write-scoped.yaml
+    runtime_profile: orquestador/agents/runtime-profiles/worker-runtime.yaml
+    context_pack: orquestador/agents/context-packs/worker-context.yaml
+    tool_pack: orquestador/agents/tool-packs/worker-tools.yaml
+    playbook: orquestador/agents/playbooks/worker-playbook.yaml
+    rubric: orquestador/agents/evaluation-rubrics/worker-quality.yaml
+limits:
+  max_active_agents_total: 5
+  leader_required: true
+  chat_role: interpreter
+  role_mixing: deny

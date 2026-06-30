@@ -1,0 +1,15 @@
+schema: hebrinex.agent_security_profile
+version: "0.1"
+id: auditor-blocking
+filesystem:
+  read: declared_only
+  write: deny
+commands:
+  allowed_risk_classes: [read_only, local_validation]
+network: deny
+secrets: deny
+git_remote: deny
+escalation: deny
+special_rules:
+  may_block_with_evidence: true
+  no_direct_edits: true

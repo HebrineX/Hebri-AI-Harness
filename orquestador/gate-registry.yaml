@@ -1,6 +1,6 @@
 schema: hebrinex.gate_registry
 version: "0.1"
-harness_version: "0.9.0"
+harness_version: "0.10.0"
 state_source:
   path: orquestador/sdd/progress/state.yaml
 registry_source:
@@ -50,3 +50,6 @@ conditional_gates:
 rules:
   - "state.yaml debe contener todos los ids declarados aca."
   - "Un gate condicional solo se exige cuando el scope toca su dominio."
+  - "Cambios de agentes, capabilities o security profiles requieren validate-agent-contracts.ps1 antes de G5."
+  - "Cambios AppSec, secretos, red, permisos o write-scope requieren validate-security-policy.ps1 antes de G5."
+  - "Cambios de migracion requieren validate-migration.ps1 y reporte CheckOnly antes de Apply."

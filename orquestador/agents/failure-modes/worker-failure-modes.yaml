@@ -1,0 +1,8 @@
+schema: hebrinex.agent_failure_modes
+version: "0.1"
+id: worker-failure-modes
+role_id: worker
+failures:
+  - {id: scope_expansion, response: stop_and_escalate}
+  - {id: edit_without_lock, response: block_write}
+  - {id: missing_handoff, response: block_done}

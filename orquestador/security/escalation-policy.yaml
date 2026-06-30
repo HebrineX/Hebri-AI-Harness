@@ -1,0 +1,19 @@
+schema: hebrinex.security.escalation_policy
+version: "0.1"
+harness_version: "0.10.0"
+default: deny
+requires:
+  explicit_capability: true
+  preflight: true
+  human_si: true
+  reason: true
+  scope: true
+  evidence_ref: true
+denied:
+  - self_escalation_by_ai
+  - prompt_granted_privilege
+  - persistent_privilege_without_expiry
+allowed_modes:
+  - one_command
+  - one_slice
+  - read_only_probe

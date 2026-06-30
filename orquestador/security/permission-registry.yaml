@@ -1,0 +1,33 @@
+schema: hebrinex.security.permission_registry
+version: "0.1"
+harness_version: "0.10.0"
+precedence: [explicit_deny, missing_contract_block, missing_capability_block, requires_preflight, allow_readonly]
+defaults:
+  unknown_permission: block
+  prompt_defined_permission: block
+permissions:
+  read_declared_files:
+    roles: [leader, implementer, reviewer, auditor, reporter, spec-author, worker]
+  edit_approved_write_set:
+    roles: [implementer, spec-author, worker]
+    requires: [write_scope, lock, preflight, human_si]
+  approve_work:
+    roles: [leader, reviewer]
+    denies_self_approval: true
+  block_work:
+    roles: [leader, reviewer, auditor]
+    requires: [evidence]
+  summarize_evidence:
+    roles: [leader, reporter]
+  define_agents:
+    roles: []
+    hard_deny: true
+  escalate_capabilities:
+    roles: []
+    hard_deny: true
+role_denies:
+  leader: [edit_approved_write_set]
+  implementer: [approve_work, review_own_work]
+  reviewer: [edit_approved_write_set, review_own_work]
+  auditor: [edit_approved_write_set, approve_work]
+  reporter: [edit_approved_write_set, approve_work, block_work]

@@ -1,6 +1,6 @@
 # Qwen Adapter
 
-## Entrada minima 0.9.0
+## Entrada minima 0.10.0
 
 Antes de actuar, leer solo:
 1. `PROJECT_BINDING.yaml`

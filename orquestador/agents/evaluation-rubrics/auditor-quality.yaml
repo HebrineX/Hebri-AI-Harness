@@ -1,0 +1,7 @@
+schema: hebrinex.agent_evaluation_rubric
+version: "0.1"
+id: auditor-quality
+role_id: auditor
+minimum_result: pass
+on_fail: escalate_to_leader
+checks: [scope_defined, evidence_checked, appsec_considered, risks_ranked, no_implementation]

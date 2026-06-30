@@ -1,0 +1,7 @@
+schema: hebrinex.context_pack
+version: "0.1"
+id: spec-author-context
+role_id: spec-author
+required_refs: [objective, constraints, existing_spec, acceptance_criteria, open_decisions]
+denied_by_default: [secrets, unrelated_runtime]
+load_strategy: spec_scope_only

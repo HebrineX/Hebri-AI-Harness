@@ -1,0 +1,7 @@
+schema: hebrinex.agent_evaluation_rubric
+version: "0.1"
+id: worker-quality
+role_id: worker
+minimum_result: pass
+on_fail: block_handoff
+checks: [scope_respected, validation_run, evidence_recorded, unresolved_risks_listed, no_approval_claim]

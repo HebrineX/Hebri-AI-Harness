@@ -1,0 +1,37 @@
+schema: hebrinex.migration_report
+version: "0.1"
+template: true
+migration_id: ""
+approval_id: ""
+source_version: ""
+target_version: "0.10.0"
+mode: ""
+started_at: ""
+finished_at: ""
+root: ""
+binding_mode: ""
+project_root: ""
+route_file: ""
+check_only:
+  wrote_files: false
+  planned_additions: []
+  planned_preserve: []
+backup:
+  required: true
+  created: false
+  path: ""
+  manifest_or_checksum: ""
+apply:
+  files_added: []
+  files_modified: []
+  files_preserved: []
+validators:
+  validate_agent_contracts: not_run
+  validate_security_policy: not_run
+  validate_migration: not_run
+  audit_harness: not_run
+post_migration_contract:
+  path: ""
+  status: not_applied
+risks: []
+next_steps: []

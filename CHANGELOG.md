@@ -1,5 +1,27 @@
 # Changelog
 
+## [0.10.0] - 2026-06-30
+
+### Added
+- Agent Contract System canonico en `orquestador/agents/`: registry de agentes, capabilities, lifecycle, role contracts, security profiles, handoff contracts, runtime profiles, context packs, tool packs, playbooks, failure modes, rubrics y adapter profiles.
+- Seguridad AppSec verificable en `orquestador/security/`: threat model, permissions, command risk, write-scope, network, secrets, escalation, logging y supply-chain policies.
+- Servicio de migracion en `orquestador/migration/` con rutas `0.9.0 -> 0.10.0` y `0.8.10 -> 0.10.0`, `CheckOnly`, `Apply` con backup, reportes y contrato post-migracion aplicado.
+- Validadores `validate-agent-contracts.ps1`, `validate-security-policy.ps1`, `validate-migration.ps1` y `audit-harness.ps1`.
+
+### Changed
+- La version operativa actual pasa a 0.10.0.
+- `validate-harness.ps1` e `init.sh` integran los nuevos validadores y bloquean drift de agentes, seguridad y migracion.
+- `harness-manifest.txt`, `registry-index.yaml`, `policy-registry.yaml` y `gate-registry.yaml` registran los nuevos contratos canonicos.
+- El contrato post-migracion queda aplicado con backup, reporte y validadores OK.
+
+### Security
+- La autoridad de definicion de agentes queda en `harness_only`: la IA no puede definir agentes, roles, permisos, capabilities ni escalaciones.
+- Se explicitan controles contra command injection, path traversal, symlink escape, secret leak, network abuse, git remote abuse y supply-chain remote code.
+- Reviewer sigue sin editar, implementer sigue sin aprobar y leader sigue sin implementar.
+
+### Rationale
+- El harness gobierna agentes pero no se comporta como agente: transforma cualquier IA en un agente acotado por contrato, runtime, herramientas, contexto, seguridad, handoff y evidencia.
+
 ## [0.9.0] - 2026-06-29
 
 ### Changed

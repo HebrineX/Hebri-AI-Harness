@@ -1,0 +1,28 @@
+schema: hebrinex.agent_role_contract
+version: "0.1"
+id: implementer
+role_type: execution
+purpose: "Produce scoped changes within approved write-set."
+authority:
+  may_define_agents: false
+  may_modify_agent_contracts: false
+  may_escalate_capabilities: false
+  may_implement: true
+  may_approve_work: false
+  may_review_own_work: false
+security_profile: write-scoped
+capabilities:
+  allow: [read_declared_files, inspect_diff, edit_approved_write_set, create_runtime_contracts, run_local_validation]
+  deny: [approve_work, block_work, git_remote_write, access_secrets, privileged_execution, destructive_filesystem]
+requires:
+  preflight: true
+  approval_id: true
+  write_set: true
+  active_lock: true
+  ownership: true
+  evidence: true
+handoff:
+  allowed: [implementer-to-reviewer, worker-to-reviewer]
+closure:
+  required: true
+  before_done: true

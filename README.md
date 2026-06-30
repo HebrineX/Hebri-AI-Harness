@@ -1,6 +1,6 @@
 # Hebri-AI-Harness
 
-Referencia operativa actual: **0.9.0**.
+Referencia operativa actual: **0.10.0**.
 
 Sistema operativo para agentes IA basado en [Hebri-AI-Structure](https://github.com/HebrineX/Hebri-AI-Structure). Objetivo: contrato, trazabilidad y aprobaciones con 70-80% menos contexto frente a leer todo `.hebrinex`.
 
@@ -11,7 +11,8 @@ Sistema operativo para agentes IA basado en [Hebri-AI-Structure](https://github.
 3. Declarar contrato de sesion.
 4. Elegir perfil minimo desde `orquestador/context-profiles.md`.
 5. Pedir `SI` antes de efectos.
-6. Ejecutar `auditor(profile: detractor_senior)` antes de implementar o escribir.`n7. Cerrar con evidencia y `memory-closure-checklist.md` si hubo trabajo operativo.
+6. Ejecutar `auditor(profile: detractor_senior)` antes de implementar o escribir.
+7. Cerrar con evidencia y `memory-closure-checklist.md` si hubo trabajo operativo.
 
 ## Presupuestos
 
@@ -33,6 +34,9 @@ Si un proyecto no tiene `.hebrinex`, no se opera con un harness externo. Se copi
 
 ## Novedades Actuales
 
+- Agent Contract System: los agentes existen por contratos YAML gobernados por el harness, no por prompts ni autoasignacion de IA.
+- Seguridad AppSec verificable: permisos, write-scope, comandos, red, secretos, escalacion, logging y supply-chain se validan por registries.
+- Servicio de migracion: rutas 0.8.10/0.9.0 -> 0.10.0 con CheckOnly, Apply con backup, reporte y contrato post-migracion aplicado.
 - `init.sh` bloquea drift de version operativo fuera de `CHANGELOG.md`.
 - `state.yaml` queda estructuralmente valido.
 - Adapters y presets usan entrada minima: binding, session pin, registry, routing, budget y entrypoint.

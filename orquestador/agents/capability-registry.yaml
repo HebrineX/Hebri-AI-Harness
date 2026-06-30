@@ -1,0 +1,108 @@
+schema: hebrinex.capability_registry
+version: "0.1"
+harness_version: "0.10.0"
+defaults:
+  unknown_capability: block
+  missing_capability: block
+  missing_preflight_for_effect: block
+  missing_evidence_for_effect: block
+capabilities:
+  read_declared_files:
+    effect: none
+    risk_class: read_only
+    requires_preflight: false
+  inspect_diff:
+    effect: none
+    risk_class: read_only
+    requires_preflight: false
+  edit_approved_write_set:
+    effect: write
+    risk_class: write
+    requires_preflight: true
+    requires_human_si: true
+    requires_lock: true
+    requires_write_scope: true
+  create_runtime_contracts:
+    effect: write
+    risk_class: write
+    requires_preflight: true
+    requires_human_si: true
+    requires_lock: true
+    requires_write_scope: true
+  run_local_validation:
+    effect: local_command
+    risk_class: local_validation
+    requires_preflight: true
+    requires_evidence: true
+  run_readonly_audit:
+    effect: local_command
+    risk_class: read_only
+    requires_preflight: true
+    requires_evidence: true
+  approve_work:
+    effect: approval
+    risk_class: governance
+    requires_separate_role: true
+  block_work:
+    effect: governance
+    risk_class: governance
+    requires_evidence: true
+  summarize_evidence:
+    effect: none
+    risk_class: read_only
+    requires_preflight: false
+  use_network:
+    effect: external
+    risk_class: network
+    requires_preflight: true
+    requires_human_si: true
+    requires_allowlist: true
+    requires_evidence: true
+  git_remote_write:
+    effect: external
+    risk_class: git_remote
+    requires_preflight: true
+    requires_human_si: true
+    requires_evidence: true
+  access_secrets:
+    effect: secret_access
+    risk_class: secrets
+    requires_preflight: true
+    requires_human_si: true
+    requires_redaction: true
+    requires_evidence: true
+  privileged_execution:
+    effect: elevated
+    risk_class: privileged
+    requires_preflight: true
+    requires_human_si: true
+    requires_evidence: true
+  destructive_filesystem:
+    effect: destructive
+    risk_class: destructive
+    requires_preflight: true
+    requires_human_si: true
+    requires_backup_or_recovery: true
+    requires_evidence: true
+role_defaults:
+  leader:
+    allow: [read_declared_files, inspect_diff, run_readonly_audit, approve_work, block_work, summarize_evidence]
+    deny: [edit_approved_write_set, git_remote_write, access_secrets, privileged_execution, destructive_filesystem]
+  implementer:
+    allow: [read_declared_files, inspect_diff, edit_approved_write_set, run_local_validation]
+    deny: [approve_work, git_remote_write, access_secrets, privileged_execution, destructive_filesystem]
+  reviewer:
+    allow: [read_declared_files, inspect_diff, run_readonly_audit, approve_work, block_work]
+    deny: [edit_approved_write_set, git_remote_write, access_secrets, privileged_execution, destructive_filesystem]
+  auditor:
+    allow: [read_declared_files, inspect_diff, run_readonly_audit, block_work]
+    deny: [edit_approved_write_set, approve_work, git_remote_write, access_secrets, privileged_execution, destructive_filesystem]
+  reporter:
+    allow: [read_declared_files, summarize_evidence]
+    deny: [edit_approved_write_set, approve_work, block_work, git_remote_write, access_secrets, privileged_execution, destructive_filesystem]
+  spec-author:
+    allow: [read_declared_files, inspect_diff, edit_approved_write_set, run_local_validation]
+    deny: [approve_work, git_remote_write, access_secrets, privileged_execution, destructive_filesystem]
+  worker:
+    allow: [read_declared_files, inspect_diff, edit_approved_write_set, run_local_validation]
+    deny: [approve_work, git_remote_write, access_secrets, privileged_execution, destructive_filesystem]

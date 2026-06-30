@@ -1,0 +1,58 @@
+schema: hebrinex.security.command_risk_registry
+version: "0.1"
+harness_version: "0.10.0"
+defaults:
+  unknown_command: block
+  string_built_shell_from_untrusted_input: block
+  command_output_requires_redaction: true
+risk_classes:
+  read_only:
+    effect: none
+    requires_human_si: false
+  local_validation:
+    effect: local_command
+    requires_preflight: true
+    requires_evidence: true
+  write:
+    effect: filesystem_write
+    requires_preflight: true
+    requires_human_si: true
+    requires_write_scope: true
+  destructive:
+    effect: destructive_filesystem
+    requires_preflight: true
+    requires_human_si: true
+    requires_backup_or_recovery: true
+  network:
+    effect: external_network
+    requires_preflight: true
+    requires_human_si: true
+    requires_allowlist: true
+  git_remote:
+    effect: remote_repo
+    requires_preflight: true
+    requires_human_si: true
+  secrets:
+    effect: secret_access
+    requires_preflight: true
+    requires_human_si: true
+    requires_redaction: true
+  privileged:
+    effect: elevated_execution
+    requires_preflight: true
+    requires_human_si: true
+blocked_patterns:
+  - "Invoke-Expression"
+  - "iex"
+  - "curl |"
+  - "iwr |"
+  - "rm -rf"
+  - "Remove-Item -Recurse -Force"
+  - "git push"
+  - "git reset --hard"
+safe_patterns:
+  - "Get-Content"
+  - "Select-String"
+  - "Test-Path"
+  - "Get-ChildItem"
+  - "git status --short"

@@ -1,0 +1,48 @@
+schema: hebrinex.agent_lifecycle_registry
+version: "0.1"
+harness_version: "0.10.0"
+states:
+  - requested
+  - contract_resolved
+  - instantiable
+  - blocked
+  - active
+  - handoff_ready
+  - closed
+transitions:
+  requested:
+    next: [contract_resolved, blocked]
+    requires: [role_id]
+  contract_resolved:
+    next: [instantiable, blocked]
+    requires: [agent_registry_entry, role_contract, security_profile, runtime_profile]
+  instantiable:
+    next: [active, blocked]
+    requires: [context_pack, tool_pack, playbook, rubric]
+  active:
+    next: [handoff_ready, blocked]
+    requires: [scope, evidence]
+  handoff_ready:
+    next: [closed, active]
+    requires: [handoff_contract, quality_rubric_passed]
+  closed:
+    terminal: true
+closure_required_fields:
+  - role_id
+  - contract_ref
+  - files_read
+  - files_modified
+  - commands_run
+  - evidence_refs
+  - risks
+  - locks_resolved
+  - handoff_ref
+  - validator_status
+done_gate:
+  all_agents_closed: true
+  open_locks_allowed: false
+  unresolved_handoffs_allowed: false
+rules:
+  - "Un agente no puede pasar a instantiable si falta registry, role contract, security profile o runtime profile."
+  - "Un agente activo no puede cerrarse sin handoff, evidencia, validator_status y locks resueltos."
+  - "done requiere all_agents_closed true y open_locks_allowed false."

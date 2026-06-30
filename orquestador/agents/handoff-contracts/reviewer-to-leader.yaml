@@ -1,0 +1,6 @@
+schema: hebrinex.agent_handoff_contract
+version: "0.1"
+id: reviewer-to-leader
+from_role: reviewer
+to_role: leader
+required_fields: [findings, approval_status, evidence_refs, test_gaps, residual_risks]

@@ -1,0 +1,7 @@
+schema: hebrinex.context_pack
+version: "0.1"
+id: worker-context
+role_id: worker
+required_refs: [delegated_scope, approval_id, write_set, acceptance_criteria, relevant_files]
+denied_by_default: [complete_memory, secrets, unrelated_files]
+load_strategy: declared_files_first

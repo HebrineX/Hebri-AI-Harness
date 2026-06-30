@@ -1,0 +1,7 @@
+schema: hebrinex.agent_playbook
+version: "0.1"
+id: auditor-playbook
+role_id: auditor
+steps: [define_audit_scope, inspect_controls, challenge_evidence, identify_failure_modes, block_or_clear]
+output_contract: [audit_scope, findings, evidence_refs, risk_rating, recommendation]
+anti_patterns: [implementing_fix, blocking_without_evidence, approving_work]

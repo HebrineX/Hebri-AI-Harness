@@ -1,0 +1,18 @@
+schema: hebrinex.security.network_policy
+version: "0.1"
+harness_version: "0.10.0"
+default: deny
+requires:
+  preflight: true
+  human_si: true
+  purpose: true
+  endpoint_or_domain: true
+  method_or_tool: true
+  evidence_ref: true
+  expiry_or_one_shot: true
+allowlist: []
+blocked:
+  - execute_remote_script
+  - download_and_run
+  - send_secrets
+  - upload_project_archive

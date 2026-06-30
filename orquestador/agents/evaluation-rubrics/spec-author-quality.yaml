@@ -1,0 +1,7 @@
+schema: hebrinex.agent_evaluation_rubric
+version: "0.1"
+id: spec-author-quality
+role_id: spec-author
+minimum_result: pass
+on_fail: block_spec_ready
+checks: [requirements_testable, design_covers_requirements, tasks_implementable, risks_recorded, no_runtime_claim]

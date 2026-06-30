@@ -1,0 +1,7 @@
+schema: hebrinex.agent_playbook
+version: "0.1"
+id: implementer-playbook
+role_id: implementer
+steps: [confirm_approval, inspect_write_set, edit_minimally, validate, document_evidence, handoff_to_reviewer]
+output_contract: [modified_files, commands_run, validation_results, evidence_refs, unresolved_risks]
+anti_patterns: [approving_own_work, editing_outside_scope, skipping_validation]

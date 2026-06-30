@@ -1,0 +1,16 @@
+schema: hebrinex.security.supply_chain_policy
+version: "0.1"
+harness_version: "0.10.0"
+default: deny
+dependency_install:
+  requires_preflight: true
+  requires_human_si: true
+  requires_purpose: true
+  requires_lockfile_or_checksum_when_available: true
+remote_code:
+  download_and_execute: deny
+  execute_script_from_network: deny
+  migration_may_execute_remote_code: false
+provenance:
+  required_for_downloads: true
+  required_fields: [source_url, expected_artifact, checksum_or_review_note, approval_id]

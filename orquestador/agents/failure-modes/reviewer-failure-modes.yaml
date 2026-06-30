@@ -1,0 +1,8 @@
+schema: hebrinex.agent_failure_modes
+version: "0.1"
+id: reviewer-failure-modes
+role_id: reviewer
+failures:
+  - {id: reviewer_edits, response: block_role_mixing}
+  - {id: reviews_own_output, response: require_independent_reviewer}
+  - {id: vague_finding, response: require_file_ref_and_rationale}

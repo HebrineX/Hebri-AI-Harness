@@ -1,6 +1,6 @@
 schema: hebrinex.project_binding
 version: "0.1"
-harness_version: "0.9.0"
+harness_version: "0.10.0"
 binding_mode: source_template
 harness_instance_id: "SOURCE-TEMPLATE"
 project_name: ""
@@ -14,3 +14,4 @@ notes:
   - "Un proyecto consumidor debe copiar esta carpeta como .hebrinex y cambiar binding_mode a bound."
   - "En modo bound, project_root debe apuntar a la raiz exacta del proyecto consumidor."
   - "La memoria operativa se gobierna desde orquestador/memory/memory-registry.yaml."
+  - "0.10.0 agrega Agent Contract System, AppSec registries y migration service."

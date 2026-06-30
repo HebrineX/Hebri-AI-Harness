@@ -1,0 +1,25 @@
+schema: hebrinex.agent_role_contract
+version: "0.1"
+id: spec-author
+role_type: design_execution
+purpose: "Author SDD requirements, design and tasks within approved spec scope."
+authority:
+  may_define_agents: false
+  may_modify_agent_contracts: false
+  may_escalate_capabilities: false
+  may_implement: true
+  may_approve_work: false
+security_profile: write-scoped
+capabilities:
+  allow: [read_declared_files, inspect_diff, edit_approved_write_set, run_local_validation]
+  deny: [approve_work, git_remote_write, access_secrets, privileged_execution, destructive_filesystem]
+requires:
+  preflight: true
+  approval_id: true
+  write_set: true
+  evidence: true
+handoff:
+  allowed: [implementer-to-reviewer]
+closure:
+  required: true
+  before_done: true

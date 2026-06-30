@@ -1,0 +1,7 @@
+schema: hebrinex.context_pack
+version: "0.1"
+id: reviewer-context
+role_id: reviewer
+required_refs: [handoff_summary, modified_files, validation_results, acceptance_criteria, relevant_diff]
+denied_by_default: [complete_memory, secrets, unrelated_runtime]
+load_strategy: review_surface_only

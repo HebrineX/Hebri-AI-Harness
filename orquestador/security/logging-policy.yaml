@@ -1,0 +1,18 @@
+schema: hebrinex.security.logging_policy
+version: "0.1"
+harness_version: "0.10.0"
+defaults:
+  redact_before_write: true
+  chat_memory_is_evidence: false
+  include_command_intent: true
+  include_approval_id: true
+  include_scope: true
+  include_validator_status: true
+forbidden_output:
+  - secrets
+  - raw_tokens
+  - private_keys
+  - credentials
+backup_evidence:
+  required_fields: [backup_path, created_at, file_count, manifest_or_checksum, recovery_instructions]
+  fail_if_missing: true

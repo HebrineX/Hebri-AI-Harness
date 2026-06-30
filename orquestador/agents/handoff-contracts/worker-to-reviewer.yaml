@@ -1,0 +1,6 @@
+schema: hebrinex.agent_handoff_contract
+version: "0.1"
+id: worker-to-reviewer
+from_role: worker
+to_role: reviewer
+required_fields: [modified_files, commands_run, validation_results, evidence_refs, unresolved_risks]

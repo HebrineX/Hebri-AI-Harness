@@ -1,0 +1,33 @@
+schema: hebrinex.security.write_scope_registry
+version: "0.1"
+harness_version: "0.10.0"
+defaults:
+  writes_outside_project_root: block
+  path_traversal: block
+  symlink_escape: block
+  missing_lock: block
+  missing_write_set: block
+allowed_roots:
+  - path: ".hebrinex/orquestador/agents"
+    purpose: agent_contract_system
+  - path: ".hebrinex/orquestador/security"
+    purpose: appsec_policy
+  - path: ".hebrinex/orquestador/migration"
+    purpose: migration_service
+  - path: ".hebrinex/scripts"
+    purpose: validators_and_migration_scripts
+  - path: ".hebrinex/orquestador/sdd/specs"
+    purpose: sdd_specs
+forbidden_paths:
+  - ".git"
+  - ".env"
+  - "*.key"
+  - "*.pem"
+  - "*.pfx"
+  - "$HOME"
+  - "%USERPROFILE%"
+normalization:
+  require_resolved_path_under_project_root: true
+  reject_dotdot_segments: true
+  reject_unc_paths_unless_approved: true
+  reject_shell_profile_writes: true

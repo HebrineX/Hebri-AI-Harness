@@ -1,0 +1,62 @@
+schema: hebrinex.migration_route
+version: "0.1"
+id: "0.8.10-to-0.10.0"
+source_version: "0.8.10"
+target_version: "0.10.0"
+status: active
+mode_support:
+  check_only: true
+  apply: true
+  rollback: planned
+preconditions:
+  - HARNESS_VERSION equals 0.8.10
+  - PROJECT_BINDING.yaml exists
+  - binding_mode is bound
+  - current root contains orquestador/
+compatibility_notes:
+  - "0.8.10 projects may miss 0.9.0 registry-index and prompt registry refinements."
+  - "CheckOnly must report missing intermediate registries before Apply."
+  - "Apply must preserve state, registry, cycles, locks, approvals, memory and evidence."
+additive_paths:
+  - orquestador/agents/
+  - orquestador/security/
+  - orquestador/migration/
+  - scripts/validate-agent-contracts.ps1
+  - scripts/validate-security-policy.ps1
+  - scripts/validate-migration.ps1
+  - scripts/audit-harness.ps1
+never_overwrite:
+  - PROJECT_BINDING.yaml
+  - HARNESS_VERSION
+  - orquestador/sdd/progress/state.yaml
+  - orquestador/sdd/progress/registry.yaml
+  - orquestador/sdd/progress/cycles/
+  - orquestador/sdd/progress/locks/
+  - orquestador/sdd/progress/approvals/
+  - orquestador/memory/local/
+  - orquestador/memory/project/
+preserve_state:
+  state_yaml: true
+  registry_yaml: true
+  cycles: true
+  locks: true
+  approvals: true
+  local_memory: true
+  project_memory: true
+  evidence: true
+check_only_output:
+  - detected_version
+  - route_id
+  - binding_mode
+  - compatibility_gaps
+  - files_to_add
+  - files_to_preserve
+  - validators_required
+apply_success_requires:
+  - backup_verified
+  - intermediate_compatibility_checked
+  - agent_registry_active
+  - security_policy_active
+  - post_migration_contract_active
+  - validators_passed
+  - migration_report_written

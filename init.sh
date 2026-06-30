@@ -29,7 +29,7 @@ if grep -q '^file infoHebri[.]md$' "$MANIFEST"; then echo "ERROR: infoHebri.md n
 while IFS= read -r line || [ -n "$line" ]; do entry="$(printf '%s' "$line" | sed 's/[[:space:]]*$//')"; case "$entry" in ""|\#*) continue ;; esac; kind="${entry%% *}"; path="${entry#* }"; [ "$kind" != "$path" ] || { echo "ERROR: Entrada invalida en manifest: $entry"; exit 2; }; case "$kind" in dir) [ -d "$ROOT/$path" ] || { echo "ERROR: Falta el directorio $path"; exit 2; };; file) [ -f "$ROOT/$path" ] || { echo "ERROR: Falta el archivo $path"; exit 2; }; [ -s "$ROOT/$path" ] || { echo "ERROR: Archivo vacio $path"; exit 2; };; *) echo "ERROR: Tipo invalido en manifest: $kind"; exit 2;; esac; done < "$MANIFEST"
 BINDING_MODE="$(get_binding_value binding_mode)"; PROJECT_ROOT_RAW="$(get_binding_value project_root)"; HARNESS_BINDING_VERSION="$(get_binding_value harness_version)"
 [ "$BINDING_MODE" = "source_template" ] || [ "$BINDING_MODE" = "bound" ] || { echo "ERROR: PROJECT_BINDING.yaml binding_mode invalido: $BINDING_MODE"; exit 2; }
-[ "$HARNESS_BINDING_VERSION" = "0.9.0" ] || { echo "ERROR: PROJECT_BINDING.yaml no declara harness_version 0.9.0"; exit 2; }
+[ "$HARNESS_BINDING_VERSION" = "0.10.0" ] || { echo "ERROR: PROJECT_BINDING.yaml no declara harness_version 0.10.0"; exit 2; }
 if [ "$BINDING_MODE" = "bound" ]; then [ -n "$PROJECT_ROOT_RAW" ] || { echo "ERROR: PROJECT_BINDING.yaml bound requiere project_root"; exit 2; }; [ "$(basename "$ROOT")" = ".hebrinex" ] || { echo "ERROR: Un harness bound debe vivir en <project_root>/.hebrinex"; exit 2; }; ACTUAL_PROJECT_ROOT="$(CDPATH= cd -- "$ROOT/.." && pwd)"; EXPECTED_PROJECT_ROOT="$(normalize_path "$PROJECT_ROOT_RAW")"; [ "$EXPECTED_PROJECT_ROOT" = "$ACTUAL_PROJECT_ROOT" ] || { echo "ERROR: PROJECT_BINDING mismatch"; exit 2; }; [ ! -f "$ROOT/infoHebri.md" ] || { echo "ERROR: infoHebri.md no debe existir dentro de un harness bound"; exit 2; }; fi
 echo "Binding: $BINDING_MODE"; echo "Harness path: $ROOT"; [ -z "$PROJECT_ROOT_RAW" ] || echo "Project root: $(normalize_path "$PROJECT_ROOT_RAW")"
 check_operational_version_drift(){
@@ -64,9 +64,9 @@ check_operational_version_drift(){
   [ "$failed" -eq 0 ] || exit 2
 }
 check_operational_version_drift
-if grep -R "\.hebrinex/policies" "$ROOT/AGENTS.md" "$ROOT/orquestador" >/dev/null 2>&1; then echo "ERROR: Ruta obsoleta detectada: .hebrinex/policies"; exit 2; fi
-if grep -R "\.hebrinex/orquestador/sdd/\.hebrinex" "$ROOT/agents" "$ROOT/prompts" >/dev/null 2>&1; then echo "ERROR: Ruta canonica duplicada detectada"; exit 2; fi
-require_grep "0.9.0" "$ROOT/HARNESS_VERSION" "HARNESS_VERSION no declara 0.9.0"
+if grep -R --exclude-dir=backups "\.hebrinex/policies" "$ROOT/AGENTS.md" "$ROOT/orquestador" >/dev/null 2>&1; then echo "ERROR: Ruta obsoleta detectada: .hebrinex/policies"; exit 2; fi
+if grep -R --exclude-dir=backups "\.hebrinex/orquestador/sdd/\.hebrinex" "$ROOT/agents" "$ROOT/prompts" >/dev/null 2>&1; then echo "ERROR: Ruta canonica duplicada detectada"; exit 2; fi
+require_grep "0.10.0" "$ROOT/HARNESS_VERSION" "HARNESS_VERSION no declara 0.10.0"
 require_grep "schema: hebrinex.context_budget" "$ROOT/orquestador/context-budget.yaml" "context-budget.yaml no define schema"
 require_grep "context_budget" "$ROOT/orquestador/memory/local/session-pin.md" "session-pin.md no declara context_budget"
 require_grep "memory-closure-checklist.md" "$ROOT/orquestador/method/memory-layer-policy.md" "memory-layer-policy.md no exige cierre de memoria"
@@ -74,6 +74,16 @@ require_grep "memory-closure-checklist.md" "$ROOT/orquestador/method/final-repor
 require_grep "memory-closure-checklist.md" "$ROOT/orquestador/harness-manifest.txt" "manifest no incluye memory closure checklist"
 require_grep "orquestador/registry-index.yaml" "$ROOT/orquestador/harness-manifest.txt" "registry-index.yaml no esta en manifest"
 require_grep "orquestador/prompt-registry.yaml" "$ROOT/orquestador/harness-manifest.txt" "prompt-registry.yaml no esta en manifest"
+require_grep "orquestador/agents/agent-registry.yaml" "$ROOT/orquestador/harness-manifest.txt" "agent-registry.yaml no esta en manifest"
+require_grep "orquestador/agents/capability-registry.yaml" "$ROOT/orquestador/harness-manifest.txt" "capability-registry.yaml no esta en manifest"
+require_grep "orquestador/agents/lifecycle-registry.yaml" "$ROOT/orquestador/harness-manifest.txt" "lifecycle-registry.yaml no esta en manifest"
+require_grep "orquestador/security/permission-registry.yaml" "$ROOT/orquestador/harness-manifest.txt" "permission-registry.yaml no esta en manifest"
+require_grep "orquestador/security/threat-model.yaml" "$ROOT/orquestador/harness-manifest.txt" "threat-model.yaml no esta en manifest"
+require_grep "orquestador/migration/migration-registry.yaml" "$ROOT/orquestador/harness-manifest.txt" "migration-registry.yaml no esta en manifest"
+require_grep "orquestador/migration/contracts/post-migration-contract.yaml" "$ROOT/orquestador/harness-manifest.txt" "post-migration-contract.yaml no esta en manifest"
+require_grep "orquestador/agents/agent-registry.yaml" "$ROOT/orquestador/registry-index.yaml" "registry-index no incluye agent-registry"
+require_grep "orquestador/security/permission-registry.yaml" "$ROOT/orquestador/registry-index.yaml" "registry-index no incluye security permission registry"
+require_grep "orquestador/migration/migration-registry.yaml" "$ROOT/orquestador/registry-index.yaml" "registry-index no incluye migration registry"
 require_grep "schema: hebrinex.prompt_registry" "$ROOT/orquestador/prompt-registry.yaml" "prompt-registry.yaml no define schema"
 require_grep "prompts/roles" "$ROOT/orquestador/prompt-registry.yaml" "prompt-registry no declara prompts de roles"
 require_grep "prompts/migration" "$ROOT/orquestador/prompt-registry.yaml" "prompt-registry no declara prompts de migracion"
@@ -89,6 +99,11 @@ for registry in \
   check_registry_paths "$registry"
 done
 require_grep "scripts/validate-harness.ps1" "$ROOT/orquestador/harness-manifest.txt" "validate-harness.ps1 no esta en manifest"
+require_grep "scripts/validate-agent-contracts.ps1" "$ROOT/orquestador/harness-manifest.txt" "validate-agent-contracts.ps1 no esta en manifest"
+require_grep "scripts/validate-security-policy.ps1" "$ROOT/orquestador/harness-manifest.txt" "validate-security-policy.ps1 no esta en manifest"
+require_grep "scripts/validate-migration.ps1" "$ROOT/orquestador/harness-manifest.txt" "validate-migration.ps1 no esta en manifest"
+require_grep "scripts/audit-harness.ps1" "$ROOT/orquestador/harness-manifest.txt" "audit-harness.ps1 no esta en manifest"
+require_grep "scripts/migrate-harness.ps1" "$ROOT/orquestador/harness-manifest.txt" "migrate-harness.ps1 no esta en manifest"
 require_grep "project-binding.schema.yaml" "$ROOT/orquestador/harness-manifest.txt" "schema project-binding no esta en manifest"
 require_grep "context-budget.schema.yaml" "$ROOT/orquestador/harness-manifest.txt" "schema context-budget no esta en manifest"
 require_grep "memory-registry.schema.yaml" "$ROOT/orquestador/harness-manifest.txt" "schema memory-registry no esta en manifest"
@@ -124,12 +139,25 @@ require_grep "scripts/build-instructions.ps1" "$ROOT/orquestador/harness-manifes
 require_grep "scripts/validate-drift.ps1" "$ROOT/orquestador/harness-manifest.txt" "validate-drift.ps1 no esta en manifest"
 require_grep "scripts/regularize-state.ps1" "$ROOT/orquestador/harness-manifest.txt" "regularize-state.ps1 no esta en manifest"
 require_grep "scripts/regularize-registry.ps1" "$ROOT/orquestador/harness-manifest.txt" "regularize-registry.ps1 no esta en manifest"
+require_grep "HL0_agent_authority" "$ROOT/orquestador/agents/agent-registry.yaml" "agent-registry no declara HL0_agent_authority"
+require_grep "agent_definition_authority:[[:space:]]*harness_only" "$ROOT/orquestador/agents/agent-registry.yaml" "agent-registry no declara autoridad harness_only"
+require_grep "ai_may_define_agents:[[:space:]]*false" "$ROOT/orquestador/agents/agent-registry.yaml" "agent-registry no bloquea agentes definidos por IA"
+require_grep "missing_capability:[[:space:]]*block" "$ROOT/orquestador/agents/capability-registry.yaml" "capability-registry no bloquea capability faltante"
+require_grep "command_injection" "$ROOT/orquestador/security/threat-model.yaml" "threat-model no cubre command injection"
+require_grep "path_traversal" "$ROOT/orquestador/security/threat-model.yaml" "threat-model no cubre path traversal"
+require_grep "check_only_writes:[[:space:]]*false" "$ROOT/orquestador/migration/migration-registry.yaml" "migration-registry no mantiene CheckOnly sin escrituras"
+require_grep "apply_requires_backup:[[:space:]]*true" "$ROOT/orquestador/migration/migration-registry.yaml" "migration-registry no exige backup para Apply"
+if [ "$BINDING_MODE" = "source_template" ]; then require_grep "migration_status:[[:space:]]*not_applied" "$ROOT/orquestador/migration/contracts/post-migration-contract.yaml" "post-migration-contract source_template debe estar not_applied"; else require_grep "migration_status:[[:space:]]*applied" "$ROOT/orquestador/migration/contracts/post-migration-contract.yaml" "post-migration-contract bound debe estar applied en 0.10.0"; fi
 require_grep "ComputeHash" "$ROOT/scripts/build-instructions.ps1" "build-instructions.ps1 debe usar ComputeHash compatible PS 5.1"
 if grep -q "HashData\|ToHexString" "$ROOT/scripts/build-instructions.ps1"; then echo "ERROR: build-instructions.ps1 usa APIs incompatibles con Windows PowerShell 5.1"; exit 2; fi
 "$PSH" -NoProfile -ExecutionPolicy Bypass -File "$ROOT/scripts/regularize-state.ps1" -Root "$ROOT"
 "$PSH" -NoProfile -ExecutionPolicy Bypass -File "$ROOT/scripts/regularize-registry.ps1" -Root "$ROOT"
 "$PSH" -NoProfile -ExecutionPolicy Bypass -File "$ROOT/scripts/build-instructions.ps1" -Root "$ROOT"
 "$PSH" -NoProfile -ExecutionPolicy Bypass -File "$ROOT/scripts/validate-drift.ps1" -Root "$ROOT" -RunNegativeTests
+"$PSH" -NoProfile -ExecutionPolicy Bypass -File "$ROOT/scripts/validate-agent-contracts.ps1" -Root "$ROOT" -RunNegativeTests
+"$PSH" -NoProfile -ExecutionPolicy Bypass -File "$ROOT/scripts/validate-security-policy.ps1" -Root "$ROOT" -RunNegativeTests
+"$PSH" -NoProfile -ExecutionPolicy Bypass -File "$ROOT/scripts/validate-migration.ps1" -Root "$ROOT" -RunNegativeTests
+"$PSH" -NoProfile -ExecutionPolicy Bypass -File "$ROOT/scripts/audit-harness.ps1" -Root "$ROOT" -RunNegativeTests
 require_grep "G3A_detractor_senior_pre_implementation" "$ROOT/orquestador/sdd/progress/state.yaml" "state.yaml no declara G3A detractor senior"
 require_grep "detractor_senior" "$ROOT/orquestador/method/agent-role-taxonomy.md" "taxonomy no declara detractor_senior"
 require_grep "context-budget.yaml" "$ROOT/orquestador/adapters/generic-ai.md" "generic adapter no usa context-budget"

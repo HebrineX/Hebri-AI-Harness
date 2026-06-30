@@ -1,0 +1,7 @@
+schema: hebrinex.tool_pack
+version: "0.1"
+id: reviewer-tools
+role_id: reviewer
+allow: [read_files, inspect_diff, run_readonly_audit]
+deny: [edit_files, approve_own_work, git_push, network, secrets_access]
+constraints: {inherits_capability_registry: true, inherits_security_policy: true}

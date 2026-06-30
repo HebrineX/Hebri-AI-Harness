@@ -1,0 +1,7 @@
+schema: hebrinex.agent_playbook
+version: "0.1"
+id: reporter-playbook
+role_id: reporter
+steps: [collect_status, summarize_evidence, state_risks, state_next_steps]
+output_contract: [summary, verification_status, risks, next_steps]
+anti_patterns: [inventing_results, changing_verdict, omitting_failed_checks]

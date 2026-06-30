@@ -1,6 +1,6 @@
 schema: hebrinex.registry_index
 version: "0.1"
-harness_version: "0.9.0"
+harness_version: "0.10.0"
 registries:
   - id: prompts
     path: orquestador/prompt-registry.yaml
@@ -26,6 +26,34 @@ registries:
     path: orquestador/template-registry.yaml
     source_level: canonical
     purpose: "Templates SDD, runtime, audit y cierre."
+  - id: agent_contracts
+    path: orquestador/agents/agent-registry.yaml
+    source_level: canonical
+    purpose: "Contratos verificables de agentes, autoridad harness-only y rol/capability/security/runtime."
+  - id: agent_capabilities
+    path: orquestador/agents/capability-registry.yaml
+    source_level: canonical
+    purpose: "Capabilities permitidas, denegadas y requisitos de preflight/evidencia por rol."
+  - id: agent_lifecycle
+    path: orquestador/agents/lifecycle-registry.yaml
+    source_level: canonical
+    purpose: "Estados, transiciones y cierre obligatorio de agentes."
+  - id: security_permissions
+    path: orquestador/security/permission-registry.yaml
+    source_level: canonical
+    purpose: "Matriz AppSec de permisos y denies por rol."
+  - id: security_command_risk
+    path: orquestador/security/command-risk-registry.yaml
+    source_level: canonical
+    purpose: "Clasificacion de riesgo para comandos locales, red, git, secretos y destruccion."
+  - id: security_write_scope
+    path: orquestador/security/write-scope-registry.yaml
+    source_level: canonical
+    purpose: "Politica verificable de write-scope, paths y escapes de filesystem."
+  - id: migration
+    path: orquestador/migration/migration-registry.yaml
+    source_level: canonical
+    purpose: "Rutas, preservacion, CheckOnly, Apply con backup y contrato post-migracion."
 rules:
   - "Todo archivo operativo nuevo debe pertenecer a un registry o estar justificado en el manifest."
   - "Los docs narrativos explican; los registries gobiernan rutas y categorias."

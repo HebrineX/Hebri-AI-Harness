@@ -1,0 +1,46 @@
+schema: hebrinex.migration_registry
+version: "0.1"
+harness_version: "0.10.0"
+status: active
+authority:
+  migration_definition: harness_only
+  ai_may_define_migration_routes: false
+  check_only_writes: false
+  apply_requires_backup: true
+supported_targets:
+  - "0.10.0"
+routes:
+  - id: "0.9.0-to-0.10.0"
+    source_version: "0.9.0"
+    target_version: "0.10.0"
+    route_file: orquestador/migration/versions/0.9.0-to-0.10.0.yaml
+    supported_binding_modes: [bound, source_template]
+  - id: "0.8.10-to-0.10.0"
+    source_version: "0.8.10"
+    target_version: "0.10.0"
+    route_file: orquestador/migration/versions/0.8.10-to-0.10.0.yaml
+    supported_binding_modes: [bound]
+required_contracts:
+  post_migration_contract: orquestador/migration/contracts/post-migration-contract.yaml
+required_report_template: orquestador/migration/reports/migration-report.template.yaml
+required_validators:
+  - scripts/validate-agent-contracts.ps1
+  - scripts/validate-security-policy.ps1
+  - scripts/validate-migration.ps1
+  - scripts/audit-harness.ps1
+preserve_by_default:
+  - PROJECT_BINDING.yaml
+  - HARNESS_VERSION
+  - orquestador/sdd/progress/state.yaml
+  - orquestador/sdd/progress/registry.yaml
+  - orquestador/sdd/progress/cycles/
+  - orquestador/sdd/progress/locks/
+  - orquestador/sdd/progress/approvals/
+  - orquestador/memory/local/
+  - orquestador/memory/project/
+  - orquestador/evidence/
+rules:
+  - "CheckOnly no escribe archivos."
+  - "Apply requiere backup verificado antes del primer write."
+  - "Una migracion aplicada termina con contrato post-migracion activo y validadores OK."
+  - "La migracion no ejecuta codigo remoto."

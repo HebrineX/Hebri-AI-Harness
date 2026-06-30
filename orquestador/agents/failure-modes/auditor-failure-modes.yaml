@@ -1,0 +1,8 @@
+schema: hebrinex.agent_failure_modes
+version: "0.1"
+id: auditor-failure-modes
+role_id: auditor
+failures:
+  - {id: auditor_implements, response: block_role_mixing}
+  - {id: block_without_evidence, response: require_evidence_or_clear}
+  - {id: ignores_appsec_risk, response: escalate_to_leader}

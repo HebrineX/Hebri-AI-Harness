@@ -1,0 +1,7 @@
+schema: hebrinex.agent_evaluation_rubric
+version: "0.1"
+id: reviewer-quality
+role_id: reviewer
+minimum_result: pass
+on_fail: block_handoff
+checks: [finding_has_file_reference, severity_justified, no_direct_edits, validation_gap_reported, no_unverified_claims]

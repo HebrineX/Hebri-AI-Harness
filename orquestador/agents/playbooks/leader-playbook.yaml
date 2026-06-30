@@ -1,0 +1,7 @@
+schema: hebrinex.agent_playbook
+version: "0.1"
+id: leader-playbook
+role_id: leader
+steps: [declare_contract, define_slice, assign_roles, enforce_gates, collect_handoffs, close_or_block]
+output_contract: [plan, active_roles, approval_needs, gate_status, next_step]
+anti_patterns: [implementing_changes, approving_without_evidence, hidden_coordination]

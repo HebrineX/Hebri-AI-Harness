@@ -1,0 +1,39 @@
+schema: hebrinex.model_adapter_profiles
+version: "0.1"
+harness_version: "0.10.0"
+authority:
+  may_grant_new_capabilities: false
+  may_override_role_contract: false
+  may_override_security_policy: false
+profiles:
+  simple_model:
+    autonomy_level: low
+    max_task_span: single_file_or_small_slice
+    context_strategy: narrow_explicit
+    require_stepwise_checklist: true
+    require_external_validation: true
+    require_handoff_template: true
+    escalation_threshold: low
+    can_parallelize: false
+  standard_model:
+    autonomy_level: bounded
+    max_task_span: small_multi_file_slice
+    context_strategy: profile_based
+    require_stepwise_checklist: true
+    require_external_validation: true
+    require_handoff_template: true
+    escalation_threshold: normal
+    can_parallelize: limited
+  strong_model:
+    autonomy_level: bounded
+    max_task_span: multi_file_slice
+    context_strategy: profile_based
+    require_stepwise_checklist: true
+    require_external_validation: true
+    require_handoff_template: true
+    escalation_threshold: normal
+    can_parallelize: true
+selection:
+  default_profile: standard_model
+  unknown_model_profile: simple_model
+  downgrade_on_validator_failure: true

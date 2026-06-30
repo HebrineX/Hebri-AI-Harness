@@ -1,0 +1,7 @@
+schema: hebrinex.context_pack
+version: "0.1"
+id: auditor-context
+role_id: auditor
+required_refs: [audit_scope, contracts, policies, evidence_refs, risk_context]
+denied_by_default: [secrets_raw, complete_memory_without_approval]
+load_strategy: risk_driven

@@ -1,0 +1,7 @@
+schema: hebrinex.context_pack
+version: "0.1"
+id: leader-context
+role_id: leader
+required_refs: [active_contract, state, registry, gate_registry, current_spec_or_task]
+denied_by_default: [complete_memory, infoHebri.md, secrets]
+load_strategy: minimal_then_expand_with_approval

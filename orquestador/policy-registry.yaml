@@ -1,6 +1,6 @@
 schema: hebrinex.policy_registry
 version: "0.1"
-harness_version: "0.9.0"
+harness_version: "0.10.0"
 categories:
   session_and_context:
     files:
@@ -24,6 +24,12 @@ categories:
       - path: orquestador/method/multiagent-protocol.md
       - path: orquestador/method/autonomia.md
       - path: orquestador/method/minimal-implementation-policy.md
+  agent_contract_system:
+    files:
+      - path: orquestador/agents/agent-registry.yaml
+      - path: orquestador/agents/capability-registry.yaml
+      - path: orquestador/agents/lifecycle-registry.yaml
+      - path: orquestador/agents/model-adapter-profiles.yaml
   risk_and_permissions:
     files:
       - path: orquestador/policies/permissions.md
@@ -32,6 +38,17 @@ categories:
       - path: orquestador/policies/risk-criteria.md
       - path: orquestador/policies/write-set-policy.md
       - path: orquestador/policies/secret-denylist.md
+  security_appsec:
+    files:
+      - path: orquestador/security/threat-model.yaml
+      - path: orquestador/security/permission-registry.yaml
+      - path: orquestador/security/command-risk-registry.yaml
+      - path: orquestador/security/write-scope-registry.yaml
+      - path: orquestador/security/network-policy.yaml
+      - path: orquestador/security/secrets-policy.yaml
+      - path: orquestador/security/escalation-policy.yaml
+      - path: orquestador/security/logging-policy.yaml
+      - path: orquestador/security/supply-chain-policy.yaml
   integrations_and_runtime:
     files:
       - path: orquestador/method/adapter-contract.md
@@ -45,6 +62,13 @@ categories:
       - path: orquestador/method/ci-pipeline-policy.md
       - path: orquestador/method/reference-drift-policy.md
       - path: orquestador/method/audit-reporting-policy.md
+  migration_service:
+    files:
+      - path: orquestador/migration/migration-registry.yaml
+      - path: orquestador/migration/versions/0.9.0-to-0.10.0.yaml
+      - path: orquestador/migration/versions/0.8.10-to-0.10.0.yaml
+      - path: orquestador/migration/contracts/post-migration-contract.yaml
+      - path: orquestador/migration/reports/migration-report.template.yaml
   schemas:
     files:
       - path: orquestador/policies/schemas/project-binding.schema.yaml

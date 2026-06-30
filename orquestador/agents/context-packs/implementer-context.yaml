@@ -1,0 +1,7 @@
+schema: hebrinex.context_pack
+version: "0.1"
+id: implementer-context
+role_id: implementer
+required_refs: [active_contract, approval_id, task_scope, write_set, acceptance_criteria, relevant_files]
+denied_by_default: [complete_memory, infoHebri.md, secrets, unrelated_files]
+load_strategy: declared_files_first

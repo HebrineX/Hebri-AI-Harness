@@ -1,0 +1,7 @@
+schema: hebrinex.agent_playbook
+version: "0.1"
+id: spec-author-playbook
+role_id: spec-author
+steps: [capture_problem, write_requirements, write_design, write_tasks, trace_requirements, record_open_decisions]
+output_contract: [requirements, design, tasks, risks, open_decisions]
+anti_patterns: [declaring_runtime_done, omitting_migration_validation, vague_tasks]

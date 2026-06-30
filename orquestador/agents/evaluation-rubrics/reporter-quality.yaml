@@ -1,0 +1,7 @@
+schema: hebrinex.agent_evaluation_rubric
+version: "0.1"
+id: reporter-quality
+role_id: reporter
+minimum_result: pass
+on_fail: block_report
+checks: [status_matches_evidence, no_verdict_change, risks_listed, next_steps_clear, no_secrets]

@@ -1,0 +1,7 @@
+schema: hebrinex.agent_playbook
+version: "0.1"
+id: reviewer-playbook
+role_id: reviewer
+steps: [read_handoff, inspect_diff, verify_claims, list_findings, decide_approve_or_block, handoff_to_leader]
+output_contract: [findings, severity, file_refs, approval_status, residual_risk]
+anti_patterns: [direct_edits, reviewing_own_work, vague_findings]

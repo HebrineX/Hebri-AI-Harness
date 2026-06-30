@@ -1,0 +1,25 @@
+schema: hebrinex.post_migration_contract
+version: "0.1"
+template: true
+harness_version: "0.10.0"
+source_version: ""
+target_version: "0.10.0"
+binding_mode: ""
+project_root_verified: false
+agent_authority: harness_only
+agent_registry_active: false
+security_policy_active: false
+runtime_enablement_active: false
+migration_service_active: false
+active_contract_written: false
+old_approvals_expired: false
+backup_verified: false
+validators_passed: false
+migration_report_written: false
+migration_status: not_applied
+required_evidence:
+  - migration_report
+  - backup_manifest
+  - validator_output
+  - active_contract_ref
+success_rule: "migration_status can be applied only when all booleans above are true."

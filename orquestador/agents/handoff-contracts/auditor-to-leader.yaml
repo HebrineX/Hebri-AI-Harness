@@ -1,0 +1,6 @@
+schema: hebrinex.agent_handoff_contract
+version: "0.1"
+id: auditor-to-leader
+from_role: auditor
+to_role: leader
+required_fields: [audit_scope, blocking_findings, evidence_refs, risk_rating, recommendation]

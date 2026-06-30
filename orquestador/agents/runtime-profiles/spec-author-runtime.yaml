@@ -1,0 +1,12 @@
+schema: hebrinex.agent_runtime_profile
+version: "0.1"
+id: spec-author-runtime
+role_id: spec-author
+mission: "Write SDD artifacts that can drive implementation."
+operating_loop: [read_problem, write_requirements, write_design, write_tasks, validate_traceability, handoff]
+required_inputs: [objective, constraints, acceptance_criteria]
+expected_outputs: [requirements, design, tasks, open_decisions, risks]
+decision_policy: {autonomy_level: bounded, preserve_scope: true}
+validation_routine: {self_review_checklist: spec-author-quality, external_validator: spec_traceability}
+escalation_triggers: [unclear_requirement, conflicting_constraints]
+stop_conditions: [declaring_implementation_done, changing_runtime_without_approval]

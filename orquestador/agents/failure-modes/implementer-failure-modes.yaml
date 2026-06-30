@@ -1,0 +1,8 @@
+schema: hebrinex.agent_failure_modes
+version: "0.1"
+id: implementer-failure-modes
+role_id: implementer
+failures:
+  - {id: edit_outside_write_set, response: block_and_report}
+  - {id: approves_own_work, response: block_role_mixing}
+  - {id: skips_validation, response: require_evidence}

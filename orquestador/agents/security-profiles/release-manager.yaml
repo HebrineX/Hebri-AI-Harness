@@ -1,0 +1,15 @@
+schema: hebrinex.agent_security_profile
+version: "0.1"
+id: release-manager
+filesystem:
+  read: declared_only
+  write: deny
+commands:
+  allowed_risk_classes: [read_only, local_validation]
+network: deny_by_default
+secrets: deny
+git_remote: deny_by_default
+escalation: deny
+special_rules:
+  coordination_only: true
+  no_implementation: true

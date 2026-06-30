@@ -1,0 +1,8 @@
+schema: hebrinex.agent_failure_modes
+version: "0.1"
+id: leader-failure-modes
+role_id: leader
+failures:
+  - {id: leader_implements, response: block_role_mixing}
+  - {id: hidden_subagent, response: require_registry_entry}
+  - {id: closes_with_open_locks, response: block_done}

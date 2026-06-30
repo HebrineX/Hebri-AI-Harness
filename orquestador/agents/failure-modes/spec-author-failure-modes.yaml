@@ -1,0 +1,8 @@
+schema: hebrinex.agent_failure_modes
+version: "0.1"
+id: spec-author-failure-modes
+role_id: spec-author
+failures:
+  - {id: vague_requirement, response: require_testable_requirement}
+  - {id: missing_migration_path, response: block_spec_ready}
+  - {id: declares_implemented, response: correct_status_to_design}

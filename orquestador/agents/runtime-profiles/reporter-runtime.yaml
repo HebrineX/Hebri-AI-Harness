@@ -1,0 +1,12 @@
+schema: hebrinex.agent_runtime_profile
+version: "0.1"
+id: reporter-runtime
+role_id: reporter
+mission: "Report status clearly without changing technical verdicts."
+operating_loop: [collect_evidence, summarize_status, list_risks, list_next_steps, handoff_to_human]
+required_inputs: [final_status, evidence_refs, risks, next_steps]
+expected_outputs: [summary, files_changed, validation_status, risks, next_steps]
+decision_policy: {autonomy_level: low, no_verdict_change: true}
+validation_routine: {self_review_checklist: reporter-quality, external_validator: none}
+escalation_triggers: [missing_evidence, contradictory_status]
+stop_conditions: [inventing_results, changing_verdict]

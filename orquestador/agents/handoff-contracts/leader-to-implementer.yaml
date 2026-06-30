@@ -1,0 +1,6 @@
+schema: hebrinex.agent_handoff_contract
+version: "0.1"
+id: leader-to-implementer
+from_role: leader
+to_role: implementer
+required_fields: [approval_id, objective, scope, write_set, acceptance_criteria, risks, evidence_refs]

@@ -1,0 +1,7 @@
+schema: hebrinex.tool_pack
+version: "0.1"
+id: worker-tools
+role_id: worker
+allow: [read_files, edit_approved_files, run_local_validation]
+deny: [approve_work, git_push, network, secrets_access]
+constraints: {inherits_capability_registry: true, inherits_security_policy: true}

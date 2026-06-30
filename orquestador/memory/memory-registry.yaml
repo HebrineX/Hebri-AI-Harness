@@ -1,8 +1,8 @@
 schema: hebrinex.memory.registry
 version: "0.1"
-updated_at: ""
+updated_at: "2026-06-29T21:21:27.1339329-03:00"
 owner_role: leader
-binding_mode: source_template
+binding_mode: bound
 active_layers:
   local:
     enabled: true

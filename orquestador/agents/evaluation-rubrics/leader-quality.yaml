@@ -1,0 +1,7 @@
+schema: hebrinex.agent_evaluation_rubric
+version: "0.1"
+id: leader-quality
+role_id: leader
+minimum_result: pass
+on_fail: block_closure
+checks: [contract_declared, roles_registered, gates_tracked, no_implementation, closure_complete]

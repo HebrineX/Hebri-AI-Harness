@@ -1,0 +1,17 @@
+schema: hebrinex.agent_security_profile
+version: "0.1"
+id: write-scoped
+filesystem:
+  read: declared_only
+  write: approved_write_set_only
+requires:
+  preflight: true
+  human_si: true
+  active_lock: true
+  write_scope: true
+commands:
+  allowed_risk_classes: [read_only, local_validation, write]
+network: deny_by_default
+secrets: deny
+git_remote: deny
+escalation: deny
