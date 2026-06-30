@@ -145,12 +145,12 @@
 
 ### Added
 - `orquestador/sdd/progress/templates/memory-closure-checklist.md` para cerrar memoria local, daily, cycle y project antes de `done`.
-- Validaciones en `init.sh` para drift operativo, presupuestos minimos y exclusion de `infoHebri.md`.
+- Validaciones en `init.sh` para drift operativo, presupuestos minimos y exclusion de documentacion personal/local.
 
 ### Changed
 - Version operativa actual a 0.8.2.
 - Adapters y presets usan entrada minima: `PROJECT_BINDING.yaml`, `session-pin.md`, `memory-registry.yaml`, `memory-routing.yaml`, `context-budget.yaml` y entrypoint.
-- Bootstrap y migracion excluyen materialmente `infoHebri.md`, `.git/` y temporales.
+- Bootstrap y migracion excluyen materialmente documentacion personal/local, `.git/` y temporales.
 
 ### Fixed
 - `state.yaml` corrige gates pegados y separa correctamente `approvals`.
@@ -161,7 +161,7 @@
 ### Added
 - `orquestador/context-budget.yaml` with hard budgets for `memory_bootstrap`, `first_message`, `reentry_light`, `debug_log_intake`, `leader_light`, `leader_full` and `audit_global`.
 - `orquestador/method/session-contract-extended.md` for low-frequency rules that should not be loaded on every message.
-- `.gitignore` entry for `infoHebri.md` so personal documentation never becomes operational context.
+- `.gitignore` entry for local personal documentation so it never becomes operational context.
 
 ### Changed
 - `AGENTS.md` and `session-contract.md` now act as a lightweight kernel.
@@ -171,7 +171,7 @@
 - README documents the 70-80% token reduction target as a contract objective.
 
 ### Fixed
-- Prevents `infoHebri.md` from being copied into consumer `.hebrinex` contexts.
+- Prevents local personal documentation from being copied into consumer `.hebrinex` contexts.
 - Prevents logs/debug from triggering heavy leader context automatically.
 ## [0.8.0] - 2026-06-05
 

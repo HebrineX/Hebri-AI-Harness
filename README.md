@@ -26,11 +26,11 @@ Sistema operativo para agentes IA basado en [Hebri-AI-Structure](https://github.
 | `leader_full` | <= 8000 tokens y requiere motivo |
 | `audit_global` | <= 12000 tokens y requiere `SI` |
 
-Denegado por defecto: `infoHebri.md`, memoria `complete/`, `CHANGELOG.md`, `README.md`, manifest, `init.sh`, prompts completos y todos los metodos.
+Denegado por defecto: documentacion personal/local, memoria `complete/`, `CHANGELOG.md`, `README.md`, manifest, `init.sh`, prompts completos y todos los metodos.
 
 ## Bootstrap Seguro
 
-Si un proyecto no tiene `.hebrinex`, no se opera con un harness externo. Se copia una fuente libre `source_template` a `<project_root>/.hebrinex/`, excluyendo materialmente `infoHebri.md`, `.git/` y temporales, y luego se vincula como `bound`.
+Si un proyecto no tiene `.hebrinex`, no se opera con un harness externo. Se copia una fuente libre `source_template` a `<project_root>/.hebrinex/`, excluyendo materialmente documentacion personal/local, `.git/` y temporales, y luego se vincula como `bound`.
 
 ## Novedades Actuales
 
@@ -41,14 +41,14 @@ Si un proyecto no tiene `.hebrinex`, no se opera con un harness externo. Se copi
 - `state.yaml` queda estructuralmente valido.
 - Adapters y presets usan entrada minima: binding, session pin, registry, routing, budget y entrypoint.
 - `memory-closure-checklist.md` obliga a cerrar local/daily/cycle/project antes de `done`.
-- Bootstrap/migracion excluyen materialmente `infoHebri.md`.
+- Bootstrap/migracion excluyen materialmente documentacion personal/local.
 ## Validacion Local
 
 ```powershell
 pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/validate-harness.ps1 -RunNegativeTests
 ```
 
-Esta validacion revisa manifest, schemas, presupuestos, exclusion de `infoHebri.md`, migracion bound simulada y presets livianos por defecto. No reemplaza el contrato del harness; lo protege contra drift estructural.
+Esta validacion revisa manifest, schemas, presupuestos, exclusion de documentacion personal/local, migracion bound simulada y presets livianos por defecto. No reemplaza el contrato del harness; lo protege contra drift estructural.
 
 ## Detractor Senior
 
