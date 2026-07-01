@@ -2,6 +2,34 @@
 
 ## [Unreleased]
 
+## [0.10.6] - 2026-07-01
+
+### Added
+- `hebrinex.ps1 bootstrap -Apply` para copiar un harness `source_template`
+  hacia `<project_root>/.hebrinex` y dejarlo en modo `bound`.
+- `scripts/validate-bootstrap.ps1` con smoke `CheckOnly`, smoke `Apply`,
+  validacion de contrato post-migracion y validacion del harness bound.
+- Reporte aplicado `migration-bootstrap-*.yaml`, backup manifest y contrato
+  post-migracion para bootstrap source_template -> bound.
+
+### Changed
+- `validate-harness.ps1`, `audit-harness.ps1` e `init.sh` integran
+  `validate-bootstrap.ps1`.
+- `validate-command-gateway.ps1` mantiene `git status --short` como read-only
+  en `CheckOnly`, pero no exige ejecucion exitosa en `Apply` cuando el harness
+  bound no contiene `.git`.
+
+### Security
+- Bootstrap Apply copia solo rutas declaradas en `harness-manifest.txt`.
+- Bootstrap Apply excluye `.git`, `.codex`, `infoHebri.md`, temporales y
+  archivos locales no declarados.
+- Bootstrap Apply rechaza targets inseguros: root vacio, root inexistente,
+  root igual/dentro del source, root apuntando a `.hebrinex` o target con
+  `.hebrinex` existente.
+- El proyecto consumidor queda con `.hebrinex/` agregado a `.gitignore`,
+  `PROJECT_BINDING.yaml` bound, state/memory/active-contract regularizados y
+  validadores ejecutados antes de declarar `bootstrap_status=applied`.
+
 ## [0.10.5] - 2026-06-30
 
 ### Added

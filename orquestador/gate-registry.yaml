@@ -1,6 +1,6 @@
 schema: hebrinex.gate_registry
 version: "0.1"
-harness_version: "0.10.5"
+harness_version: "0.10.6"
 state_source:
   path: orquestador/sdd/progress/state.yaml
 registry_source:

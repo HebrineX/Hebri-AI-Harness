@@ -1,6 +1,6 @@
 schema: hebrinex.migration_registry
 version: "0.1"
-harness_version: "0.10.5"
+harness_version: "0.10.6"
 status: active
 authority:
   migration_definition: harness_only

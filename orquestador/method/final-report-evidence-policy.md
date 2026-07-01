@@ -1,6 +1,6 @@
 # Final Report Evidence Policy
 
-Version: 0.10.5
+Version: 0.10.6
 
 Esta politica exige que todo cierre tenga links internos a la evidencia que lo sostiene.
 

@@ -378,8 +378,10 @@ Assert-Contains 'orquestador/harness-manifest.txt' 'scripts/validate-fixtures.ps
 Assert-Contains 'orquestador/harness-manifest.txt' 'scripts/command-gateway.ps1' 'command-gateway.ps1 must be in manifest'
 Assert-Contains 'orquestador/harness-manifest.txt' 'scripts/validate-command-gateway.ps1' 'validate-command-gateway.ps1 must be in manifest'
 Assert-Contains 'orquestador/harness-manifest.txt' 'scripts/validate-release.ps1' 'validate-release.ps1 must be in manifest'
+Assert-Contains 'orquestador/harness-manifest.txt' 'scripts/validate-bootstrap.ps1' 'validate-bootstrap.ps1 must be in manifest'
 Assert-Contains 'scripts/hebrinex.ps1' 'Hebri-AI-Harness CLI Core' 'hebrinex.ps1 must expose CLI Core marker'
 Assert-Contains 'scripts/validate-fixtures.ps1' 'Fixture validation OK' 'validate-fixtures.ps1 must expose success marker'
+Assert-Contains 'scripts/validate-bootstrap.ps1' 'Bootstrap validation OK' 'validate-bootstrap.ps1 must expose success marker'
 Assert-Contains 'scripts/command-gateway.ps1' 'Command Gateway' 'command-gateway.ps1 must expose gateway marker'
 Assert-Contains 'scripts/validate-command-gateway.ps1' 'Command gateway validation OK' 'validate-command-gateway.ps1 must expose success marker'
 Assert-Contains 'scripts/command-gateway.ps1' 'hebrinex.command_gateway.result' 'command-gateway.ps1 must expose structured result schema'
@@ -423,6 +425,7 @@ try { & (Resolve-HarnessPath 'scripts/hebrinex.ps1') preflight -Root $Root -Appr
 try { & (Resolve-HarnessPath 'scripts/hebrinex.ps1') command -Root $Root -CheckOnly -CommandText 'Get-Content README.md' *> $null } catch { Add-Failure 'hebrinex.ps1 command must pass read-only CheckOnly' }
 
 Invoke-Validator 'validate-release' 'scripts/validate-release.ps1'
+Invoke-Validator 'validate-bootstrap' 'scripts/validate-bootstrap.ps1'
 Invoke-Validator 'validate-agent-contracts' 'scripts/validate-agent-contracts.ps1'
 Invoke-Validator 'validate-security-policy' 'scripts/validate-security-policy.ps1'
 Invoke-Validator 'validate-migration' 'scripts/validate-migration.ps1'

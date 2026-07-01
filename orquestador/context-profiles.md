@@ -1,6 +1,6 @@
 # Context Profiles
 
-Version: 0.10.5
+Version: 0.10.6
 
 Objetivo: cargar el minimo contexto posible. El default debe ahorrar 70-80% frente a leer `AGENTS.md + session-contract + method/* + prompts/**`.
 
@@ -105,7 +105,7 @@ Leer output de auditor/reviewer/leader, audiencia objetivo, `agents/reporter.md`
 
 Si un agente necesita superar presupuesto, debe detenerse, explicar read-set y pedir autorizacion.
 
-## Runtime 0.10.5
+## Runtime 0.10.6
 
 - `runtime_status`: `PROJECT_BINDING.yaml`, `session-pin.md`, `context-budget.yaml` y `active-session` si existe. Maximo: 900 tokens.
 - `runtime_reentry`: runtime status + `state.yaml`/`registry.yaml` solo si entra en budget. Maximo: 1600 tokens.

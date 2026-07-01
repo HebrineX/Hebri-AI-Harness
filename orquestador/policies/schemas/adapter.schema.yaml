@@ -18,6 +18,6 @@ required_top_keys:
   - evidence_policy
 required_values:
   schema: hebrinex.adapter
-  harness_version: "0.10.5"
+  harness_version: "0.10.6"
   memory_reliability: untrusted_for_evidence
   preflight_enforcement: required_before_effects

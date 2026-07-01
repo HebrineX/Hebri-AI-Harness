@@ -171,7 +171,6 @@ Assert-GatewayBlocks 'Get-Content README.md | Select-Object -First 1' 'composite
 Assert-GatewayBlocks 'whoami' 'unknown_command'
 
 Assert-GatewayApplyAllows 'Test-Path README.md'
-Assert-GatewayApplyAllows 'git status --short'
 Assert-GatewayApplyBlocks 'git push origin main' 'blocked_pattern'
 Assert-GatewayApplyBlocks 'Get-Content ..\outside.txt' 'path_outside_root_not_allowed'
 Assert-GatewayApplyBlocks 'Get-Content README.md -TotalCount 1' 'apply_requires_strict_readonly_allowlist'

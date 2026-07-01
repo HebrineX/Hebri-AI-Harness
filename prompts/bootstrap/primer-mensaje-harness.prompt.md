@@ -1,5 +1,5 @@
 ---
-description: "Primer mensaje operativo para proyectos con Hebri-AI-Harness 0.10.5"
+description: "Primer mensaje operativo para proyectos con Hebri-AI-Harness 0.10.6"
 ---
 
 # Primer Mensaje Harness

@@ -329,6 +329,7 @@ file scripts/hebrinex.ps1
 file scripts/validate-fixtures.ps1
 file scripts/command-gateway.ps1
 file scripts/validate-command-gateway.ps1
+file scripts/validate-bootstrap.ps1
 file scripts/validate-release.ps1
 
 file orquestador/policies/schemas/context-budget.schema.yaml

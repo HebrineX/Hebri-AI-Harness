@@ -16,7 +16,7 @@ required_top_keys:
   - rules
 required_values:
   schema: hebrinex.migration_registry
-  harness_version: "0.10.5"
+  harness_version: "0.10.6"
   check_only_writes: false
   apply_requires_backup: true
 required_routes:
