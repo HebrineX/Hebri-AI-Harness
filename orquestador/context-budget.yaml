@@ -1,6 +1,6 @@
 schema: hebrinex.context_budget
 version: "0.1"
-harness_version: "0.10.9"
+harness_version: "0.10.10"
 objective: "70-80% tokens."
 
 default_policy:

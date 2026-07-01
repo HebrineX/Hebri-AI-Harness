@@ -2,6 +2,32 @@
 
 ## [Unreleased]
 
+## [0.10.10] - 2026-07-01
+
+### Added
+- CI oficial en `.github/workflows/ci.yml` con job `Harness contract` para
+  `pull_request` y `push` a `main`.
+- `orquestador/method/release-roadmap.md` para reconciliar el desvio de
+  numeracion 0.10.7/0.10.8/0.10.9 y fijar el corte hacia `0.11.0`.
+
+### Changed
+- `validate-release.ps1` valida que el source template tenga CI oficial con
+  `validate-harness`, `audit-harness`, drift check, fixtures de migracion,
+  fixtures negativos de seguridad e `init.sh`.
+- `init.sh` valida la presencia y cobertura minima del workflow oficial cuando
+  el harness esta en modo `source_template`.
+- `README.md` documenta el check `Harness contract` y el requisito de branch
+  protection para bloquear merges que rompan contrato, agentes, seguridad o
+  migracion.
+
+### Security
+- CI ejecuta `validate-harness.ps1 -RunNegativeTests`,
+  `audit-harness.ps1 -RunNegativeTests`, `check-adapter-drift.ps1`,
+  validadores de migracion, fixtures negativos de seguridad, Command Gateway e
+  `init.sh`.
+- `0.10.10` deja cerrada la linea correctiva 0.10.x antes del enforcement
+  release `0.11.0`.
+
 ## [0.10.9] - 2026-07-01
 
 ### Added

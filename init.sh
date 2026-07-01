@@ -155,6 +155,19 @@ require_grep "path_traversal" "$ROOT/orquestador/security/threat-model.yaml" "th
 require_grep "check_only_writes:[[:space:]]*false" "$ROOT/orquestador/migration/migration-registry.yaml" "migration-registry no mantiene CheckOnly sin escrituras"
 require_grep "apply_requires_backup:[[:space:]]*true" "$ROOT/orquestador/migration/migration-registry.yaml" "migration-registry no exige backup para Apply"
 if [ "$BINDING_MODE" = "source_template" ]; then require_grep "migration_status:[[:space:]]*not_applied" "$ROOT/orquestador/migration/contracts/post-migration-contract.yaml" "post-migration-contract source_template debe estar not_applied"; else require_grep "migration_status:[[:space:]]*applied" "$ROOT/orquestador/migration/contracts/post-migration-contract.yaml" "post-migration-contract bound debe estar applied"; fi
+if [ "$BINDING_MODE" = "source_template" ]; then
+  CI_FILE="$ROOT/.github/workflows/ci.yml"
+  [ -f "$CI_FILE" ] || { echo "ERROR: Falta CI oficial .github/workflows/ci.yml"; exit 2; }
+  require_grep "pull_request:" "$CI_FILE" "CI oficial no corre en pull_request"
+  require_grep "push:" "$CI_FILE" "CI oficial no corre en push"
+  require_grep "validate-harness[.]ps1 -Root [.] -RunNegativeTests" "$CI_FILE" "CI oficial no ejecuta validate-harness con negativos"
+  require_grep "audit-harness[.]ps1 -Root [.] -RunNegativeTests" "$CI_FILE" "CI oficial no ejecuta audit-harness con negativos"
+  require_grep "check-adapter-drift[.]ps1 -Root [.]$" "$CI_FILE" "CI oficial no ejecuta check-adapter-drift"
+  require_grep "validate-migration[.]ps1 -Root [.] -RunNegativeTests" "$CI_FILE" "CI oficial no ejecuta fixtures de migracion"
+  require_grep "validate-security-policy[.]ps1 -Root [.] -RunNegativeTests" "$CI_FILE" "CI oficial no ejecuta seguridad negativa"
+  require_grep "validate-fixtures[.]ps1 -Root [.] -RunNegativeTests" "$CI_FILE" "CI oficial no ejecuta fixtures"
+  require_grep "[.]/init[.]sh" "$CI_FILE" "CI oficial no ejecuta init.sh"
+fi
 require_grep "ComputeHash" "$ROOT/scripts/build-instructions.ps1" "build-instructions.ps1 debe usar ComputeHash compatible PS 5.1"
 if grep -q "HashData\|ToHexString" "$ROOT/scripts/build-instructions.ps1"; then echo "ERROR: build-instructions.ps1 usa APIs incompatibles con Windows PowerShell 5.1"; exit 2; fi
 "$PSH" -NoProfile -ExecutionPolicy Bypass -File "$ROOT/scripts/regularize-state.ps1" -Root "$ROOT"

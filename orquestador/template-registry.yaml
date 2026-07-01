@@ -1,6 +1,6 @@
 schema: hebrinex.template_registry
 version: "0.1"
-harness_version: "0.10.9"
+harness_version: "0.10.10"
 categories:
   sdd_spec_templates:
     files:

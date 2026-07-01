@@ -60,6 +60,7 @@ if ($version -notmatch '^0[.][0-9]+[.][0-9]+$') {
 
 $binding = Read-HarnessText 'PROJECT_BINDING.yaml'
 $bindingVersion = Get-ScalarValue $binding 'harness_version'
+$bindingMode = Get-ScalarValue $binding 'binding_mode'
 if ($bindingVersion -ne $version) {
   Add-Failure "PROJECT_BINDING.yaml harness_version must be $version"
 }
@@ -80,6 +81,18 @@ if (-not (Test-UnreleasedEmpty $changelog)) {
 Assert-ContainsText 'scripts/validate-drift.ps1' 'HARNESS_VERSION must be SemVer 0[.]x[.]y' 'validate-drift.ps1 must not hardcode a patch release'
 Assert-ContainsText 'scripts/validate-harness.ps1' 'currentHarnessVersion' 'validate-harness.ps1 must validate against HARNESS_VERSION dynamically'
 Assert-ContainsText 'init.sh' 'HARNESS_RELEASE_VERSION' 'init.sh must validate against HARNESS_VERSION dynamically'
+
+if ($bindingMode -eq 'source_template') {
+  Assert-ContainsText '.github/workflows/ci.yml' 'pull_request:' 'source template CI must run on pull_request'
+  Assert-ContainsText '.github/workflows/ci.yml' 'push:' 'source template CI must run on push'
+  Assert-ContainsText '.github/workflows/ci.yml' 'validate-harness[.]ps1 -Root [.] -RunNegativeTests' 'CI must run validate-harness negative tests'
+  Assert-ContainsText '.github/workflows/ci.yml' 'audit-harness[.]ps1 -Root [.] -RunNegativeTests' 'CI must run audit-harness negative tests'
+  Assert-ContainsText '.github/workflows/ci.yml' 'check-adapter-drift[.]ps1 -Root [.]' 'CI must run adapter drift check'
+  Assert-ContainsText '.github/workflows/ci.yml' 'validate-migration[.]ps1 -Root [.] -RunNegativeTests' 'CI must run migration negative tests'
+  Assert-ContainsText '.github/workflows/ci.yml' 'validate-security-policy[.]ps1 -Root [.] -RunNegativeTests' 'CI must run security negative tests'
+  Assert-ContainsText '.github/workflows/ci.yml' 'validate-fixtures[.]ps1 -Root [.] -RunNegativeTests' 'CI must run fixture validation'
+  Assert-ContainsText '.github/workflows/ci.yml' '[.]/init[.]sh' 'CI must run init.sh'
+}
 
 if ($RequireTag) {
   $tag = "v$version"

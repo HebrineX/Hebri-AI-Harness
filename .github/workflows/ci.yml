@@ -1,0 +1,63 @@
+name: Harness CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+concurrency:
+  group: harness-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  harness-contract:
+    name: Harness contract
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: PowerShell availability
+        shell: bash
+        run: pwsh -NoProfile -Command '$PSVersionTable.PSVersion.ToString()'
+
+      - name: Release contract
+        shell: pwsh
+        run: ./scripts/validate-release.ps1 -Root .
+
+      - name: Harness validator
+        shell: pwsh
+        run: ./scripts/validate-harness.ps1 -Root . -RunNegativeTests
+
+      - name: Harness auditor
+        shell: pwsh
+        run: ./scripts/audit-harness.ps1 -Root . -RunNegativeTests
+
+      - name: Adapter drift
+        shell: pwsh
+        run: ./scripts/check-adapter-drift.ps1 -Root .
+
+      - name: Migration fixtures
+        shell: pwsh
+        run: |
+          ./scripts/validate-migration.ps1 -Root . -RunNegativeTests
+          ./scripts/validate-bound-update.ps1 -Root . -RunNegativeTests
+          ./scripts/validate-bound-backups.ps1 -Root . -RunNegativeTests
+          ./scripts/validate-bound-restore.ps1 -Root . -RunNegativeTests
+
+      - name: Security negative fixtures
+        shell: pwsh
+        run: |
+          ./scripts/validate-security-policy.ps1 -Root . -RunNegativeTests
+          ./scripts/validate-fixtures.ps1 -Root . -RunNegativeTests
+          ./scripts/validate-command-gateway.ps1 -Root . -RunNegativeTests
+
+      - name: POSIX entrypoint
+        shell: bash
+        run: ./init.sh

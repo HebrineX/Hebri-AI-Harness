@@ -1,6 +1,6 @@
 # Hebri-AI-Harness
 
-Referencia operativa actual: **0.10.9**.
+Referencia operativa actual: **0.10.10**.
 
 Sistema operativo para agentes IA basado en [Hebri-AI-Structure](https://github.com/HebrineX/Hebri-AI-Structure). Objetivo: contrato, trazabilidad y aprobaciones con 70-80% menos contexto frente a leer todo `.hebrinex`.
 
@@ -34,6 +34,8 @@ Si un proyecto no tiene `.hebrinex`, no se opera con un harness externo. Se copi
 
 ## Novedades Actuales
 
+- CI oficial: GitHub Actions ejecuta validadores, auditores, drift checks,
+  fixtures de migracion, fixtures negativos de seguridad e `init.sh`.
 - Agent Contract System: los agentes existen por contratos YAML gobernados por el harness, no por prompts ni autoasignacion de IA.
 - Seguridad AppSec verificable: permisos, write-scope, comandos, red, secretos, escalacion, logging y supply-chain se validan por registries.
 - Servicio de migracion: rutas 0.8.10/0.9.0 -> 0.10.0 con CheckOnly, Apply con backup, reporte y contrato post-migracion aplicado.
@@ -54,6 +56,21 @@ pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/validate-harness.ps1 -RunN
 ```
 
 Esta validacion revisa manifest, schemas, presupuestos, exclusion de documentacion personal/local, migracion bound simulada y presets livianos por defecto. No reemplaza el contrato del harness; lo protege contra drift estructural.
+
+## CI Oficial
+
+El source template incluye `.github/workflows/ci.yml`. El job `Harness contract`
+corre en `pull_request` y `push` a `main`:
+
+- `scripts/validate-harness.ps1 -RunNegativeTests`
+- `scripts/audit-harness.ps1 -RunNegativeTests`
+- `scripts/check-adapter-drift.ps1`
+- fixtures/validadores de migracion
+- fixtures/validadores negativos de seguridad
+- `./init.sh`
+
+Para bloquear merges, GitHub debe marcar `Harness contract` como required check
+en branch protection.
 
 ## CLI Core
 

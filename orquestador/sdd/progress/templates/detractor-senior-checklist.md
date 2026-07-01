@@ -1,6 +1,6 @@
 # Detractor Senior Checklist
 
-Version: 0.10.9
+Version: 0.10.10
 
 ## Identificacion
 
