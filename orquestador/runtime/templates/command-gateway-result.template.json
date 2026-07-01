@@ -1,6 +1,6 @@
 {
   "schema": "hebrinex.command_gateway.result",
-  "version": "0.2",
+  "version": "0.3",
   "root": "",
   "mode": "CheckOnly",
   "command_text": "",
@@ -27,6 +27,14 @@
     "verification": "human review plus command evidence outside gateway",
     "expected_evidence": "SI approval, command output, exit code and redacted logs",
     "requires_si": true
+  },
+  "execution": {
+    "attempted": false,
+    "exit_code": null,
+    "timed_out": false,
+    "timeout_seconds": 30,
+    "stdout": "",
+    "stderr": ""
   },
   "next_step": "use generated_preflight before any execution"
 }

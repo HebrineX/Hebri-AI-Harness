@@ -1,6 +1,6 @@
 schema: hebrinex.security.threat_model
 version: "0.1"
-harness_version: "0.10.4"
+harness_version: "0.10.5"
 scope: harness_runtime_and_migration
 actors:
   - id: trusted_operator

@@ -1,6 +1,6 @@
 # Memory Policy
 
-Version: 0.10.4
+Version: 0.10.5
 
 ## Objetivo
 

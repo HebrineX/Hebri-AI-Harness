@@ -16,7 +16,7 @@ required_top_keys:
   - notes
 required_values:
   schema: hebrinex.project_binding
-  harness_version: "0.10.4"
+  harness_version: "0.10.5"
 allowed_values:
   binding_mode:
     - source_template

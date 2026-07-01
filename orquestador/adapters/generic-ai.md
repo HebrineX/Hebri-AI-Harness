@@ -1,6 +1,6 @@
 # Generic Ai Adapter
 
-## Entrada minima 0.10.4
+## Entrada minima 0.10.5
 
 Antes de actuar, leer solo:
 1. `PROJECT_BINDING.yaml`

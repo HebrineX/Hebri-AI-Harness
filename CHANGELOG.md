@@ -2,6 +2,29 @@
 
 ## [Unreleased]
 
+## [0.10.5] - 2026-06-30
+
+### Added
+- `command-gateway.ps1 -Apply` para ejecutar solo comandos read-only
+  allowlisted mediante un plan controlado, no mediante shell arbitrario.
+- Evidencia estructurada de ejecucion en `hebrinex.command_gateway.result`:
+  `execution.attempted`, `exit_code`, `timed_out`, `timeout_seconds`,
+  `stdout` y `stderr` redactados.
+
+### Changed
+- `hebrinex.ps1 command` acepta `-CheckOnly|-Apply` y delega ambos modos en
+  el Command Gateway.
+- Schema/template del resultado del Command Gateway pasan a version `0.3` y
+  admiten `mode: Apply` sin permitir escrituras.
+- `validate-command-gateway.ps1` cubre Apply seguro, traversal fuera del root,
+  flags no permitidas, secretos, comandos compuestos y git remoto.
+
+### Security
+- `Apply` mantiene deny-by-default: bloquea comandos desconocidos, compuestos,
+  secretos, red, git remoto, escrituras, destructivos y paths fuera del root.
+- La ejecucion queda limitada a `Get-Content`, `Select-String`, `Test-Path`,
+  `Get-ChildItem` y `git status --short`, con timeout y salida redactada.
+
 ## [0.10.4] - 2026-06-30
 
 ### Added

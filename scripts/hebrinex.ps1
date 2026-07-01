@@ -117,7 +117,7 @@ function Show-Help() {
   Write-Host '  hebrinex.ps1 audit [-RunNegativeTests]'
   Write-Host '  hebrinex.ps1 migrate -CheckOnly|-Apply [-TargetVersion 0.10.0]'
   Write-Host '  hebrinex.ps1 bootstrap -CheckOnly [-ProjectRoot <path>]'
-  Write-Host '  hebrinex.ps1 command -CheckOnly -CommandText <command> [-Purpose <text>] [-Json]'
+  Write-Host '  hebrinex.ps1 command -CheckOnly|-Apply -CommandText <command> [-Purpose <text>] [-Json]'
 }
 
 $Root = (Resolve-Path -LiteralPath $Root).Path
@@ -227,11 +227,11 @@ switch ($Command) {
     Write-Host 'writes=false'
   }
   'command' {
-    if (-not $CheckOnly -or $Apply) {
-      throw 'command currently supports -CheckOnly only. Apply belongs to a later slice.'
+    if (($CheckOnly -and $Apply) -or (-not $CheckOnly -and -not $Apply)) {
+      throw 'command requires exactly one mode: -CheckOnly or -Apply'
     }
     $scriptPath = Resolve-HarnessPath 'scripts/command-gateway.ps1'
-    & $scriptPath -Root $Root -CheckOnly -CommandText $CommandText -Purpose $Purpose -ApprovalId $ApprovalId -RiskClass $RiskClass -Json:$Json
+    & $scriptPath -Root $Root -CheckOnly:$CheckOnly -Apply:$Apply -CommandText $CommandText -Purpose $Purpose -ApprovalId $ApprovalId -RiskClass $RiskClass -Json:$Json
     if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
   }
 }

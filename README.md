@@ -1,6 +1,6 @@
 # Hebri-AI-Harness
 
-Referencia operativa actual: **0.10.4**.
+Referencia operativa actual: **0.10.5**.
 
 Sistema operativo para agentes IA basado en [Hebri-AI-Structure](https://github.com/HebrineX/Hebri-AI-Structure). Objetivo: contrato, trazabilidad y aprobaciones con 70-80% menos contexto frente a leer todo `.hebrinex`.
 
@@ -39,8 +39,9 @@ Si un proyecto no tiene `.hebrinex`, no se opera con un harness externo. Se copi
 - Servicio de migracion: rutas 0.8.10/0.9.0 -> 0.10.0 con CheckOnly, Apply con backup, reporte y contrato post-migracion aplicado.
 - Schemas y fixtures de validacion cubren contratos de agentes, seguridad y
   migracion con casos negativos.
-- Command Gateway inicial: `hebrinex command -CheckOnly` clasifica comandos,
-  bloquea patrones riesgosos y no ejecuta comandos arbitrarios.
+- Command Gateway seguro: `hebrinex command -CheckOnly` clasifica comandos y
+  `hebrinex command -Apply` ejecuta solo comandos read-only allowlisted, con
+  timeout, root acotado, salida redactada y bloqueo deny-by-default.
 - `init.sh` bloquea drift de version operativo fuera de `CHANGELOG.md`.
 - `state.yaml` queda estructuralmente valido.
 - Adapters y presets usan entrada minima: binding, session pin, registry, routing, budget y entrypoint.
@@ -67,17 +68,20 @@ pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/hebrinex.ps1 validate -Run
 pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/hebrinex.ps1 audit -RunNegativeTests
 pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/hebrinex.ps1 migrate -CheckOnly
 pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/hebrinex.ps1 command -CheckOnly -CommandText "Get-Content README.md"
+pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/hebrinex.ps1 command -Apply -CommandText "Test-Path README.md"
 ```
 
 `status`, `budget`, `preflight` y `bootstrap -CheckOnly` no escriben. La CLI
 delega en validadores y migrador existentes; no reemplaza `state.yaml`,
 `registry.yaml`, gates ni evidencia.
 
-`command -CheckOnly` tampoco ejecuta el comando recibido. Solo clasifica contra
+`command -CheckOnly` no ejecuta el comando recibido. Solo clasifica contra
 `orquestador/security/command-risk-registry.yaml`, redacciona secretos simples,
 bloquea comandos desconocidos o compuestos y devuelve si requiere preflight/SI.
-Con `-Json`, emite `hebrinex.command_gateway.result` para validacion automatica
-y genera un preflight estructurado para cualquier bloqueo.
+`command -Apply` conserva el mismo deny-by-default y solo ejecuta planes read-only
+estrictos (`Get-Content`, `Select-String`, `Test-Path`, `Get-ChildItem`,
+`git status --short`) dentro del root del harness. Con `-Json`, emite
+`hebrinex.command_gateway.result` con decision, ejecucion y evidencia redactada.
 
 ## Detractor Senior
 

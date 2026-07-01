@@ -15,13 +15,14 @@
     "executes",
     "reason",
     "generated_preflight",
+    "execution",
     "next_step"
   ],
   "properties": {
     "schema": { "const": "hebrinex.command_gateway.result" },
-    "version": { "const": "0.2" },
+    "version": { "const": "0.3" },
     "root": { "type": "string" },
-    "mode": { "const": "CheckOnly" },
+    "mode": { "enum": ["CheckOnly", "Apply"] },
     "command_text": { "type": "string" },
     "purpose": { "type": "string" },
     "approval_id": { "type": "string" },
@@ -32,7 +33,7 @@
     "requires_preflight": { "type": "boolean" },
     "requires_si": { "type": "boolean" },
     "writes": { "const": false },
-    "executes": { "const": false },
+    "executes": { "type": "boolean" },
     "matched_pattern": { "type": "string" },
     "reason": { "type": "string" },
     "generated_preflight": {
@@ -64,6 +65,18 @@
         "verification": { "type": "string" },
         "expected_evidence": { "type": "string" },
         "requires_si": { "type": "boolean" }
+      }
+    },
+    "execution": {
+      "type": "object",
+      "required": ["attempted", "exit_code", "timed_out", "timeout_seconds", "stdout", "stderr"],
+      "properties": {
+        "attempted": { "type": "boolean" },
+        "exit_code": { "type": ["integer", "null"] },
+        "timed_out": { "type": "boolean" },
+        "timeout_seconds": { "type": "integer", "minimum": 1, "maximum": 120 },
+        "stdout": { "type": "string" },
+        "stderr": { "type": "string" }
       }
     },
     "next_step": { "type": "string" }
