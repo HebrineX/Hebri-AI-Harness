@@ -2,6 +2,31 @@
 
 ## [Unreleased]
 
+## [0.10.8] - 2026-07-01
+
+### Added
+- `hebrinex.ps1 restore-bound -CheckOnly|-Apply -ProjectRoot <path> -BackupId <id>`
+  para restaurar un harness bound desde un backup previo de `update-bound`.
+- `scripts/validate-bound-restore.ps1` con smoke end-to-end: bootstrap
+  temporal, update con backup, restore `CheckOnly`, restore `Apply`,
+  preservacion del binding y validacion del harness bound restaurado.
+- Reporte aplicado `migration-bound-restore-*.yaml` con backup previo al
+  restore, `source_backup_id` y resultados de validadores.
+
+### Changed
+- `validate-harness.ps1`, `audit-harness.ps1`, `init.sh` y
+  `harness-manifest.txt` integran `validate-bound-restore.ps1`.
+- `migration-registry.yaml` declara la ruta `bound-restore-from-backup`.
+
+### Security
+- `restore-bound` rechaza `BackupId` inseguros, traversal, rutas absolutas y
+  backups fuera de `orquestador/migration/backups/`.
+- `restore-bound Apply` crea backup pre-restore antes del primer write.
+- `restore-bound Apply` restaura solo archivos listados en el
+  `backup-manifest.txt` del backup seleccionado.
+- El restore es no destructivo (`deletes_extra_files: false`) y corre
+  validadores antes de declarar `restore_status=applied`.
+
 ## [0.10.7] - 2026-07-01
 
 ### Added

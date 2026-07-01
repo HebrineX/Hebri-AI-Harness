@@ -1,6 +1,6 @@
 schema: hebrinex.migration_registry
 version: "0.1"
-harness_version: "0.10.7"
+harness_version: "0.10.8"
 status: active
 authority:
   migration_definition: harness_only
@@ -34,6 +34,15 @@ routes:
       - orquestador/memory/local/
       - orquestador/memory/project/
       - orquestador/migration/reports/
+  - id: "bound-restore-from-backup"
+    source_version: "0.10.x"
+    target_version: "0.10.x"
+    route_file: scripts/hebrinex.ps1
+    supported_binding_modes: [bound]
+    check_only: true
+    apply: true
+    requires_backup_id: true
+    deletes_extra_files: false
 required_contracts:
   post_migration_contract: orquestador/migration/contracts/post-migration-contract.yaml
 required_report_template: orquestador/migration/reports/migration-report.template.yaml
@@ -42,6 +51,7 @@ required_validators:
   - scripts/validate-security-policy.ps1
   - scripts/validate-migration.ps1
   - scripts/validate-bound-update.ps1
+  - scripts/validate-bound-restore.ps1
   - scripts/audit-harness.ps1
 preserve_by_default:
   - PROJECT_BINDING.yaml

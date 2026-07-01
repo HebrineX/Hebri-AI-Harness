@@ -1,6 +1,6 @@
 param(
   [Parameter(Position = 0)]
-  [ValidateSet('help','status','budget','preflight','validate','audit','migrate','bootstrap','update-bound','command')]
+  [ValidateSet('help','status','budget','preflight','validate','audit','migrate','bootstrap','update-bound','restore-bound','command')]
   [string]$Command = 'help',
   [string]$Root = (Split-Path -Parent $PSScriptRoot),
   [switch]$RunNegativeTests,
@@ -8,6 +8,7 @@ param(
   [switch]$Apply,
   [string]$TargetVersion = '0.10.0',
   [string]$ProjectRoot = '',
+  [string]$BackupId = '',
   [string]$ApprovalId = '',
   [string]$Action = '',
   [string]$ReadSet = '',
@@ -731,6 +732,194 @@ function Write-BoundUpdateCheckOnly([string]$ProjectRootValue) {
   Write-Host 'apply_available=true'
   Write-Host 'requires_project_root=true'
 }
+
+function Test-SafeBackupId([string]$Value) {
+  if ([string]::IsNullOrWhiteSpace($Value)) { return $false }
+  if ($Value -match '[\\/]' -or $Value -match '[.][.]') { return $false }
+  return ($Value -match '^[A-Za-z0-9_.-]+$')
+}
+
+function Resolve-BoundRestoreBackup([string]$BoundRoot, [string]$RequestedBackupId) {
+  if (-not (Test-SafeBackupId $RequestedBackupId)) { throw 'restore-bound requires safe -BackupId' }
+  $backupRoot = Join-Path $BoundRoot 'orquestador/migration/backups'
+  $backupPath = Join-Path $backupRoot $RequestedBackupId
+  $backupFull = [IO.Path]::GetFullPath($backupPath).TrimEnd('\','/')
+  $backupRootFull = [IO.Path]::GetFullPath($backupRoot).TrimEnd('\','/')
+  if (-not ($backupFull.StartsWith(($backupRootFull + [IO.Path]::DirectorySeparatorChar), [StringComparison]::OrdinalIgnoreCase) -or
+            $backupFull.StartsWith(($backupRootFull + [IO.Path]::AltDirectorySeparatorChar), [StringComparison]::OrdinalIgnoreCase))) {
+    throw 'BackupId resolved outside migration backups'
+  }
+  if (-not (Test-Path -LiteralPath $backupFull -PathType Container)) { throw "backup not found: $RequestedBackupId" }
+  $filesRoot = Join-Path $backupFull 'files'
+  if (-not (Test-Path -LiteralPath $filesRoot -PathType Container)) { throw "backup has no files directory: $RequestedBackupId" }
+  $manifestPath = Join-Path $backupFull 'backup-manifest.txt'
+  if (-not (Test-Path -LiteralPath $manifestPath -PathType Leaf)) { throw "backup manifest missing: $RequestedBackupId" }
+  return [ordered]@{ Id = $RequestedBackupId; Path = $backupFull; FilesRoot = $filesRoot; ManifestPath = $manifestPath }
+}
+
+function Get-SafeRestoreRelativePath([string]$RelativePath) {
+  $norm = ($RelativePath -replace '\\','/').Trim('/')
+  if ([string]::IsNullOrWhiteSpace($norm)) { throw 'restore manifest contains empty path' }
+  if ($norm -match '[.][.]' -or [IO.Path]::IsPathRooted($norm)) { throw "restore manifest contains unsafe path: $RelativePath" }
+  if (Test-BootstrapExcludedPath $norm) { throw "restore manifest contains excluded path: $RelativePath" }
+  return $norm
+}
+
+function Get-RestoreTargetVersion([object]$Backup, [string]$FallbackVersion) {
+  $versionPath = Join-Path $Backup.FilesRoot 'HARNESS_VERSION'
+  if (Test-Path -LiteralPath $versionPath -PathType Leaf) {
+    $version = ([IO.File]::ReadAllText($versionPath)).Trim()
+    if (-not [string]::IsNullOrWhiteSpace($version)) { return $version }
+  }
+  return $FallbackVersion
+}
+
+function Restore-BoundBackupFiles([string]$BoundRoot, [object]$Backup) {
+  $restored = 0
+  $boundFull = [IO.Path]::GetFullPath($BoundRoot).TrimEnd('\','/')
+  foreach ($line in ([IO.File]::ReadAllLines($Backup.ManifestPath))) {
+    if ([string]::IsNullOrWhiteSpace($line)) { continue }
+    if ($line -match '^(no_existing_bound_files|no_preexisting_project_files)$') { continue }
+    $rel = Get-SafeRestoreRelativePath (($line -split '[|]')[0])
+    $source = Join-Path $Backup.FilesRoot ($rel -replace '/', [IO.Path]::DirectorySeparatorChar)
+    if (-not (Test-Path -LiteralPath $source -PathType Leaf)) { throw "backup source file missing: $rel" }
+    $destination = Join-Path $BoundRoot ($rel -replace '/', [IO.Path]::DirectorySeparatorChar)
+    $destinationFull = [IO.Path]::GetFullPath($destination)
+    if (-not ($destinationFull.StartsWith(($boundFull + [IO.Path]::DirectorySeparatorChar), [StringComparison]::OrdinalIgnoreCase) -or
+              $destinationFull.StartsWith(($boundFull + [IO.Path]::AltDirectorySeparatorChar), [StringComparison]::OrdinalIgnoreCase))) {
+      throw "restore destination outside bound root: $rel"
+    }
+    Ensure-Directory (Split-Path -Parent $destination)
+    Copy-Item -LiteralPath $source -Destination $destination -Force
+    $restored++
+  }
+  return $restored
+}
+
+function Write-BoundRestoreMigrationReport([string]$BoundRoot, [string]$RestoreId, [string]$SourceVersion, [string]$TargetVersion, [string]$ProjectRootPath, [object]$RestoreSource, [object]$PreRestoreBackup, [hashtable]$ValidatorResults, [int]$RestoredFiles, [string]$StartedAt, [string]$FinishedAt) {
+  $validateAgent = if ($ValidatorResults.ContainsKey('validate_agent_contracts')) { $ValidatorResults['validate_agent_contracts'] } else { 'not_run' }
+  $validateSecurity = if ($ValidatorResults.ContainsKey('validate_security_policy')) { $ValidatorResults['validate_security_policy'] } else { 'not_run' }
+  $validateMigration = if ($ValidatorResults.ContainsKey('validate_migration')) { $ValidatorResults['validate_migration'] } else { 'not_run' }
+  $validateHarness = if ($ValidatorResults.ContainsKey('validate_harness')) { $ValidatorResults['validate_harness'] } else { 'not_run' }
+  $report = @"
+schema: hebrinex.migration_report
+version: "0.1"
+template: false
+migration_id: "$RestoreId"
+approval_id: "HAH-0108-BOUND-RESTORE-SAFE"
+source_version: "$SourceVersion"
+target_version: "$TargetVersion"
+mode: "Apply"
+status: applied
+started_at: "$StartedAt"
+finished_at: "$FinishedAt"
+root: $(Format-YamlString $BoundRoot)
+binding_mode: "bound"
+project_root: $(Format-YamlString $ProjectRootPath)
+route_file: "bound-restore-from-backup"
+check_only:
+  wrote_files: false
+  requires_backup_id: true
+backup:
+  required: true
+  created: true
+  path: $(Format-YamlString $PreRestoreBackup.Path)
+  manifest_or_checksum: $(Format-YamlString $PreRestoreBackup.ManifestPath)
+  files_captured: $($PreRestoreBackup.FileCount)
+restore:
+  source_backup_id: $(Format-YamlString $RestoreSource.Id)
+  source_backup_path: $(Format-YamlString $RestoreSource.Path)
+  source_manifest: $(Format-YamlString $RestoreSource.ManifestPath)
+  restored_files: $RestoredFiles
+  deletes_extra_files: false
+validators:
+  validate_agent_contracts: $validateAgent
+  validate_security_policy: $validateSecurity
+  validate_migration: $validateMigration
+  validate_harness: $validateHarness
+post_migration_contract:
+  path: $(Format-YamlString (Join-Path $BoundRoot 'orquestador/migration/contracts/post-migration-contract.yaml'))
+  status: applied
+risks:
+  - $(Format-YamlString 'restore-bound overwrites only files present in the selected backup manifest')
+next_steps:
+  - $(Format-YamlString 'Review restored harness state before the next update-bound operation')
+"@
+  $reportPath = Join-Path $BoundRoot "orquestador/migration/reports/$RestoreId.yaml"
+  Write-Utf8Text $reportPath ($report + "`n")
+  return $reportPath
+}
+
+function Invoke-BoundRestoreApply([string]$ProjectRootValue, [string]$RequestedBackupId) {
+  $sourceBindingText = Read-HarnessText 'PROJECT_BINDING.yaml'
+  $sourceMode = Get-Scalar $sourceBindingText 'binding_mode'
+  if ($sourceMode -ne 'source_template') { throw "restore-bound Apply requires source_template root, got: $sourceMode" }
+  $target = Resolve-BoundUpdateTarget $Root $ProjectRootValue
+  $currentVersionPath = Join-Path $target.BoundRoot 'HARNESS_VERSION'
+  $sourceVersion = if (Test-Path -LiteralPath $currentVersionPath -PathType Leaf) { ([IO.File]::ReadAllText($currentVersionPath)).Trim() } else { Get-Scalar $target.Binding 'harness_version' }
+  if ([string]::IsNullOrWhiteSpace($sourceVersion)) { $sourceVersion = 'unknown' }
+  $restoreSource = Resolve-BoundRestoreBackup $target.BoundRoot $RequestedBackupId
+  $targetVersion = Get-RestoreTargetVersion $restoreSource $sourceVersion
+  $startedAt = (Get-Date).ToUniversalTime().ToString('o')
+  $restoreId = 'migration-bound-restore-' + (Get-Date).ToUniversalTime().ToString('yyyyMMddTHHmmssZ') + '-' + ([guid]::NewGuid().ToString('N').Substring(0, 8))
+  $preRestoreBackup = Create-BoundUpdateBackupRecord $target.BoundRoot $restoreId
+  $restoredFiles = Restore-BoundBackupFiles $target.BoundRoot $restoreSource
+
+  $validatorResults = @{}
+  $validatorResults['validate_agent_contracts'] = Invoke-BoundValidator $target.BoundRoot 'scripts/validate-agent-contracts.ps1'
+  $validatorResults['validate_security_policy'] = Invoke-BoundValidator $target.BoundRoot 'scripts/validate-security-policy.ps1'
+  $reportPath = Write-BoundRestoreMigrationReport $target.BoundRoot $restoreId $sourceVersion $targetVersion $target.ProjectRoot $restoreSource $preRestoreBackup $validatorResults $restoredFiles $startedAt (Get-Date).ToUniversalTime().ToString('o')
+  $validatorResults['validate_migration'] = Invoke-BoundValidator $target.BoundRoot 'scripts/validate-migration.ps1' @('-RequireApplied')
+  $validatorResults['validate_harness'] = Invoke-BoundValidator $target.BoundRoot 'scripts/validate-harness.ps1' @('-RunNegativeTests')
+  $reportPath = Write-BoundRestoreMigrationReport $target.BoundRoot $restoreId $sourceVersion $targetVersion $target.ProjectRoot $restoreSource $preRestoreBackup $validatorResults $restoredFiles $startedAt (Get-Date).ToUniversalTime().ToString('o')
+
+  return [ordered]@{
+    ProjectRoot = $target.ProjectRoot
+    BoundRoot = $target.BoundRoot
+    RestoreId = $restoreId
+    SourceVersion = $sourceVersion
+    TargetVersion = $targetVersion
+    RestoreSourceId = $restoreSource.Id
+    RestoredFiles = $restoredFiles
+    BackupPath = $preRestoreBackup.Path
+    BackupManifest = $preRestoreBackup.ManifestPath
+    ReportPath = $reportPath
+  }
+}
+
+function Write-BoundRestoreCheckOnly([string]$ProjectRootValue, [string]$RequestedBackupId) {
+  $bindingText = Read-HarnessText 'PROJECT_BINDING.yaml'
+  Write-Host 'Hebri-AI-Harness restore-bound CheckOnly'
+  Write-Host "source_root=$Root"
+  Write-Host "source_binding_mode=$(Get-Scalar $bindingText 'binding_mode')"
+  Write-Host "target_project_root=$ProjectRootValue"
+  Write-Host "backup_id=$RequestedBackupId"
+  if (-not [string]::IsNullOrWhiteSpace($ProjectRootValue)) {
+    try {
+      $target = Resolve-BoundUpdateTarget $Root $ProjectRootValue
+      Write-Host "resolved_project_root=$($target.ProjectRoot)"
+      Write-Host "target_harness_root=$($target.BoundRoot)"
+      if (-not [string]::IsNullOrWhiteSpace($RequestedBackupId)) {
+        $backup = Resolve-BoundRestoreBackup $target.BoundRoot $RequestedBackupId
+        Write-Host "restore_source_path=$($backup.Path)"
+        Write-Host "restore_source_manifest=$($backup.ManifestPath)"
+      }
+    }
+    catch { Write-Host "target_validation=$($_.Exception.Message)" }
+  }
+  Write-Host 'planned_steps:'
+  Write-Host ' - validate source_template'
+  Write-Host ' - validate existing target <project_root>/.hebrinex is bound'
+  Write-Host ' - validate BackupId stays inside orquestador/migration/backups'
+  Write-Host ' - create pre-restore backup before first write'
+  Write-Host ' - restore only files present in backup-manifest.txt and files/'
+  Write-Host ' - block path traversal, .git, .codex and infoHebri.md'
+  Write-Host ' - run bound validators'
+  Write-Host 'writes=false'
+  Write-Host 'restore_available=true'
+  Write-Host 'requires_project_root=true'
+  Write-Host 'requires_backup_id=true'
+}
 function Invoke-BoundValidator([string]$BoundRoot, [string]$RelativePath, [string[]]$ExtraArgs = @()) {
   $scriptPath = Join-Path $BoundRoot $RelativePath
   if (-not (Test-Path -LiteralPath $scriptPath -PathType Leaf)) { throw "missing bound validator: $RelativePath" }
@@ -821,6 +1010,7 @@ function Show-Help() {
   Write-Host '  hebrinex.ps1 migrate -CheckOnly|-Apply [-TargetVersion 0.10.0]'
   Write-Host '  hebrinex.ps1 bootstrap -CheckOnly|-Apply -ProjectRoot <path>'
   Write-Host '  hebrinex.ps1 update-bound -CheckOnly|-Apply -ProjectRoot <path>'
+  Write-Host '  hebrinex.ps1 restore-bound -CheckOnly|-Apply -ProjectRoot <path> -BackupId <id>'
   Write-Host '  hebrinex.ps1 command -CheckOnly|-Apply -CommandText <command> [-Purpose <text>] [-Json]'
 }
 
@@ -960,6 +1150,29 @@ switch ($Command) {
     Write-Host "migration_report=$($result.ReportPath)"
     Write-Host 'writes=true'
     Write-Host 'update_status=applied'
+  }
+  'restore-bound' {
+    if (($CheckOnly -and $Apply) -or (-not $CheckOnly -and -not $Apply)) {
+      throw 'restore-bound requires exactly one mode: -CheckOnly or -Apply'
+    }
+    if ($CheckOnly) {
+      Write-BoundRestoreCheckOnly $ProjectRoot $BackupId
+      break
+    }
+    $result = Invoke-BoundRestoreApply $ProjectRoot $BackupId
+    Write-Host 'Hebri-AI-Harness restore-bound Apply'
+    Write-Host "source_root=$Root"
+    Write-Host "target_project_root=$($result.ProjectRoot)"
+    Write-Host "target_harness_root=$($result.BoundRoot)"
+    Write-Host "source_version=$($result.SourceVersion)"
+    Write-Host "target_version=$($result.TargetVersion)"
+    Write-Host "restore_source_id=$($result.RestoreSourceId)"
+    Write-Host "restored_files=$($result.RestoredFiles)"
+    Write-Host "pre_restore_backup_path=$($result.BackupPath)"
+    Write-Host "pre_restore_backup_manifest=$($result.BackupManifest)"
+    Write-Host "migration_report=$($result.ReportPath)"
+    Write-Host 'writes=true'
+    Write-Host 'restore_status=applied'
   }
   'command' {
     if (($CheckOnly -and $Apply) -or (-not $CheckOnly -and -not $Apply)) {

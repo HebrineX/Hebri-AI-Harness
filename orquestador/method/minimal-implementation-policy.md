@@ -1,6 +1,6 @@
 # Minimal Implementation Policy
 
-Version: 0.10.7
+Version: 0.10.8
 
 Esta politica evita que el agente construya mas de lo necesario. Se ejecuta antes de cualquier implementacion o cambio con escritura mediante `auditor(profile: detractor_senior)`.
 

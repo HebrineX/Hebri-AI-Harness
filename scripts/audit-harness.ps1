@@ -35,6 +35,7 @@ Write-Host "Auditing Hebri-AI-Harness at $Root"
 Invoke-Validator 'validate-release' (Join-Path $scriptRoot 'validate-release.ps1')
 Invoke-Validator 'validate-bootstrap' (Join-Path $scriptRoot 'validate-bootstrap.ps1')
 Invoke-Validator 'validate-bound-update' (Join-Path $scriptRoot 'validate-bound-update.ps1')
+Invoke-Validator 'validate-bound-restore' (Join-Path $scriptRoot 'validate-bound-restore.ps1')
 Invoke-Validator 'validate-agent-contracts' (Join-Path $scriptRoot 'validate-agent-contracts.ps1')
 Invoke-Validator 'validate-security-policy' (Join-Path $scriptRoot 'validate-security-policy.ps1')
 Invoke-Validator 'validate-migration' (Join-Path $scriptRoot 'validate-migration.ps1')

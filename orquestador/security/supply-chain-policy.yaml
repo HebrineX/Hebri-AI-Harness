@@ -1,6 +1,6 @@
 schema: hebrinex.security.supply_chain_policy
 version: "0.1"
-harness_version: "0.10.7"
+harness_version: "0.10.8"
 default: deny
 dependency_install:
   requires_preflight: true

@@ -1,6 +1,6 @@
 schema: hebrinex.adapter
 version: "0.1"
-harness_version: "0.10.7"
+harness_version: "0.10.8"
 adapter_id: cursor
 host: "Cursor"
 instruction_surfaces:

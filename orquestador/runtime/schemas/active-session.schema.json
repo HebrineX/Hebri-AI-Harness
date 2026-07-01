@@ -6,7 +6,7 @@
   "properties": {
     "schema": { "const": "hebrinex.runtime.active_session" },
     "version": { "type": "string" },
-    "harness_version": { "const": "0.10.7" },
+    "harness_version": { "const": "0.10.8" },
     "binding_status": { "enum": ["source_template", "bound", "missing", "mismatch"] },
     "mode": { "enum": ["manual", "automatico"] },
     "chat_role": { "const": "interpreter" },
