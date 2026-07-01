@@ -1,6 +1,6 @@
 schema: hebrinex.security.permission_registry
 version: "0.1"
-harness_version: "0.10.8"
+harness_version: "0.10.9"
 precedence: [explicit_deny, missing_contract_block, missing_capability_block, requires_preflight, allow_readonly]
 defaults:
   unknown_permission: block

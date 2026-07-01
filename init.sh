@@ -109,6 +109,7 @@ require_grep "scripts/migrate-harness.ps1" "$ROOT/orquestador/harness-manifest.t
 require_grep "scripts/validate-release.ps1" "$ROOT/orquestador/harness-manifest.txt" "validate-release.ps1 no esta en manifest"
 require_grep "scripts/validate-bootstrap.ps1" "$ROOT/orquestador/harness-manifest.txt" "validate-bootstrap.ps1 no esta en manifest"
 require_grep "scripts/validate-bound-update.ps1" "$ROOT/orquestador/harness-manifest.txt" "validate-bound-update.ps1 no esta en manifest"
+require_grep "scripts/validate-bound-backups.ps1" "$ROOT/orquestador/harness-manifest.txt" "validate-bound-backups.ps1 no esta en manifest"
 require_grep "scripts/validate-bound-restore.ps1" "$ROOT/orquestador/harness-manifest.txt" "validate-bound-restore.ps1 no esta en manifest"
 require_grep "project-binding.schema.yaml" "$ROOT/orquestador/harness-manifest.txt" "schema project-binding no esta en manifest"
 require_grep "context-budget.schema.yaml" "$ROOT/orquestador/harness-manifest.txt" "schema context-budget no esta en manifest"
@@ -163,6 +164,7 @@ if grep -q "HashData\|ToHexString" "$ROOT/scripts/build-instructions.ps1"; then 
 "$PSH" -NoProfile -ExecutionPolicy Bypass -File "$ROOT/scripts/validate-release.ps1" -Root "$ROOT"
 "$PSH" -NoProfile -ExecutionPolicy Bypass -File "$ROOT/scripts/validate-bootstrap.ps1" -Root "$ROOT" -RunNegativeTests
 "$PSH" -NoProfile -ExecutionPolicy Bypass -File "$ROOT/scripts/validate-bound-update.ps1" -Root "$ROOT" -RunNegativeTests
+"$PSH" -NoProfile -ExecutionPolicy Bypass -File "$ROOT/scripts/validate-bound-backups.ps1" -Root "$ROOT" -RunNegativeTests
 "$PSH" -NoProfile -ExecutionPolicy Bypass -File "$ROOT/scripts/validate-bound-restore.ps1" -Root "$ROOT" -RunNegativeTests
 "$PSH" -NoProfile -ExecutionPolicy Bypass -File "$ROOT/scripts/validate-agent-contracts.ps1" -Root "$ROOT" -RunNegativeTests
 "$PSH" -NoProfile -ExecutionPolicy Bypass -File "$ROOT/scripts/validate-security-policy.ps1" -Root "$ROOT" -RunNegativeTests

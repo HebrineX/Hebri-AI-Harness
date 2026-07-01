@@ -1,6 +1,6 @@
 schema: hebrinex.agent_registry
 version: "0.1"
-harness_version: "0.10.8"
+harness_version: "0.10.9"
 authority:
   hard_lock_id: HL0_agent_authority
   agent_definition_authority: harness_only

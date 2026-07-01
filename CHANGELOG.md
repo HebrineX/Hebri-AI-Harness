@@ -2,6 +2,31 @@
 
 ## [Unreleased]
 
+## [0.10.9] - 2026-07-01
+
+### Added
+- `hebrinex.ps1 list-bound-backups -CheckOnly -ProjectRoot <path>` para
+  inventariar backups disponibles en un harness bound antes de restaurar.
+- `scripts/validate-bound-backups.ps1` con smoke end-to-end: bootstrap
+  temporal, `update-bound`, backup valido, backup corrupto controlado y
+  verificacion de inventario read-only.
+- Ruta `bound-backup-inventory` en `migration-registry.yaml`.
+
+### Changed
+- `validate-harness.ps1`, `audit-harness.ps1`, `init.sh` y
+  `harness-manifest.txt` integran `validate-bound-backups.ps1`.
+- El flujo `restore-bound` queda complementado por una inspeccion previa de
+  `BackupId` restaurables.
+
+### Security
+- El inventario marca como no restaurables backups sin `backup-manifest.txt`,
+  sin `files/`, con paths inseguros, traversal, rutas excluidas o archivos
+  faltantes.
+- `list-bound-backups` es exclusivamente `CheckOnly`, reporta `writes=false`
+  y no modifica el bound harness.
+- La salida distingue `backup_restorable=true|false`, version capturada,
+  cantidad de entradas, archivos restaurables, manifest y motivo de rechazo.
+
 ## [0.10.8] - 2026-07-01
 
 ### Added

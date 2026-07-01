@@ -1,6 +1,6 @@
 schema: hebrinex.adapter
 version: "0.1"
-harness_version: "0.10.8"
+harness_version: "0.10.9"
 adapter_id: generic-ai
 host: "Generic AI"
 instruction_surfaces:

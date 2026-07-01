@@ -331,6 +331,7 @@ file scripts/command-gateway.ps1
 file scripts/validate-command-gateway.ps1
 file scripts/validate-bootstrap.ps1
 file scripts/validate-bound-update.ps1
+file scripts/validate-bound-backups.ps1
 file scripts/validate-bound-restore.ps1
 file scripts/validate-release.ps1
 

@@ -1,7 +1,7 @@
 schema: hebrinex.post_migration_contract
 version: "0.1"
 template: true
-harness_version: "0.10.8"
+harness_version: "0.10.9"
 source_version: ""
 target_version: "0.10.0"
 binding_mode: ""

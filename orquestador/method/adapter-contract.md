@@ -1,6 +1,6 @@
 # Adapter Contract
 
-Version: 0.10.8
+Version: 0.10.9
 
 Todo adapter debe usar esta entrada minima antes de actuar:
 

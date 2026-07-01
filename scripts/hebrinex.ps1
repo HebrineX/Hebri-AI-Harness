@@ -1,6 +1,6 @@
 param(
   [Parameter(Position = 0)]
-  [ValidateSet('help','status','budget','preflight','validate','audit','migrate','bootstrap','update-bound','restore-bound','command')]
+  [ValidateSet('help','status','budget','preflight','validate','audit','migrate','bootstrap','update-bound','list-bound-backups','restore-bound','command')]
   [string]$Command = 'help',
   [string]$Root = (Split-Path -Parent $PSScriptRoot),
   [switch]$RunNegativeTests,
@@ -774,6 +774,136 @@ function Get-RestoreTargetVersion([object]$Backup, [string]$FallbackVersion) {
   return $FallbackVersion
 }
 
+function Get-BoundBackupOrigin([string]$BackupId) {
+  if ($BackupId -like 'migration-bound-update-*') { return 'update-bound' }
+  if ($BackupId -like 'migration-bound-restore-*') { return 'restore-bound-pre-backup' }
+  if ($BackupId -like 'migration-bootstrap-*') { return 'bootstrap' }
+  return 'unknown'
+}
+
+function Test-ChildPathOfRoot([string]$RootPath, [string]$CandidatePath) {
+  $rootFull = [IO.Path]::GetFullPath($RootPath).TrimEnd('\','/')
+  $candidateFull = [IO.Path]::GetFullPath($CandidatePath)
+  return ($candidateFull.StartsWith(($rootFull + [IO.Path]::DirectorySeparatorChar), [StringComparison]::OrdinalIgnoreCase) -or
+          $candidateFull.StartsWith(($rootFull + [IO.Path]::AltDirectorySeparatorChar), [StringComparison]::OrdinalIgnoreCase))
+}
+
+function Get-BoundBackupInventoryItem([string]$BoundRoot, [object]$BackupDirectory) {
+  $backupId = $BackupDirectory.Name
+  $backupPath = $BackupDirectory.FullName
+  $filesRoot = Join-Path $backupPath 'files'
+  $manifestPath = Join-Path $backupPath 'backup-manifest.txt'
+  $reasons = New-Object System.Collections.Generic.List[string]
+  $manifestEntries = 0
+  $restorableFiles = 0
+  $capturedVersion = 'unknown'
+
+  if (-not (Test-SafeBackupId $backupId)) { [void]$reasons.Add('unsafe_backup_id') }
+  if (-not (Test-Path -LiteralPath $manifestPath -PathType Leaf)) { [void]$reasons.Add('missing_manifest') }
+  if (-not (Test-Path -LiteralPath $filesRoot -PathType Container)) { [void]$reasons.Add('missing_files_dir') }
+
+  if ((Test-Path -LiteralPath $manifestPath -PathType Leaf) -and (Test-Path -LiteralPath $filesRoot -PathType Container)) {
+    $versionPath = Join-Path $filesRoot 'HARNESS_VERSION'
+    if (Test-Path -LiteralPath $versionPath -PathType Leaf) {
+      $versionText = ([IO.File]::ReadAllText($versionPath)).Trim()
+      if (-not [string]::IsNullOrWhiteSpace($versionText)) { $capturedVersion = $versionText }
+    }
+
+    foreach ($line in ([IO.File]::ReadAllLines($manifestPath))) {
+      if ([string]::IsNullOrWhiteSpace($line)) { continue }
+      if ($line -match '^(no_existing_bound_files|no_preexisting_project_files)$') { continue }
+      $manifestEntries++
+      try {
+        $rel = Get-SafeRestoreRelativePath (($line -split '[|]')[0])
+        $source = Join-Path $filesRoot ($rel -replace '/', [IO.Path]::DirectorySeparatorChar)
+        if (-not (Test-ChildPathOfRoot $filesRoot $source)) {
+          [void]$reasons.Add("source_outside_files_root:$rel")
+          continue
+        }
+        if (-not (Test-Path -LiteralPath $source -PathType Leaf)) {
+          [void]$reasons.Add("missing_source_file:$rel")
+          continue
+        }
+        $restorableFiles++
+      }
+      catch {
+        [void]$reasons.Add("unsafe_path:$($_.Exception.Message)")
+      }
+    }
+  }
+
+  $restorable = ($reasons.Count -eq 0 -and $manifestEntries -gt 0 -and $restorableFiles -eq $manifestEntries)
+  if ($reasons.Count -eq 0 -and $manifestEntries -eq 0) { [void]$reasons.Add('empty_manifest') }
+  $status = if ($restorable) { 'ok' } else { 'not_restorable' }
+  $reason = if ($reasons.Count -eq 0) { 'none' } else { ($reasons -join ';') }
+
+  return [ordered]@{
+    Id = $backupId
+    Origin = Get-BoundBackupOrigin $backupId
+    Path = $backupPath
+    ManifestPath = $manifestPath
+    FilesRoot = $filesRoot
+    CreatedUtc = $BackupDirectory.CreationTimeUtc.ToString('o')
+    UpdatedUtc = $BackupDirectory.LastWriteTimeUtc.ToString('o')
+    CapturedVersion = $capturedVersion
+    ManifestEntries = $manifestEntries
+    RestorableFiles = $restorableFiles
+    Restorable = $restorable
+    Status = $status
+    Reason = $reason
+  }
+}
+
+function Get-BoundBackupInventory([string]$BoundRoot) {
+  $backupRoot = Join-Path $BoundRoot 'orquestador/migration/backups'
+  $items = New-Object System.Collections.Generic.List[object]
+  if (-not (Test-Path -LiteralPath $backupRoot -PathType Container)) {
+    return [ordered]@{ BackupRoot = $backupRoot; Items = $items }
+  }
+  foreach ($dir in (Get-ChildItem -LiteralPath $backupRoot -Directory -Force | Sort-Object LastWriteTimeUtc -Descending)) {
+    [void]$items.Add((Get-BoundBackupInventoryItem $BoundRoot $dir))
+  }
+  return [ordered]@{ BackupRoot = $backupRoot; Items = $items }
+}
+
+function Write-BoundBackupInventoryCheckOnly([string]$ProjectRootValue) {
+  $bindingText = Read-HarnessText 'PROJECT_BINDING.yaml'
+  $sourceMode = Get-Scalar $bindingText 'binding_mode'
+  if ($sourceMode -ne 'source_template') { throw "list-bound-backups requires source_template root, got: $sourceMode" }
+  $target = Resolve-BoundUpdateTarget $Root $ProjectRootValue
+  $inventory = Get-BoundBackupInventory $target.BoundRoot
+  $restorableCount = @($inventory.Items | Where-Object { $_.Restorable }).Count
+
+  Write-Host 'Hebri-AI-Harness list-bound-backups CheckOnly'
+  Write-Host "source_root=$Root"
+  Write-Host "source_binding_mode=$sourceMode"
+  Write-Host "target_project_root=$ProjectRootValue"
+  Write-Host "resolved_project_root=$($target.ProjectRoot)"
+  Write-Host "target_harness_root=$($target.BoundRoot)"
+  Write-Host "target_binding_mode=$(Get-Scalar $target.Binding 'binding_mode')"
+  Write-Host "target_harness_version=$(Get-Scalar $target.Binding 'harness_version')"
+  Write-Host "backups_root=$($inventory.BackupRoot)"
+  Write-Host 'writes=false'
+  Write-Host 'backup_inventory_available=true'
+  Write-Host "backup_count=$($inventory.Items.Count)"
+  Write-Host "restorable_count=$restorableCount"
+  foreach ($item in $inventory.Items) {
+    Write-Host "backup_id=$($item.Id)"
+    Write-Host "backup_origin=$($item.Origin)"
+    Write-Host "backup_status=$($item.Status)"
+    Write-Host "backup_restorable=$($item.Restorable.ToString().ToLowerInvariant())"
+    Write-Host "backup_captured_version=$($item.CapturedVersion)"
+    Write-Host "backup_created_utc=$($item.CreatedUtc)"
+    Write-Host "backup_updated_utc=$($item.UpdatedUtc)"
+    Write-Host "backup_manifest=$($item.ManifestPath)"
+    Write-Host "backup_files_root=$($item.FilesRoot)"
+    Write-Host "backup_manifest_entries=$($item.ManifestEntries)"
+    Write-Host "backup_restorable_files=$($item.RestorableFiles)"
+    Write-Host "backup_reason=$($item.Reason)"
+  }
+  Write-Host 'inventory_status=ok'
+}
+
 function Restore-BoundBackupFiles([string]$BoundRoot, [object]$Backup) {
   $restored = 0
   $boundFull = [IO.Path]::GetFullPath($BoundRoot).TrimEnd('\','/')
@@ -1010,6 +1140,7 @@ function Show-Help() {
   Write-Host '  hebrinex.ps1 migrate -CheckOnly|-Apply [-TargetVersion 0.10.0]'
   Write-Host '  hebrinex.ps1 bootstrap -CheckOnly|-Apply -ProjectRoot <path>'
   Write-Host '  hebrinex.ps1 update-bound -CheckOnly|-Apply -ProjectRoot <path>'
+  Write-Host '  hebrinex.ps1 list-bound-backups -CheckOnly -ProjectRoot <path>'
   Write-Host '  hebrinex.ps1 restore-bound -CheckOnly|-Apply -ProjectRoot <path> -BackupId <id>'
   Write-Host '  hebrinex.ps1 command -CheckOnly|-Apply -CommandText <command> [-Purpose <text>] [-Json]'
 }
@@ -1150,6 +1281,12 @@ switch ($Command) {
     Write-Host "migration_report=$($result.ReportPath)"
     Write-Host 'writes=true'
     Write-Host 'update_status=applied'
+  }
+  'list-bound-backups' {
+    if ($Apply -or -not $CheckOnly) {
+      throw 'list-bound-backups supports only -CheckOnly'
+    }
+    Write-BoundBackupInventoryCheckOnly $ProjectRoot
   }
   'restore-bound' {
     if (($CheckOnly -and $Apply) -or (-not $CheckOnly -and -not $Apply)) {

@@ -1,6 +1,6 @@
 schema: hebrinex.security.command_risk_registry
 version: "0.1"
-harness_version: "0.10.8"
+harness_version: "0.10.9"
 defaults:
   unknown_command: block
   string_built_shell_from_untrusted_input: block
