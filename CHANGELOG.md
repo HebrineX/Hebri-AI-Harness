@@ -2,6 +2,31 @@
 
 ## [Unreleased]
 
+## [0.10.7] - 2026-07-01
+
+### Added
+- `hebrinex.ps1 update-bound -CheckOnly|-Apply -ProjectRoot <path>` para
+  actualizar un harness bound existente desde el source template.
+- `scripts/validate-bound-update.ps1` con smoke end-to-end: bootstrap temporal,
+  simulacion de version anterior, `update-bound CheckOnly`, `update-bound Apply`,
+  verificacion de preservacion y validacion del harness bound actualizado.
+- Reporte aplicado `migration-bound-update-*.yaml` y backup manifest para
+  actualizaciones source_template -> bound.
+
+### Changed
+- `validate-harness.ps1`, `audit-harness.ps1`, `init.sh` y
+  `harness-manifest.txt` integran `validate-bound-update.ps1`.
+- `migration-registry.yaml` declara la ruta
+  `bound-update-source-template-to-bound` y suma el validador de update-bound.
+
+### Security
+- `update-bound Apply` copia solo rutas declaradas en `harness-manifest.txt`.
+- `update-bound Apply` preserva `PROJECT_BINDING.yaml`, state, registry,
+  cycles, locks, approvals, memoria local/proyecto y evidencia de migracion.
+- `update-bound Apply` exige backup antes del primer write y rechaza targets
+  que no sean `.hebrinex` bound validos del proyecto consumidor.
+- El update corre validadores del bound antes de declarar `update_status=applied`.
+
 ## [0.10.6] - 2026-07-01
 
 ### Added

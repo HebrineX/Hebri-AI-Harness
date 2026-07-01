@@ -5,7 +5,7 @@ Plantilla compacta del contrato vivo.
 ```text
 Contrato activo:
 - Harness detectado: si | no | pendiente
-- Harness version: 0.10.6
+- Harness version: 0.10.7
 - Harness path: [ruta]
 - Project root: [ruta]
 - Binding: source_template | bound | missing | mismatch

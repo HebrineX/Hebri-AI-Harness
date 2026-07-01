@@ -1,6 +1,6 @@
 schema: hebrinex.adapter
 version: "0.1"
-harness_version: "0.10.6"
+harness_version: "0.10.7"
 adapter_id: deepseek
 host: "DeepSeek"
 instruction_surfaces:

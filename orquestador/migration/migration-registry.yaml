@@ -1,6 +1,6 @@
 schema: hebrinex.migration_registry
 version: "0.1"
-harness_version: "0.10.6"
+harness_version: "0.10.7"
 status: active
 authority:
   migration_definition: harness_only
@@ -9,6 +9,7 @@ authority:
   apply_requires_backup: true
 supported_targets:
   - "0.10.0"
+  - "0.10.x"
 routes:
   - id: "0.9.0-to-0.10.0"
     source_version: "0.9.0"
@@ -20,6 +21,19 @@ routes:
     target_version: "0.10.0"
     route_file: orquestador/migration/versions/0.8.10-to-0.10.0.yaml
     supported_binding_modes: [bound]
+  - id: "bound-update-source-template-to-bound"
+    source_version: "0.10.x"
+    target_version: "0.10.x"
+    route_file: scripts/hebrinex.ps1
+    supported_binding_modes: [bound]
+    check_only: true
+    apply: true
+    preserves:
+      - PROJECT_BINDING.yaml
+      - orquestador/sdd/progress/
+      - orquestador/memory/local/
+      - orquestador/memory/project/
+      - orquestador/migration/reports/
 required_contracts:
   post_migration_contract: orquestador/migration/contracts/post-migration-contract.yaml
 required_report_template: orquestador/migration/reports/migration-report.template.yaml
@@ -27,6 +41,7 @@ required_validators:
   - scripts/validate-agent-contracts.ps1
   - scripts/validate-security-policy.ps1
   - scripts/validate-migration.ps1
+  - scripts/validate-bound-update.ps1
   - scripts/audit-harness.ps1
 preserve_by_default:
   - PROJECT_BINDING.yaml
