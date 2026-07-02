@@ -1,6 +1,6 @@
 # Hebri-AI-Harness
 
-Referencia operativa actual: **0.10.10**.
+Referencia operativa actual: **0.10.11**.
 
 Sistema operativo para agentes IA basado en [Hebri-AI-Structure](https://github.com/HebrineX/Hebri-AI-Structure). Objetivo: contrato, trazabilidad y aprobaciones con 70-80% menos contexto frente a leer todo `.hebrinex`.
 
@@ -34,8 +34,9 @@ Si un proyecto no tiene `.hebrinex`, no se opera con un harness externo. Se copi
 
 ## Novedades Actuales
 
+- CLI estable: `scripts/hebrinex.ps1` expone contrato versionado, markers parseables y validacion dedicada con `validate-cli.ps1`.
 - CI oficial: GitHub Actions ejecuta validadores, auditores, drift checks,
-  fixtures de migracion, fixtures negativos de seguridad e `init.sh`.
+  fixtures de migracion, fixtures negativos de seguridad, CLI estable e `init.sh`.
 - Agent Contract System: los agentes existen por contratos YAML gobernados por el harness, no por prompts ni autoasignacion de IA.
 - Seguridad AppSec verificable: permisos, write-scope, comandos, red, secretos, escalacion, logging y supply-chain se validan por registries.
 - Servicio de migracion: rutas 0.8.10/0.9.0 -> 0.10.0 con CheckOnly, Apply con backup, reporte y contrato post-migracion aplicado.
@@ -62,6 +63,7 @@ Esta validacion revisa manifest, schemas, presupuestos, exclusion de documentaci
 El source template incluye `.github/workflows/ci.yml`. El job `Harness contract`
 corre en `pull_request` y `push` a `main`:
 
+- `scripts/validate-cli.ps1 -RunNegativeTests`
 - `scripts/validate-harness.ps1 -RunNegativeTests`
 - `scripts/audit-harness.ps1 -RunNegativeTests`
 - `scripts/check-adapter-drift.ps1`
@@ -74,28 +76,36 @@ en branch protection.
 
 ## CLI Core
 
-`scripts/hebrinex.ps1` es la entrada unica liviana para operar scripts del
-harness sin cargar todo el contexto:
+`scripts/hebrinex.ps1` es la entrada unica liviana y estable para operar scripts
+del harness sin cargar todo el contexto. El contrato publico vive en
+`orquestador/method/cli-contract.md` y se valida con `scripts/validate-cli.ps1`.
 
 ```powershell
+pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/hebrinex.ps1 help
 pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/hebrinex.ps1 status
 pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/hebrinex.ps1 budget
 pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/hebrinex.ps1 preflight
 pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/hebrinex.ps1 validate -RunNegativeTests
 pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/hebrinex.ps1 audit -RunNegativeTests
 pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/hebrinex.ps1 migrate -CheckOnly
+pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/hebrinex.ps1 bootstrap -CheckOnly -ProjectRoot C:\path\project
+pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/hebrinex.ps1 update-bound -CheckOnly -ProjectRoot C:\path\project
+pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/hebrinex.ps1 list-bound-backups -CheckOnly -ProjectRoot C:\path\project
+pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/hebrinex.ps1 restore-bound -CheckOnly -ProjectRoot C:\path\project -BackupId <id>
 pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/hebrinex.ps1 command -CheckOnly -CommandText "Get-Content README.md"
 pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/hebrinex.ps1 command -Apply -CommandText "Test-Path README.md"
 ```
 
-`status`, `budget`, `preflight` y `bootstrap -CheckOnly` no escriben. La CLI
-delega en validadores y migrador existentes; no reemplaza `state.yaml`,
-`registry.yaml`, gates ni evidencia.
+La salida de `help` incluye `cli_contract_version=0.1`, `cli_status=stable` y
+la lista cerrada de comandos publicos. `status`, `budget`, `preflight` y los
+modos `-CheckOnly` no escriben. La CLI delega en validadores, migrador,
+bootstrap/update/restore y Command Gateway existentes; no reemplaza
+`state.yaml`, `registry.yaml`, gates ni evidencia.
 
 `command -CheckOnly` no ejecuta el comando recibido. Solo clasifica contra
 `orquestador/security/command-risk-registry.yaml`, redacciona secretos simples,
 bloquea comandos desconocidos o compuestos y devuelve si requiere preflight/SI.
-`command -Apply` conserva el mismo deny-by-default y solo ejecuta planes read-only
+`command -Apply` conserva deny-by-default y solo ejecuta planes read-only
 estrictos (`Get-Content`, `Select-String`, `Test-Path`, `Get-ChildItem`,
 `git status --short`) dentro del root del harness. Con `-Json`, emite
 `hebrinex.command_gateway.result` con decision, ejecucion y evidencia redactada.

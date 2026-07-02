@@ -86,6 +86,7 @@ if ($bindingMode -eq 'source_template') {
   Assert-ContainsText '.github/workflows/ci.yml' 'pull_request:' 'source template CI must run on pull_request'
   Assert-ContainsText '.github/workflows/ci.yml' 'push:' 'source template CI must run on push'
   Assert-ContainsText '.github/workflows/ci.yml' 'validate-harness[.]ps1 -Root [.] -RunNegativeTests' 'CI must run validate-harness negative tests'
+  Assert-ContainsText '.github/workflows/ci.yml' 'validate-cli[.]ps1 -Root [.] -RunNegativeTests' 'CI must run stable CLI validation'
   Assert-ContainsText '.github/workflows/ci.yml' 'audit-harness[.]ps1 -Root [.] -RunNegativeTests' 'CI must run audit-harness negative tests'
   Assert-ContainsText '.github/workflows/ci.yml' 'check-adapter-drift[.]ps1 -Root [.]' 'CI must run adapter drift check'
   Assert-ContainsText '.github/workflows/ci.yml' 'validate-migration[.]ps1 -Root [.] -RunNegativeTests' 'CI must run migration negative tests'

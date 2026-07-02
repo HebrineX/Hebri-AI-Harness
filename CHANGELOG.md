@@ -2,6 +2,29 @@
 
 ## [Unreleased]
 
+## [0.10.11] - 2026-07-01
+
+### Added
+- `orquestador/method/cli-contract.md` como contrato publico de CLI estable.
+- `scripts/validate-cli.ps1` para validar comandos publicos, markers parseables,
+  modos `CheckOnly`/`Apply`, salida JSON del Command Gateway y negativos de modo.
+
+### Changed
+- `hebrinex.ps1 help` emite `cli_contract_version=0.1`, `cli_status=stable` y
+  la lista cerrada de comandos publicos.
+- `validate-harness.ps1`, `audit-harness.ps1`, `init.sh`, `validate-release.ps1`
+  y GitHub Actions integran `validate-cli.ps1 -RunNegativeTests`.
+- `release-roadmap.md` corrige la reconciliacion 0.10.x y mueve el corte de
+  `0.11.0` despues de `0.10.11`.
+- `README.md` documenta la CLI estable y todos los comandos publicos.
+
+### Security
+- La CLI queda bloqueada por contrato: comandos fuera del set estable no son
+  superficie publica, los comandos con modo exigen exactamente un modo y
+  `list-bound-backups` queda solo `CheckOnly`.
+- `command -CheckOnly -Json` queda validado como no ejecutable y delegado al
+  resultado estructurado `hebrinex.command_gateway.result`.
+
 ## [0.10.10] - 2026-07-01
 
 ### Added

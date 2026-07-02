@@ -1,6 +1,6 @@
 schema: hebrinex.adapter
 version: "0.1"
-harness_version: "0.10.10"
+harness_version: "0.10.11"
 adapter_id: copilot
 host: "Copilot"
 instruction_surfaces:

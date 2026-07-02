@@ -31,6 +31,10 @@ jobs:
         shell: pwsh
         run: ./scripts/validate-release.ps1 -Root .
 
+      - name: Stable CLI
+        shell: pwsh
+        run: ./scripts/validate-cli.ps1 -Root . -RunNegativeTests
+
       - name: Harness validator
         shell: pwsh
         run: ./scripts/validate-harness.ps1 -Root . -RunNegativeTests

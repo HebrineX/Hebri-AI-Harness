@@ -33,6 +33,7 @@ $scriptRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
 Write-Host "Auditing Hebri-AI-Harness at $Root"
 
 Invoke-Validator 'validate-release' (Join-Path $scriptRoot 'validate-release.ps1')
+Invoke-Validator 'validate-cli' (Join-Path $scriptRoot 'validate-cli.ps1')
 Invoke-Validator 'validate-bootstrap' (Join-Path $scriptRoot 'validate-bootstrap.ps1')
 Invoke-Validator 'validate-bound-update' (Join-Path $scriptRoot 'validate-bound-update.ps1')
 Invoke-Validator 'validate-bound-backups' (Join-Path $scriptRoot 'validate-bound-backups.ps1')

@@ -1130,6 +1130,9 @@ function Write-BootstrapCheckOnly([string]$ProjectRootValue) {
 }
 function Show-Help() {
   Write-Host 'Hebri-AI-Harness CLI Core'
+  Write-Host 'cli_contract_version=0.1'
+  Write-Host 'cli_status=stable'
+  Write-Host 'commands=help,status,budget,preflight,validate,audit,migrate,bootstrap,update-bound,list-bound-backups,restore-bound,command'
   Write-Host ''
   Write-Host 'Usage:'
   Write-Host '  hebrinex.ps1 status [-Root <path>]'

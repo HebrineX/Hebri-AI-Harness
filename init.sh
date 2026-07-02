@@ -107,6 +107,7 @@ require_grep "scripts/validate-migration.ps1" "$ROOT/orquestador/harness-manifes
 require_grep "scripts/audit-harness.ps1" "$ROOT/orquestador/harness-manifest.txt" "audit-harness.ps1 no esta en manifest"
 require_grep "scripts/migrate-harness.ps1" "$ROOT/orquestador/harness-manifest.txt" "migrate-harness.ps1 no esta en manifest"
 require_grep "scripts/validate-release.ps1" "$ROOT/orquestador/harness-manifest.txt" "validate-release.ps1 no esta en manifest"
+require_grep "scripts/validate-cli.ps1" "$ROOT/orquestador/harness-manifest.txt" "validate-cli.ps1 no esta en manifest"
 require_grep "scripts/validate-bootstrap.ps1" "$ROOT/orquestador/harness-manifest.txt" "validate-bootstrap.ps1 no esta en manifest"
 require_grep "scripts/validate-bound-update.ps1" "$ROOT/orquestador/harness-manifest.txt" "validate-bound-update.ps1 no esta en manifest"
 require_grep "scripts/validate-bound-backups.ps1" "$ROOT/orquestador/harness-manifest.txt" "validate-bound-backups.ps1 no esta en manifest"
@@ -146,6 +147,7 @@ require_grep "scripts/build-instructions.ps1" "$ROOT/orquestador/harness-manifes
 require_grep "scripts/validate-drift.ps1" "$ROOT/orquestador/harness-manifest.txt" "validate-drift.ps1 no esta en manifest"
 require_grep "scripts/regularize-state.ps1" "$ROOT/orquestador/harness-manifest.txt" "regularize-state.ps1 no esta en manifest"
 require_grep "scripts/regularize-registry.ps1" "$ROOT/orquestador/harness-manifest.txt" "regularize-registry.ps1 no esta en manifest"
+require_grep "orquestador/method/cli-contract.md" "$ROOT/orquestador/harness-manifest.txt" "cli-contract.md no esta en manifest"
 require_grep "HL0_agent_authority" "$ROOT/orquestador/agents/agent-registry.yaml" "agent-registry no declara HL0_agent_authority"
 require_grep "agent_definition_authority:[[:space:]]*harness_only" "$ROOT/orquestador/agents/agent-registry.yaml" "agent-registry no declara autoridad harness_only"
 require_grep "ai_may_define_agents:[[:space:]]*false" "$ROOT/orquestador/agents/agent-registry.yaml" "agent-registry no bloquea agentes definidos por IA"
@@ -161,6 +163,7 @@ if [ "$BINDING_MODE" = "source_template" ]; then
   require_grep "pull_request:" "$CI_FILE" "CI oficial no corre en pull_request"
   require_grep "push:" "$CI_FILE" "CI oficial no corre en push"
   require_grep "validate-harness[.]ps1 -Root [.] -RunNegativeTests" "$CI_FILE" "CI oficial no ejecuta validate-harness con negativos"
+  require_grep "validate-cli[.]ps1 -Root [.] -RunNegativeTests" "$CI_FILE" "CI oficial no ejecuta validate-cli con negativos"
   require_grep "audit-harness[.]ps1 -Root [.] -RunNegativeTests" "$CI_FILE" "CI oficial no ejecuta audit-harness con negativos"
   require_grep "check-adapter-drift[.]ps1 -Root [.]$" "$CI_FILE" "CI oficial no ejecuta check-adapter-drift"
   require_grep "validate-migration[.]ps1 -Root [.] -RunNegativeTests" "$CI_FILE" "CI oficial no ejecuta fixtures de migracion"
@@ -175,6 +178,7 @@ if grep -q "HashData\|ToHexString" "$ROOT/scripts/build-instructions.ps1"; then 
 "$PSH" -NoProfile -ExecutionPolicy Bypass -File "$ROOT/scripts/build-instructions.ps1" -Root "$ROOT"
 "$PSH" -NoProfile -ExecutionPolicy Bypass -File "$ROOT/scripts/validate-drift.ps1" -Root "$ROOT" -RunNegativeTests
 "$PSH" -NoProfile -ExecutionPolicy Bypass -File "$ROOT/scripts/validate-release.ps1" -Root "$ROOT"
+"$PSH" -NoProfile -ExecutionPolicy Bypass -File "$ROOT/scripts/validate-cli.ps1" -Root "$ROOT" -RunNegativeTests
 "$PSH" -NoProfile -ExecutionPolicy Bypass -File "$ROOT/scripts/validate-bootstrap.ps1" -Root "$ROOT" -RunNegativeTests
 "$PSH" -NoProfile -ExecutionPolicy Bypass -File "$ROOT/scripts/validate-bound-update.ps1" -Root "$ROOT" -RunNegativeTests
 "$PSH" -NoProfile -ExecutionPolicy Bypass -File "$ROOT/scripts/validate-bound-backups.ps1" -Root "$ROOT" -RunNegativeTests

@@ -84,6 +84,7 @@ file orquestador/method/autonomia.md
 file orquestador/method/backlog-policy.md
 file orquestador/method/brief-operativo.md
 file orquestador/method/changelog-policy.md
+file orquestador/method/cli-contract.md
 file orquestador/method/ci-pipeline-policy.md
 file orquestador/method/ciclo-de-trabajo.md
 file orquestador/method/context-loading-policy.md
@@ -327,6 +328,7 @@ file scripts/validate-security-policy.ps1
 file scripts/validate-migration.ps1
 file scripts/migrate-harness.ps1
 file scripts/hebrinex.ps1
+file scripts/validate-cli.ps1
 file scripts/validate-fixtures.ps1
 file scripts/command-gateway.ps1
 file scripts/validate-command-gateway.ps1
