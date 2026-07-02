@@ -1,0 +1,65 @@
+schema: hebrinex.migration_route
+version: "0.1"
+id: "0.10.11-to-0.11.0"
+source_version: "0.10.11"
+target_version: "0.11.0"
+status: active
+mode_support:
+  check_only: true
+  apply: true
+  rollback: planned
+preconditions:
+  - HARNESS_VERSION equals 0.10.11
+  - PROJECT_BINDING.yaml exists
+  - binding_mode is bound or source_template
+  - current root contains orquestador/
+  - CLI stable contract from 0.10.11 is present
+additive_paths:
+  - scripts/state-machine.ps1
+  - scripts/agent-runtime.ps1
+  - scripts/validate-state-machine.ps1
+  - scripts/validate-agent-runtime.ps1
+  - orquestador/runtime/schemas/state-machine-decision.schema.json
+  - orquestador/runtime/schemas/agent-runtime-decision.schema.json
+  - orquestador/runtime/templates/state-machine-decision.template.json
+  - orquestador/runtime/templates/agent-runtime-decision.template.json
+  - orquestador/testing/fixtures/positive/runtime-implementer-write.yaml
+  - orquestador/testing/fixtures/negative/runtime-reviewer-write.yaml
+  - orquestador/testing/fixtures/negative/state-active-to-closed.yaml
+never_overwrite:
+  - PROJECT_BINDING.yaml
+  - HARNESS_VERSION
+  - orquestador/sdd/progress/state.yaml
+  - orquestador/sdd/progress/registry.yaml
+  - orquestador/sdd/progress/cycles/
+  - orquestador/sdd/progress/locks/
+  - orquestador/sdd/progress/approvals/
+  - orquestador/memory/local/
+  - orquestador/memory/project/
+preserve_state:
+  state_yaml: true
+  registry_yaml: true
+  cycles: true
+  locks: true
+  approvals: true
+  local_memory: true
+  project_memory: true
+  evidence: true
+check_only_output:
+  - detected_version
+  - route_id
+  - binding_mode
+  - files_to_add
+  - files_to_preserve
+  - validators_required
+  - expected_post_migration_contract
+apply_success_requires:
+  - backup_verified
+  - state_machine_active
+  - agent_runtime_enforcement_active
+  - command_gateway_controlled
+  - migration_fixtures_passed
+  - ci_official_validated
+  - post_migration_contract_active
+  - validators_passed
+  - migration_report_written

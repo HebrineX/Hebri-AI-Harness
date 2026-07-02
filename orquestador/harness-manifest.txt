@@ -415,3 +415,15 @@ file scripts/validate-drift.sh
 
 file scripts/regularize-state.ps1
 file scripts/regularize-registry.ps1
+file orquestador/migration/versions/0.10.11-to-0.11.0.yaml
+file orquestador/runtime/schemas/state-machine-decision.schema.json
+file orquestador/runtime/schemas/agent-runtime-decision.schema.json
+file orquestador/runtime/templates/state-machine-decision.template.json
+file orquestador/runtime/templates/agent-runtime-decision.template.json
+file orquestador/testing/fixtures/positive/runtime-implementer-write.yaml
+file orquestador/testing/fixtures/negative/runtime-reviewer-write.yaml
+file orquestador/testing/fixtures/negative/state-active-to-closed.yaml
+file scripts/state-machine.ps1
+file scripts/agent-runtime.ps1
+file scripts/validate-state-machine.ps1
+file scripts/validate-agent-runtime.ps1

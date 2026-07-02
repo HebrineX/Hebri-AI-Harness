@@ -1,6 +1,6 @@
 schema: hebrinex.claude_reentry_state
 version: "0.1"
-harness_version: "0.10.11"
+harness_version: "0.11.0"
 generated_at: ""
 brief_path: orquestador/runtime/claude/reentry-brief.md
 mode: warn

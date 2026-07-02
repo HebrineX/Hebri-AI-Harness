@@ -1,6 +1,6 @@
 # Hebri-AI-Harness
 
-Referencia operativa actual: **0.10.11**.
+Referencia operativa actual: **0.11.0**.
 
 Sistema operativo para agentes IA basado en [Hebri-AI-Structure](https://github.com/HebrineX/Hebri-AI-Structure). Objetivo: contrato, trazabilidad y aprobaciones con 70-80% menos contexto frente a leer todo `.hebrinex`.
 
@@ -35,11 +35,12 @@ Si un proyecto no tiene `.hebrinex`, no se opera con un harness externo. Se copi
 ## Novedades Actuales
 
 - CLI estable: `scripts/hebrinex.ps1` expone contrato versionado, markers parseables y validacion dedicada con `validate-cli.ps1`.
+- Runtime enforcement ejecutable: `state-machine` bloquea transiciones invalidas y `agent-runtime` bloquea roles/capabilities no permitidas.
 - CI oficial: GitHub Actions ejecuta validadores, auditores, drift checks,
   fixtures de migracion, fixtures negativos de seguridad, CLI estable e `init.sh`.
 - Agent Contract System: los agentes existen por contratos YAML gobernados por el harness, no por prompts ni autoasignacion de IA.
 - Seguridad AppSec verificable: permisos, write-scope, comandos, red, secretos, escalacion, logging y supply-chain se validan por registries.
-- Servicio de migracion: rutas 0.8.10/0.9.0 -> 0.10.0 con CheckOnly, Apply con backup, reporte y contrato post-migracion aplicado.
+- Servicio de migracion: rutas 0.8.10/0.9.0 -> 0.10.0 y 0.10.11 -> 0.11.0 con CheckOnly, Apply con backup, reporte y contrato post-migracion aplicado.
 - Schemas y fixtures de validacion cubren contratos de agentes, seguridad y
   migracion con casos negativos.
 - Command Gateway seguro: `hebrinex command -CheckOnly` clasifica comandos y
@@ -69,6 +70,8 @@ corre en `pull_request` y `push` a `main`:
 - `scripts/check-adapter-drift.ps1`
 - fixtures/validadores de migracion
 - fixtures/validadores negativos de seguridad
+- `scripts/validate-state-machine.ps1 -RunNegativeTests`
+- `scripts/validate-agent-runtime.ps1 -RunNegativeTests`
 - `./init.sh`
 
 Para bloquear merges, GitHub debe marcar `Harness contract` como required check
@@ -94,12 +97,14 @@ pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/hebrinex.ps1 list-bound-ba
 pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/hebrinex.ps1 restore-bound -CheckOnly -ProjectRoot C:\path\project -BackupId <id>
 pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/hebrinex.ps1 command -CheckOnly -CommandText "Get-Content README.md"
 pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/hebrinex.ps1 command -Apply -CommandText "Test-Path README.md"
+pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/hebrinex.ps1 state-machine -FromState requested -ToState contract_resolved -Json
+pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/hebrinex.ps1 agent-runtime -RoleId implementer -Capability edit_approved_write_set -Json
 ```
 
-La salida de `help` incluye `cli_contract_version=0.1`, `cli_status=stable` y
+La salida de `help` incluye `cli_contract_version=0.2`, `cli_status=stable` y
 la lista cerrada de comandos publicos. `status`, `budget`, `preflight` y los
 modos `-CheckOnly` no escriben. La CLI delega en validadores, migrador,
-bootstrap/update/restore y Command Gateway existentes; no reemplaza
+bootstrap/update/restore, Command Gateway, state machine y agent runtime existentes; no reemplaza
 `state.yaml`, `registry.yaml`, gates ni evidencia.
 
 `command -CheckOnly` no ejecuta el comando recibido. Solo clasifica contra
@@ -109,6 +114,8 @@ bloquea comandos desconocidos o compuestos y devuelve si requiere preflight/SI.
 estrictos (`Get-Content`, `Select-String`, `Test-Path`, `Get-ChildItem`,
 `git status --short`) dentro del root del harness. Con `-Json`, emite
 `hebrinex.command_gateway.result` con decision, ejecucion y evidencia redactada.
+
+`state-machine` lee `orquestador/agents/lifecycle-registry.yaml` y devuelve una decision `allow|block` sin escribir archivos. `agent-runtime` lee `agent-registry.yaml`, `capability-registry.yaml` y contratos de rol para bloquear capabilities faltantes o denegadas antes de operar.
 
 ## Detractor Senior
 

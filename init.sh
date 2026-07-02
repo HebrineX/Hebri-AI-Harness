@@ -112,6 +112,10 @@ require_grep "scripts/validate-bootstrap.ps1" "$ROOT/orquestador/harness-manifes
 require_grep "scripts/validate-bound-update.ps1" "$ROOT/orquestador/harness-manifest.txt" "validate-bound-update.ps1 no esta en manifest"
 require_grep "scripts/validate-bound-backups.ps1" "$ROOT/orquestador/harness-manifest.txt" "validate-bound-backups.ps1 no esta en manifest"
 require_grep "scripts/validate-bound-restore.ps1" "$ROOT/orquestador/harness-manifest.txt" "validate-bound-restore.ps1 no esta en manifest"
+require_grep "scripts/state-machine.ps1" "$ROOT/orquestador/harness-manifest.txt" "state-machine.ps1 no esta en manifest"
+require_grep "scripts/agent-runtime.ps1" "$ROOT/orquestador/harness-manifest.txt" "agent-runtime.ps1 no esta en manifest"
+require_grep "scripts/validate-state-machine.ps1" "$ROOT/orquestador/harness-manifest.txt" "validate-state-machine.ps1 no esta en manifest"
+require_grep "scripts/validate-agent-runtime.ps1" "$ROOT/orquestador/harness-manifest.txt" "validate-agent-runtime.ps1 no esta en manifest"
 require_grep "project-binding.schema.yaml" "$ROOT/orquestador/harness-manifest.txt" "schema project-binding no esta en manifest"
 require_grep "context-budget.schema.yaml" "$ROOT/orquestador/harness-manifest.txt" "schema context-budget no esta en manifest"
 require_grep "memory-registry.schema.yaml" "$ROOT/orquestador/harness-manifest.txt" "schema memory-registry no esta en manifest"
@@ -131,6 +135,10 @@ require_grep "adapter_portability" "$ROOT/orquestador/context-budget.yaml" "cont
 require_grep "detractor_senior" "$ROOT/orquestador/portability/core-skills.yaml" "core portable no incluye detractor_senior"
 require_grep "orquestador/runtime/active-session.template.json" "$ROOT/orquestador/harness-manifest.txt" "active-session runtime no esta en manifest"
 require_grep "orquestador/runtime/commands.md" "$ROOT/orquestador/harness-manifest.txt" "runtime commands no esta en manifest"
+require_grep "orquestador/runtime/schemas/state-machine-decision.schema.json" "$ROOT/orquestador/harness-manifest.txt" "state-machine schema no esta en manifest"
+require_grep "orquestador/runtime/schemas/agent-runtime-decision.schema.json" "$ROOT/orquestador/harness-manifest.txt" "agent-runtime schema no esta en manifest"
+require_grep "orquestador/runtime/templates/state-machine-decision.template.json" "$ROOT/orquestador/harness-manifest.txt" "state-machine template no esta en manifest"
+require_grep "orquestador/runtime/templates/agent-runtime-decision.template.json" "$ROOT/orquestador/harness-manifest.txt" "agent-runtime template no esta en manifest"
 require_grep "prompts/runtime/harness-runtime.prompt.md" "$ROOT/orquestador/harness-manifest.txt" "prompt runtime no esta en manifest"
 require_grep "runtime_status" "$ROOT/orquestador/context-budget.yaml" "context-budget no define runtime_status"
 require_grep "runtime_reentry" "$ROOT/orquestador/context-budget.yaml" "context-budget no define runtime_reentry"
@@ -169,6 +177,8 @@ if [ "$BINDING_MODE" = "source_template" ]; then
   require_grep "validate-migration[.]ps1 -Root [.] -RunNegativeTests" "$CI_FILE" "CI oficial no ejecuta fixtures de migracion"
   require_grep "validate-security-policy[.]ps1 -Root [.] -RunNegativeTests" "$CI_FILE" "CI oficial no ejecuta seguridad negativa"
   require_grep "validate-fixtures[.]ps1 -Root [.] -RunNegativeTests" "$CI_FILE" "CI oficial no ejecuta fixtures"
+  require_grep "validate-state-machine[.]ps1 -Root [.] -RunNegativeTests" "$CI_FILE" "CI oficial no ejecuta state-machine"
+  require_grep "validate-agent-runtime[.]ps1 -Root [.] -RunNegativeTests" "$CI_FILE" "CI oficial no ejecuta agent-runtime"
   require_grep "[.]/init[.]sh" "$CI_FILE" "CI oficial no ejecuta init.sh"
 fi
 require_grep "ComputeHash" "$ROOT/scripts/build-instructions.ps1" "build-instructions.ps1 debe usar ComputeHash compatible PS 5.1"
@@ -186,6 +196,8 @@ if grep -q "HashData\|ToHexString" "$ROOT/scripts/build-instructions.ps1"; then 
 "$PSH" -NoProfile -ExecutionPolicy Bypass -File "$ROOT/scripts/validate-agent-contracts.ps1" -Root "$ROOT" -RunNegativeTests
 "$PSH" -NoProfile -ExecutionPolicy Bypass -File "$ROOT/scripts/validate-security-policy.ps1" -Root "$ROOT" -RunNegativeTests
 "$PSH" -NoProfile -ExecutionPolicy Bypass -File "$ROOT/scripts/validate-migration.ps1" -Root "$ROOT" -RunNegativeTests
+"$PSH" -NoProfile -ExecutionPolicy Bypass -File "$ROOT/scripts/validate-state-machine.ps1" -Root "$ROOT" -RunNegativeTests
+"$PSH" -NoProfile -ExecutionPolicy Bypass -File "$ROOT/scripts/validate-agent-runtime.ps1" -Root "$ROOT" -RunNegativeTests
 "$PSH" -NoProfile -ExecutionPolicy Bypass -File "$ROOT/scripts/audit-harness.ps1" -Root "$ROOT" -RunNegativeTests
 require_grep "G3A_detractor_senior_pre_implementation" "$ROOT/orquestador/sdd/progress/state.yaml" "state.yaml no declara G3A detractor senior"
 require_grep "detractor_senior" "$ROOT/orquestador/method/agent-role-taxonomy.md" "taxonomy no declara detractor_senior"

@@ -1,14 +1,14 @@
 # CLI Contract
 
-Version: 0.10.11
-Contract version: 0.1
+Version: 0.11.0
+Contract version: 0.2
 Status: stable
 
-`scripts/hebrinex.ps1` is the stable public CLI for Hebri-AI-Harness. It is a thin operational entrypoint: it exposes status, budgets, preflight envelopes, validators, migration/bootstrap flows and the Command Gateway, but it does not replace `state.yaml`, `registry.yaml`, gates, approvals, evidence or agent contracts.
+`scripts/hebrinex.ps1` is the stable public CLI for Hebri-AI-Harness. It is a thin operational entrypoint: it exposes status, budgets, preflight envelopes, validators, migration/bootstrap flows, the Command Gateway, state-machine checks and agent-runtime enforcement, but it does not replace `state.yaml`, `registry.yaml`, gates, approvals, evidence or agent contracts.
 
 ## Stable Commands
 
-The public command set for contract version `0.1` is closed:
+The public command set for contract version `0.2` is closed:
 
 - `help`
 - `status`
@@ -22,6 +22,8 @@ The public command set for contract version `0.1` is closed:
 - `list-bound-backups`
 - `restore-bound`
 - `command`
+- `state-machine`
+- `agent-runtime`
 
 A command outside this list is not part of the public CLI contract.
 
@@ -30,12 +32,12 @@ A command outside this list is not part of the public CLI contract.
 `help` must emit parseable markers:
 
 ```text
-cli_contract_version=0.1
+cli_contract_version=0.2
 cli_status=stable
-commands=help,status,budget,preflight,validate,audit,migrate,bootstrap,update-bound,list-bound-backups,restore-bound,command
+commands=help,status,budget,preflight,validate,audit,migrate,bootstrap,update-bound,list-bound-backups,restore-bound,command,state-machine,agent-runtime
 ```
 
-Operational commands must keep parseable `key=value` lines for validators and automation. Human prose can be added around those lines only when it does not remove or rename contract markers.
+Operational commands must keep parseable `key=value` lines or machine-readable JSON for validators and automation. Human prose can be added around those lines only when it does not remove or rename contract markers.
 
 Required markers:
 
@@ -48,6 +50,8 @@ Required markers:
 - `list-bound-backups -CheckOnly`: `writes=false`, `apply_available=false`, `requires_project_root=true`.
 - `restore-bound -CheckOnly`: `writes=false`, `apply_available=true`, `requires_project_root=true`.
 - `command -Json`: JSON schema `hebrinex.command_gateway.result`.
+- `state-machine -Json`: JSON schema `hebrinex.runtime.state_machine.decision`.
+- `agent-runtime -Json`: JSON schema `hebrinex.runtime.agent_enforcement.decision`.
 
 ## Mode Rules
 
@@ -61,7 +65,7 @@ Mode-bearing commands require exactly one execution mode:
 
 `list-bound-backups` is inventory-only and supports only `-CheckOnly`.
 
-Read-only commands (`help`, `status`, `budget`, `preflight`) must not write files. `validate` and `audit` may run validators but must not declare operational work complete by themselves.
+Read-only commands (`help`, `status`, `budget`, `preflight`, `state-machine`, `agent-runtime`) must not write files. `validate` and `audit` may run validators but must not declare operational work complete by themselves.
 
 ## Safety Contract
 
@@ -71,6 +75,8 @@ Security-sensitive actions keep deny-by-default behavior:
 
 - `command -CheckOnly` classifies and reports; it does not execute the command text.
 - `command -Apply` delegates to the Command Gateway and executes only strict read-only allowlisted plans.
+- `state-machine` reads lifecycle contracts and blocks invalid transitions.
+- `agent-runtime` reads agent/capability contracts and blocks missing or denied capabilities.
 - `bootstrap`, `update-bound` and `restore-bound` require `Apply` plus their dedicated backup/preservation validators before reporting applied status.
 - Git remote operations are not part of the CLI stable execution surface.
 

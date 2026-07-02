@@ -62,6 +62,12 @@ jobs:
           ./scripts/validate-fixtures.ps1 -Root . -RunNegativeTests
           ./scripts/validate-command-gateway.ps1 -Root . -RunNegativeTests
 
+
+      - name: Runtime enforcement
+        shell: pwsh
+        run: |
+          ./scripts/validate-state-machine.ps1 -Root . -RunNegativeTests
+          ./scripts/validate-agent-runtime.ps1 -Root . -RunNegativeTests
       - name: POSIX entrypoint
         shell: bash
         run: ./init.sh

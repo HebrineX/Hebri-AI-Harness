@@ -2,6 +2,23 @@
 
 ## [Unreleased]
 
+## [0.11.0] - 2026-07-02
+
+### Added
+- `scripts/state-machine.ps1` para decidir transiciones permitidas desde `lifecycle-registry.yaml`.
+- `scripts/agent-runtime.ps1` para aplicar enforcement runtime de roles, contratos y capabilities.
+- Validadores `validate-state-machine.ps1` y `validate-agent-runtime.ps1` con pruebas negativas.
+- Schemas/templates JSON de decisiones runtime y fixtures positivos/negativos de enforcement.
+- Ruta declarativa `0.10.11 -> 0.11.0` en el servicio de migracion.
+
+### Changed
+- La CLI publica sube a contrato `0.2` y expone `state-machine` y `agent-runtime`.
+- `validate-harness`, `audit-harness`, `init.sh`, `validate-release` y GitHub Actions exigen validacion de runtime enforcement.
+- `release-roadmap.md` marca cerrado el hito Enforcement Release cuando pasan CLI, gateway, state machine, agent runtime, migracion y CI.
+
+### Security
+- Reviewer no puede obtener capability de escritura en runtime, implementer no aprueba y transiciones invalidas quedan bloqueadas por decision ejecutable.
+- 0.11.0 deja de depender solo de reglas declarativas: el harness puede emitir decisiones machine-readable para capabilities y lifecycle.
 ## [0.10.11] - 2026-07-01
 
 ### Added

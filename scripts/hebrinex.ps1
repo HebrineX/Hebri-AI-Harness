@@ -1,12 +1,12 @@
 param(
   [Parameter(Position = 0)]
-  [ValidateSet('help','status','budget','preflight','validate','audit','migrate','bootstrap','update-bound','list-bound-backups','restore-bound','command')]
+  [ValidateSet('help','status','budget','preflight','validate','audit','migrate','bootstrap','update-bound','list-bound-backups','restore-bound','command','state-machine','agent-runtime')]
   [string]$Command = 'help',
   [string]$Root = (Split-Path -Parent $PSScriptRoot),
   [switch]$RunNegativeTests,
   [switch]$CheckOnly,
   [switch]$Apply,
-  [string]$TargetVersion = '0.10.0',
+  [string]$TargetVersion = '0.11.0',
   [string]$ProjectRoot = '',
   [string]$BackupId = '',
   [string]$ApprovalId = '',
@@ -18,6 +18,10 @@ param(
   [string]$CommandText = '',
   [string]$Purpose = '',
   [string]$RiskClass = '',
+  [string]$RoleId = '',
+  [string]$Capability = '',
+  [string]$FromState = '',
+  [string]$ToState = '',
   [switch]$Json
 )
 
@@ -1130,9 +1134,9 @@ function Write-BootstrapCheckOnly([string]$ProjectRootValue) {
 }
 function Show-Help() {
   Write-Host 'Hebri-AI-Harness CLI Core'
-  Write-Host 'cli_contract_version=0.1'
+  Write-Host 'cli_contract_version=0.2'
   Write-Host 'cli_status=stable'
-  Write-Host 'commands=help,status,budget,preflight,validate,audit,migrate,bootstrap,update-bound,list-bound-backups,restore-bound,command'
+  Write-Host 'commands=help,status,budget,preflight,validate,audit,migrate,bootstrap,update-bound,list-bound-backups,restore-bound,command,state-machine,agent-runtime'
   Write-Host ''
   Write-Host 'Usage:'
   Write-Host '  hebrinex.ps1 status [-Root <path>]'
@@ -1140,12 +1144,14 @@ function Show-Help() {
   Write-Host '  hebrinex.ps1 preflight [-ApprovalId <id>] [-Action <text>] [-ReadSet <text>] [-WriteSet <text>]'
   Write-Host '  hebrinex.ps1 validate [-RunNegativeTests]'
   Write-Host '  hebrinex.ps1 audit [-RunNegativeTests]'
-  Write-Host '  hebrinex.ps1 migrate -CheckOnly|-Apply [-TargetVersion 0.10.0]'
+  Write-Host '  hebrinex.ps1 migrate -CheckOnly|-Apply [-TargetVersion 0.11.0]'
   Write-Host '  hebrinex.ps1 bootstrap -CheckOnly|-Apply -ProjectRoot <path>'
   Write-Host '  hebrinex.ps1 update-bound -CheckOnly|-Apply -ProjectRoot <path>'
   Write-Host '  hebrinex.ps1 list-bound-backups -CheckOnly -ProjectRoot <path>'
   Write-Host '  hebrinex.ps1 restore-bound -CheckOnly|-Apply -ProjectRoot <path> -BackupId <id>'
   Write-Host '  hebrinex.ps1 command -CheckOnly|-Apply -CommandText <command> [-Purpose <text>] [-Json]'
+  Write-Host '  hebrinex.ps1 state-machine -FromState <state> -ToState <state> [-Json]'
+  Write-Host '  hebrinex.ps1 agent-runtime -RoleId <role> -Capability <capability> [-FromState <state> -ToState <state>] [-Json]'
 }
 
 $Root = (Resolve-Path -LiteralPath $Root).Path
@@ -1314,7 +1320,16 @@ switch ($Command) {
     Write-Host 'writes=true'
     Write-Host 'restore_status=applied'
   }
-  'command' {
+  'state-machine' {
+    $scriptPath = Resolve-HarnessPath 'scripts/state-machine.ps1'
+    & $scriptPath -Root $Root -FromState $FromState -ToState $ToState -Json:$Json
+    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+  }
+  'agent-runtime' {
+    $scriptPath = Resolve-HarnessPath 'scripts/agent-runtime.ps1'
+    & $scriptPath -Root $Root -RoleId $RoleId -Capability $Capability -FromState $FromState -ToState $ToState -Json:$Json
+    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+  }  'command' {
     if (($CheckOnly -and $Apply) -or (-not $CheckOnly -and -not $Apply)) {
       throw 'command requires exactly one mode: -CheckOnly or -Apply'
     }

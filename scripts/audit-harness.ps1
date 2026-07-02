@@ -43,6 +43,8 @@ Invoke-Validator 'validate-security-policy' (Join-Path $scriptRoot 'validate-sec
 Invoke-Validator 'validate-migration' (Join-Path $scriptRoot 'validate-migration.ps1')
 Invoke-Validator 'validate-fixtures' (Join-Path $scriptRoot 'validate-fixtures.ps1')
 Invoke-Validator 'validate-command-gateway' (Join-Path $scriptRoot 'validate-command-gateway.ps1')
+Invoke-Validator 'validate-state-machine' (Join-Path $scriptRoot 'validate-state-machine.ps1')
+Invoke-Validator 'validate-agent-runtime' (Join-Path $scriptRoot 'validate-agent-runtime.ps1')
 
 if ($script:Failures.Count -gt 0) {
   Write-Host 'Harness audit FAILED'

@@ -1,6 +1,6 @@
 # Release Roadmap
 
-Version: 0.10.11
+Version: 0.11.0
 
 Este archivo fija el roadmap operativo luego de la reconciliacion de la linea
 0.10.x. Los tags publicados no se reescriben ni se mueven; cualquier correccion
@@ -31,35 +31,28 @@ no completaban por si solas el hito de CI oficial definido para la linea 0.10.
 
 ## Cierre De 0.10.11
 
-El release `0.10.11` esta cerrado solo si:
-
-- `.github/workflows/ci.yml` existe en el source template;
-- CI corre en `pull_request` y `push` a `main`;
-- CI ejecuta `validate-cli.ps1 -RunNegativeTests`;
-- CI ejecuta `validate-harness.ps1 -RunNegativeTests`;
-- CI ejecuta `audit-harness.ps1 -RunNegativeTests`;
-- CI ejecuta `check-adapter-drift.ps1`;
-- CI ejecuta `init.sh`;
-- CI ejecuta fixtures/validadores de migracion;
-- CI ejecuta fixtures/validadores negativos de seguridad;
-- `validate-release.ps1` valida el workflow oficial en source template;
-- `validate-cli.ps1` valida comandos, markers, modo CheckOnly/Apply y fallos
-  negativos de modo.
-
-GitHub debe configurar el check `Harness contract` como requerido en branch
-protection para que un PR no mergee si rompe contrato, agentes, seguridad,
-migracion o CLI.
+El release `0.10.11` esta cerrado cuando CI, CLI estable, Command Gateway,
+validadores, auditores, fixtures de migracion y fixtures negativos de seguridad
+pasan contra el source template publicado.
 
 ## 0.11.0 Enforcement Release
 
-`0.11.0` no debe ser otro backfill de 0.10.x. Debe declararse recien cuando:
+`0.11.0` es el salto de enforcement: deja de ser solo declarativo y agrega
+puntos de decision ejecutables para lifecycle y capabilities.
 
-- la CLI sea estable;
-- el Command Gateway funcione en modo operativo controlado;
-- el runtime de agentes haga enforcement real de contratos y capabilities;
-- la state machine bloquee transiciones invalidas;
-- el migration engine tenga fixtures obligatorios;
-- CI oficial este activo y validado.
+El release `0.11.0` esta cerrado solo si:
 
-La regla de corte es simple: `0.11.0` se publica despues de `0.10.11`, no antes,
-y solo si el enforcement deja de ser declarativo.
+- la CLI estable existe y publica contrato `0.2`;
+- el Command Gateway funciona en modo operativo controlado;
+- `scripts/state-machine.ps1` bloquea transiciones invalidas;
+- `scripts/agent-runtime.ps1` bloquea roles/capabilities invalidas;
+- `scripts/validate-state-machine.ps1 -RunNegativeTests` pasa;
+- `scripts/validate-agent-runtime.ps1 -RunNegativeTests` pasa;
+- el migration engine declara y valida `0.10.11 -> 0.11.0`;
+- los fixtures positivos/negativos de runtime enforcement estan en manifest;
+- CI oficial ejecuta CLI, harness, audit, migration, security, fixtures,
+  state-machine, agent-runtime, drift e `init.sh`.
+
+GitHub debe mantener el check `Harness contract` como required check en branch
+protection para que un PR no mergee si rompe contrato, agentes, seguridad,
+migracion, runtime enforcement o CLI.

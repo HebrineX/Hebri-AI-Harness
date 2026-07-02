@@ -1,0 +1,6 @@
+schema: hebrinex.runtime.agent_request
+role_id: implementer
+capability: edit_approved_write_set
+from_state: requested
+to_state: contract_resolved
+expected_decision: allow

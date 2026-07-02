@@ -1,6 +1,6 @@
 schema: hebrinex.policy_registry
 version: "0.1"
-harness_version: "0.10.11"
+harness_version: "0.11.0"
 categories:
   session_and_context:
     files:

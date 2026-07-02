@@ -259,6 +259,7 @@ $yamlFiles = @(
   'orquestador/migration/migration-registry.yaml',
   'orquestador/migration/versions/0.9.0-to-0.10.0.yaml',
   'orquestador/migration/versions/0.8.10-to-0.10.0.yaml',
+  'orquestador/migration/versions/0.10.11-to-0.11.0.yaml',
   'orquestador/migration/contracts/post-migration-contract.yaml',
   'orquestador/migration/reports/migration-report.template.yaml',
   'orquestador/policies/schemas/agent-registry.schema.yaml',
@@ -266,12 +267,15 @@ $yamlFiles = @(
   'orquestador/policies/schemas/security-policy.schema.yaml',
   'orquestador/policies/schemas/migration-registry.schema.yaml',
   'orquestador/testing/fixtures/positive/agent-registry-minimal.yaml',
+  'orquestador/testing/fixtures/positive/runtime-implementer-write.yaml',
   'orquestador/testing/fixtures/negative/agent-ai-defined-agent.yaml',
   'orquestador/testing/fixtures/negative/agent-reviewer-write.yaml',
   'orquestador/testing/fixtures/negative/agent-implementer-approve.yaml',
   'orquestador/testing/fixtures/negative/security-network-default-allow.yaml',
   'orquestador/testing/fixtures/negative/security-path-traversal.yaml',
   'orquestador/testing/fixtures/negative/migration-checkonly-writes.yaml',
+  'orquestador/testing/fixtures/negative/runtime-reviewer-write.yaml',
+  'orquestador/testing/fixtures/negative/state-active-to-closed.yaml',
   'orquestador/sdd/progress/state.yaml',
   'orquestador/sdd/progress/registry.yaml'
 )
@@ -384,8 +388,12 @@ Assert-Contains 'orquestador/harness-manifest.txt' 'scripts/validate-bootstrap.p
 Assert-Contains 'orquestador/harness-manifest.txt' 'scripts/validate-bound-update.ps1' 'validate-bound-update.ps1 must be in manifest'
 Assert-Contains 'orquestador/harness-manifest.txt' 'scripts/validate-bound-backups.ps1' 'validate-bound-backups.ps1 must be in manifest'
 Assert-Contains 'orquestador/harness-manifest.txt' 'scripts/validate-bound-restore.ps1' 'validate-bound-restore.ps1 must be in manifest'
+Assert-Contains 'orquestador/harness-manifest.txt' 'scripts/state-machine.ps1' 'state-machine.ps1 must be in manifest'
+Assert-Contains 'orquestador/harness-manifest.txt' 'scripts/agent-runtime.ps1' 'agent-runtime.ps1 must be in manifest'
+Assert-Contains 'orquestador/harness-manifest.txt' 'scripts/validate-state-machine.ps1' 'validate-state-machine.ps1 must be in manifest'
+Assert-Contains 'orquestador/harness-manifest.txt' 'scripts/validate-agent-runtime.ps1' 'validate-agent-runtime.ps1 must be in manifest'
 Assert-Contains 'scripts/hebrinex.ps1' 'Hebri-AI-Harness CLI Core' 'hebrinex.ps1 must expose CLI Core marker'
-Assert-Contains 'scripts/hebrinex.ps1' 'cli_contract_version=0[.]1' 'hebrinex.ps1 must expose stable CLI contract marker'
+Assert-Contains 'scripts/hebrinex.ps1' 'cli_contract_version=0[.]2' 'hebrinex.ps1 must expose stable CLI contract marker'
 Assert-Contains 'scripts/validate-cli.ps1' 'Stable CLI validation OK' 'validate-cli.ps1 must expose success marker'
 Assert-Contains 'scripts/validate-fixtures.ps1' 'Fixture validation OK' 'validate-fixtures.ps1 must expose success marker'
 Assert-Contains 'scripts/validate-bootstrap.ps1' 'Bootstrap validation OK' 'validate-bootstrap.ps1 must expose success marker'
@@ -394,9 +402,17 @@ Assert-Contains 'scripts/validate-bound-backups.ps1' 'Bound backup inventory val
 Assert-Contains 'scripts/validate-bound-restore.ps1' 'Bound restore validation OK' 'validate-bound-restore.ps1 must expose success marker'
 Assert-Contains 'scripts/command-gateway.ps1' 'Command Gateway' 'command-gateway.ps1 must expose gateway marker'
 Assert-Contains 'scripts/validate-command-gateway.ps1' 'Command gateway validation OK' 'validate-command-gateway.ps1 must expose success marker'
+Assert-Contains 'scripts/state-machine.ps1' 'hebrinex.runtime.state_machine.decision' 'state-machine.ps1 must expose structured decision schema'
+Assert-Contains 'scripts/agent-runtime.ps1' 'hebrinex.runtime.agent_enforcement.decision' 'agent-runtime.ps1 must expose structured decision schema'
+Assert-Contains 'scripts/validate-state-machine.ps1' 'State machine validation OK' 'validate-state-machine.ps1 must expose success marker'
+Assert-Contains 'scripts/validate-agent-runtime.ps1' 'Agent runtime enforcement validation OK' 'validate-agent-runtime.ps1 must expose success marker'
 Assert-Contains 'scripts/command-gateway.ps1' 'hebrinex.command_gateway.result' 'command-gateway.ps1 must expose structured result schema'
 Assert-Contains 'orquestador/harness-manifest.txt' 'orquestador/runtime/schemas/command-gateway-result.schema.json' 'command gateway result schema must be in manifest'
 Assert-Contains 'orquestador/harness-manifest.txt' 'orquestador/runtime/templates/command-gateway-result.template.json' 'command gateway result template must be in manifest'
+Assert-Contains 'orquestador/harness-manifest.txt' 'orquestador/runtime/schemas/state-machine-decision.schema.json' 'state machine decision schema must be in manifest'
+Assert-Contains 'orquestador/harness-manifest.txt' 'orquestador/runtime/schemas/agent-runtime-decision.schema.json' 'agent runtime decision schema must be in manifest'
+Assert-Contains 'orquestador/harness-manifest.txt' 'orquestador/runtime/templates/state-machine-decision.template.json' 'state machine decision template must be in manifest'
+Assert-Contains 'orquestador/harness-manifest.txt' 'orquestador/runtime/templates/agent-runtime-decision.template.json' 'agent runtime decision template must be in manifest'
 Assert-Contains 'orquestador/policy-registry.yaml' 'validator_fixtures' 'policy registry must include validator fixtures'
 Assert-Contains 'orquestador/agents/agent-registry.yaml' 'HL0_agent_authority' 'agent registry must declare HL0 agent authority'
 Assert-Contains 'orquestador/agents/agent-registry.yaml' 'agent_definition_authority:\s*harness_only' 'agent registry must be harness-only'
@@ -418,7 +434,7 @@ Assert-Budget 'first_message' 1800 @('PROJECT_BINDING.yaml','orquestador/memory/
 Assert-Budget 'debug_log_intake' 2000 @('PROJECT_BINDING.yaml','orquestador/memory/local/session-pin.md','orquestador/memory/memory-registry.yaml','orquestador/memory/memory-routing.yaml','orquestador/context-budget.yaml','orquestador/entrypoints/debug-log-intake.md','orquestador/entrypoints/reentry-light.md')
 Assert-Budget 'leader_light' 2600 @('PROJECT_BINDING.yaml','orquestador/memory/local/session-pin.md','orquestador/memory/memory-registry.yaml','orquestador/memory/memory-routing.yaml','orquestador/context-budget.yaml','orquestador/sdd/progress/state.yaml','orquestador/sdd/progress/registry.yaml','orquestador/method/session-contract.md')
 
-foreach ($jsonRel in @('orquestador/integrations/claude/settings.template.json','orquestador/runtime/active-session.template.json','orquestador/runtime/schemas/active-session.schema.json','orquestador/runtime/schemas/harness-command.schema.json','orquestador/runtime/schemas/command-gateway-result.schema.json','orquestador/runtime/templates/command-result.template.json','orquestador/runtime/templates/command-gateway-result.template.json','orquestador/runtime/templates/budget-report.template.json','orquestador/runtime/templates/reentry-result.template.json','orquestador/sdd/progress/templates/runtime-audit-report.json')) {
+foreach ($jsonRel in @('orquestador/integrations/claude/settings.template.json','orquestador/runtime/active-session.template.json','orquestador/runtime/schemas/active-session.schema.json','orquestador/runtime/schemas/harness-command.schema.json','orquestador/runtime/schemas/command-gateway-result.schema.json','orquestador/runtime/schemas/state-machine-decision.schema.json','orquestador/runtime/schemas/agent-runtime-decision.schema.json','orquestador/runtime/templates/command-result.template.json','orquestador/runtime/templates/command-gateway-result.template.json','orquestador/runtime/templates/state-machine-decision.template.json','orquestador/runtime/templates/agent-runtime-decision.template.json','orquestador/runtime/templates/budget-report.template.json','orquestador/runtime/templates/reentry-result.template.json','orquestador/sdd/progress/templates/runtime-audit-report.json')) {
   try { [void](Read-HarnessText $jsonRel | ConvertFrom-Json) }
   catch { Add-Failure "$jsonRel must be valid JSON" }
 }
@@ -433,6 +449,8 @@ try { & (Resolve-HarnessPath 'scripts/hebrinex.ps1') status -Root $Root *> $null
 try { & (Resolve-HarnessPath 'scripts/hebrinex.ps1') budget -Root $Root *> $null } catch { Add-Failure 'hebrinex.ps1 budget must pass read-only' }
 try { & (Resolve-HarnessPath 'scripts/hebrinex.ps1') preflight -Root $Root -ApprovalId 'VALIDATE-HARNESS-CHECK' -Action 'check CLI preflight output' *> $null } catch { Add-Failure 'hebrinex.ps1 preflight must pass read-only' }
 try { & (Resolve-HarnessPath 'scripts/hebrinex.ps1') command -Root $Root -CheckOnly -CommandText 'Get-Content README.md' *> $null } catch { Add-Failure 'hebrinex.ps1 command must pass read-only CheckOnly' }
+try { & (Resolve-HarnessPath 'scripts/hebrinex.ps1') state-machine -Root $Root -FromState 'requested' -ToState 'contract_resolved' *> $null } catch { Add-Failure 'hebrinex.ps1 state-machine must pass allowed transition' }
+try { & (Resolve-HarnessPath 'scripts/hebrinex.ps1') agent-runtime -Root $Root -RoleId 'implementer' -Capability 'edit_approved_write_set' *> $null } catch { Add-Failure 'hebrinex.ps1 agent-runtime must pass allowed capability' }
 
 Invoke-Validator 'validate-release' 'scripts/validate-release.ps1'
 Invoke-Validator 'validate-cli' 'scripts/validate-cli.ps1'
@@ -445,6 +463,8 @@ Invoke-Validator 'validate-security-policy' 'scripts/validate-security-policy.ps
 Invoke-Validator 'validate-migration' 'scripts/validate-migration.ps1'
 Invoke-Validator 'validate-fixtures' 'scripts/validate-fixtures.ps1'
 Invoke-Validator 'validate-command-gateway' 'scripts/validate-command-gateway.ps1'
+Invoke-Validator 'validate-state-machine' 'scripts/validate-state-machine.ps1'
+Invoke-Validator 'validate-agent-runtime' 'scripts/validate-agent-runtime.ps1'
 Invoke-Validator 'audit-harness' 'scripts/audit-harness.ps1'
 
 Test-BoundCopySimulation

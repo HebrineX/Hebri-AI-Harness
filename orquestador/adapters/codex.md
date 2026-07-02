@@ -1,6 +1,6 @@
 # Codex Adapter
 
-## Entrada minima 0.10.11
+## Entrada minima 0.11.0
 
 Antes de actuar, leer solo:
 1. `PROJECT_BINDING.yaml`

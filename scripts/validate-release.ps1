@@ -116,3 +116,6 @@ if ($script:Failures.Count -gt 0) {
 
 Write-Host 'Release validation OK'
 exit 0
+
+  Assert-ContainsText '.github/workflows/ci.yml' 'validate-state-machine[.]ps1 -Root [.] -RunNegativeTests' 'CI must run state machine validation'
+  Assert-ContainsText '.github/workflows/ci.yml' 'validate-agent-runtime[.]ps1 -Root [.] -RunNegativeTests' 'CI must run agent runtime validation'

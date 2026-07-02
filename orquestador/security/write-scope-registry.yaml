@@ -1,6 +1,6 @@
 schema: hebrinex.security.write_scope_registry
 version: "0.1"
-harness_version: "0.10.11"
+harness_version: "0.11.0"
 defaults:
   writes_outside_project_root: block
   path_traversal: block

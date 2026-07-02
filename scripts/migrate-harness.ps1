@@ -1,6 +1,6 @@
 param(
   [string]$Root = (Split-Path -Parent $PSScriptRoot),
-  [string]$TargetVersion = '0.10.0',
+  [string]$TargetVersion = '0.11.0',
   [switch]$CheckOnly,
   [switch]$Apply
 )
@@ -113,6 +113,9 @@ function Test-SupportedBinding([string]$SourceVersion, [string]$BindingMode) {
   }
   if ($SourceVersion -eq '0.8.10') {
     return $BindingMode -eq 'bound'
+  }
+  if ($SourceVersion -eq '0.10.11') {
+    return @('bound', 'source_template') -contains $BindingMode
   }
   return $false
 }

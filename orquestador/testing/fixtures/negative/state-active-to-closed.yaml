@@ -1,0 +1,5 @@
+schema: hebrinex.runtime.state_transition
+from_state: active
+to_state: closed
+expected_decision: block
+expected_reason: invalid_transition

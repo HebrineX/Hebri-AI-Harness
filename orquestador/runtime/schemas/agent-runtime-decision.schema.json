@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Hebri Runtime Agent Enforcement Decision",
+  "type": "object",
+  "required": ["schema", "version", "role_id", "capability", "decision", "reason", "writes"],
+  "properties": {
+    "schema": { "const": "hebrinex.runtime.agent_enforcement.decision" },
+    "version": { "const": "0.1" },
+    "role_id": { "type": "string" },
+    "capability": { "type": "string" },
+    "decision": { "enum": ["allow", "block"] },
+    "reason": { "type": "string" },
+    "writes": { "const": false }
+  }
+}

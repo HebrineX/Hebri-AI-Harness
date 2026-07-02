@@ -1,6 +1,6 @@
 # Contrato de Sesion - Kernel
 
-Version: 0.10.11
+Version: 0.11.0
 
 Kernel obligatorio. Detalle ampliado: `session-contract-extended.md`.
 
@@ -66,4 +66,4 @@ Evidencia esperada:
 Requiere SI: SI
 ```
 
-El `SI` aprueba solo la accion exacta. Runtime 0.10.11 es cache; state/registry/evidence mandan.
+El `SI` aprueba solo la accion exacta. Runtime 0.11.0 es cache; state/registry/evidence mandan.

@@ -1,6 +1,6 @@
 schema: hebrinex.migration_registry
 version: "0.1"
-harness_version: "0.10.11"
+harness_version: "0.11.0"
 status: active
 authority:
   migration_definition: harness_only
@@ -10,6 +10,8 @@ authority:
 supported_targets:
   - "0.10.0"
   - "0.10.x"
+  - "0.11.0"
+  - "0.11.x"
 routes:
   - id: "0.9.0-to-0.10.0"
     source_version: "0.9.0"
@@ -21,9 +23,14 @@ routes:
     target_version: "0.10.0"
     route_file: orquestador/migration/versions/0.8.10-to-0.10.0.yaml
     supported_binding_modes: [bound]
+  - id: "0.10.11-to-0.11.0"
+    source_version: "0.10.11"
+    target_version: "0.11.0"
+    route_file: orquestador/migration/versions/0.10.11-to-0.11.0.yaml
+    supported_binding_modes: [bound, source_template]
   - id: "bound-update-source-template-to-bound"
     source_version: "0.10.x"
-    target_version: "0.10.x"
+    target_version: "0.11.x"
     route_file: scripts/hebrinex.ps1
     supported_binding_modes: [bound]
     check_only: true
@@ -36,7 +43,7 @@ routes:
       - orquestador/migration/reports/
   - id: "bound-restore-from-backup"
     source_version: "0.10.x"
-    target_version: "0.10.x"
+    target_version: "0.11.x"
     route_file: scripts/hebrinex.ps1
     supported_binding_modes: [bound]
     check_only: true
@@ -45,7 +52,7 @@ routes:
     deletes_extra_files: false
   - id: "bound-backup-inventory"
     source_version: "0.10.x"
-    target_version: "0.10.x"
+    target_version: "0.11.x"
     route_file: scripts/hebrinex.ps1
     supported_binding_modes: [bound]
     check_only: true
@@ -62,6 +69,8 @@ required_validators:
   - scripts/validate-bound-update.ps1
   - scripts/validate-bound-backups.ps1
   - scripts/validate-bound-restore.ps1
+  - scripts/validate-state-machine.ps1
+  - scripts/validate-agent-runtime.ps1
   - scripts/audit-harness.ps1
 preserve_by_default:
   - PROJECT_BINDING.yaml
@@ -78,4 +87,5 @@ rules:
   - "CheckOnly no escribe archivos."
   - "Apply requiere backup verificado antes del primer write."
   - "Una migracion aplicada termina con contrato post-migracion activo y validadores OK."
+  - "0.11.0 exige state machine y agent runtime enforcement activos."
   - "La migracion no ejecuta codigo remoto."

@@ -1,4 +1,4 @@
 schema: hebrinex.schema.claude_reentry_state
 version: "0.1"
-harness_version: "0.10.11"
+harness_version: "0.11.0"
 required_top_keys: [schema, version, harness_version, generated_at, brief_path, mode, non_authoritative]

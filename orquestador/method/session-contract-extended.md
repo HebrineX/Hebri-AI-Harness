@@ -1,6 +1,6 @@
 # Contrato de Sesion Extendido
 
-Version: 0.10.11
+Version: 0.11.0
 
 Este documento conserva la operacion completa del harness. No se carga por defecto. Usarlo cuando el kernel no alcanza: auditoria global, migracion, drift complejo, cierre de fase, reconstruccion historica o conflicto de reglas.
 

@@ -1,0 +1,10 @@
+{
+  "schema": "hebrinex.runtime.state_machine.decision",
+  "version": "0.1",
+  "root": "",
+  "from_state": "requested",
+  "to_state": "contract_resolved",
+  "decision": "allow",
+  "reason": "transition_allowed",
+  "writes": false
+}

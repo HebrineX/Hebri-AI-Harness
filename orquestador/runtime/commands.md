@@ -10,5 +10,7 @@ Los comandos son una interfaz de lectura/rehidratacion. No saltan preflight.
 | `/harness automatico` | operating modes | cambio persistente solo con `SI` | no relaja seguridad |
 | `/harness audit` | preflight de auditoria | ninguno por defecto | no hacer auditoria global automatica |
 | `/harness budget` | budget + read-set declarado | ninguno | bloquear sobrepresupuesto |
+| `/harness state-machine` | lifecycle registry | ninguno | bloquear transicion invalida |
+| `/harness agent-runtime` | agent/capability contracts | ninguno | bloquear capability faltante o denegada |
 
-Salida obligatoria: estado, read-set, over-budget, bloqueos y siguiente paso.
+Salida obligatoria: estado, read-set, over-budget, decision `allow|block`, motivo, bloqueos y siguiente paso.

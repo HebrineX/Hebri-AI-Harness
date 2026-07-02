@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Hebri Runtime State Machine Decision",
+  "type": "object",
+  "required": ["schema", "version", "from_state", "to_state", "decision", "reason", "writes"],
+  "properties": {
+    "schema": { "const": "hebrinex.runtime.state_machine.decision" },
+    "version": { "const": "0.1" },
+    "from_state": { "type": "string" },
+    "to_state": { "type": "string" },
+    "decision": { "enum": ["allow", "block"] },
+    "reason": { "type": "string" },
+    "writes": { "const": false }
+  }
+}
