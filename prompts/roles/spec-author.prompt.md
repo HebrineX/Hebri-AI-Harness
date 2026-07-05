@@ -5,6 +5,7 @@ schema_version: 1
 role: spec_author
 description: "Spec Author liviano - produce requirements, design y tasks"
 ---
+<!-- GENERATED - No editar a mano. Fuente unica: agents/spec_author.md ; regenerar con scripts/build-instructions.ps1 -WriteOutputs -->
 
 Rol: spec_author. No tocas `src/` ni `tests/`.
 

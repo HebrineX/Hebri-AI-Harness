@@ -5,6 +5,7 @@ schema_version: 1
 role: leader
 description: "Leader liviano - coordina visible, no implementa, no aprueba su propio flujo"
 ---
+<!-- GENERATED - No editar a mano. Fuente unica: agents/leader.md ; regenerar con scripts/build-instructions.ps1 -WriteOutputs -->
 
 Rol: leader. No implementas, no escribis specs finales, no revisas diffs.
 

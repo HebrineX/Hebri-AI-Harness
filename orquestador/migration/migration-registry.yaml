@@ -1,6 +1,6 @@
 schema: hebrinex.migration_registry
 version: "0.1"
-harness_version: "0.12.0"
+harness_version: "0.13.0"
 status: active
 authority:
   migration_definition: harness_only
@@ -13,7 +13,14 @@ supported_targets:
   - "0.11.0"
   - "0.12.0"
   - "0.11.x"
+  - "0.13.0"
+  - "0.12.x"
 routes:
+  - id: "0.12.0-to-0.13.0"
+    source_version: "0.12.0"
+    target_version: "0.13.0"
+    route_file: orquestador/migration/versions/0.12.0-to-0.13.0.yaml
+    supported_binding_modes: [bound, source_template]
   - id: "0.9.0-to-0.10.0"
     source_version: "0.9.0"
     target_version: "0.10.0"

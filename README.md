@@ -1,6 +1,6 @@
 # Hebri-AI-Harness
 
-Referencia operativa actual: **0.12.0**.
+Referencia operativa actual: **0.13.0**.
 
 Sistema operativo para agentes IA basado en [Hebri-AI-Structure](https://github.com/HebrineX/Hebri-AI-Structure). Objetivo: contrato, trazabilidad y aprobaciones con 70-80% menos contexto frente a leer todo `.hebrinex`.
 
@@ -34,6 +34,8 @@ Si un proyecto no tiene `.hebrinex`, no se opera con un harness externo. Se copi
 
 ## Novedades Actuales
 
+- Daemon MCP "hebrinex" (`mcp/`): un unico servidor MCP local (Node, stdio) expone el enforcement del harness como tools para Claude Code, Cursor, Codex CLI y cualquier cliente MCP, en lugar de 8 adapters de prompt. Ver seccion "Daemon MCP".
+- Fuente unica de roles: `agents/<rol>.md` contiene bloques marcados desde los que `scripts/build-instructions.ps1 -WriteOutputs` genera `orquestador/agents/role-contracts/*.yaml`, `prompts/roles/*.prompt.md` y el bloque `role_defaults` de `capability-registry.yaml`. Los derivados llevan aviso GENERATED y no se editan a mano: el drift-check (`build-instructions.ps1` en modo default, corrido por `init.sh` y `validate-drift.ps1`) falla si alguien lo hace.
 - CLI estable: `scripts/hebrinex.ps1` expone contrato versionado (0.3), markers parseables y validacion dedicada con `validate-cli.ps1`.
 - Approval store ejecutable: `hebrinex approve -Apply` materializa el `SI` como envelope con expiracion y hash exacto de la accion; el Command Gateway valida `-ApprovalId` contra el almacen y bloquea envelopes falsos, vencidos o con comando distinto.
 - Hooks reales de Claude Code: `SessionStart` inyecta el reentry brief y `PreToolUse` clasifica comandos con el gateway (`allow` sin prompt para read-only seguro, `ask` para patrones bloqueados). Instalador: `scripts/install-claude-hooks.ps1`.
@@ -45,7 +47,7 @@ Si un proyecto no tiene `.hebrinex`, no se opera con un harness externo. Se copi
   fixtures de migracion, fixtures negativos de seguridad, CLI estable e `init.sh`.
 - Agent Contract System: los agentes existen por contratos YAML gobernados por el harness, no por prompts ni autoasignacion de IA.
 - Seguridad AppSec verificable: permisos, write-scope, comandos, red, secretos, escalacion, logging y supply-chain se validan por registries.
-- Servicio de migracion: rutas 0.8.10/0.9.0 -> 0.10.0 y 0.10.11 -> 0.12.0 con CheckOnly, Apply con backup, reporte y contrato post-migracion aplicado.
+- Servicio de migracion: rutas 0.8.10/0.9.0 -> 0.10.0, 0.10.11 -> 0.11.0, 0.11.0 -> 0.12.0 y 0.12.0 -> 0.13.0 con CheckOnly, Apply con backup, reporte y contrato post-migracion aplicado.
 - Schemas y fixtures de validacion cubren contratos de agentes, seguridad y
   migracion con casos negativos.
 - Command Gateway seguro: `hebrinex command -CheckOnly` clasifica comandos y
@@ -77,6 +79,7 @@ corre en `pull_request` y `push` a `main`:
 - fixtures/validadores negativos de seguridad
 - `scripts/validate-state-machine.ps1 -RunNegativeTests`
 - `scripts/validate-agent-runtime.ps1 -RunNegativeTests`
+- `scripts/validate-mcp.ps1 -RunNegativeTests` (con `npm ci` previo en `mcp/`)
 - `./init.sh`
 
 Para bloquear merges, GitHub debe marcar `Harness contract` como required check
@@ -122,6 +125,36 @@ estrictos (`Get-Content`, `Select-String`, `Test-Path`, `Get-ChildItem`,
 `hebrinex.command_gateway.result` con decision, ejecucion y evidencia redactada.
 
 `state-machine` lee `orquestador/agents/lifecycle-registry.yaml` y devuelve una decision `allow|block` sin escribir archivos. `agent-runtime` lee `agent-registry.yaml`, `capability-registry.yaml` y contratos de rol para bloquear capabilities faltantes o denegadas antes de operar.
+
+## Daemon MCP
+
+`mcp/server.mjs` es un servidor MCP local (transporte stdio, SDK oficial
+`@modelcontextprotocol/sdk`) que envuelve los scripts PowerShell existentes.
+No reimplementa politica: toda ejecucion pasa por el Command Gateway y todo
+approval por el approval store.
+
+Tools expuestas:
+
+| Tool | Funcion |
+|---|---|
+| `run_command` | Unica via de ejecucion: corre el comando via gateway `-Apply`; si la decision es `block`, la tool falla con el reason y el preflight generado. |
+| `preflight_approve` | Materializa el `SI` del operador como envelope (`hebrinex approve -Apply`); devuelve `approval_id` + expiracion. |
+| `approval_check` | Valida un `approval_id` contra el almacen (estado, expiracion, hash exacto del comando). |
+| `session_contract` | Devuelve el contrato de sesion armado desde binding/state/registry dentro del presupuesto `leader_light`. |
+| `gate_check` | Clasifica que gates G5B..G5I aplican al scope tocado segun `git status/diff` (read-only). |
+| `memory_route` | Decide el entrypoint (`first_message` \| `reentry_light` \| `debug_log_intake` \| `compactation_recovery`) segun estado real. |
+| `close_cycle_check` | Verifica el `memory-closure-checklist` (evidencia, locks/agentes/handoffs abiertos) antes de permitir `done`. |
+
+Instalacion y smoke:
+
+```sh
+cd mcp && npm install && node smoke.mjs
+```
+
+Claude Code lo detecta solo via `.mcp.json` en la raiz. Para Cursor y Codex CLI
+ver `mcp/README.md`. Validacion: `scripts/validate-mcp.ps1` (estructura siempre;
+smoke solo si hay `node` y dependencias, skip limpio si no), integrado en
+`init.sh` y CI.
 
 ## Detractor Senior
 

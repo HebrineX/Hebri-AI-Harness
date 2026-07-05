@@ -227,8 +227,9 @@ foreach ($line in ($manifestText -split "`n")) {
   $path = Resolve-HarnessPath $rel
   if ($kind -eq 'dir' -and -not (Test-Path -LiteralPath $path -PathType Container)) { Add-Failure "manifest missing dir: $rel" }
   if ($kind -eq 'file') {
-    if (-not (Test-Path -LiteralPath $path -PathType Leaf)) { Add-Failure "manifest missing file: $rel" }
-    elseif ((Get-Item -LiteralPath $path).Length -eq 0) { Add-Failure "manifest empty file: $rel" }
+    $item = Get-Item -LiteralPath $path -ErrorAction SilentlyContinue
+    if ($null -eq $item -or $item.PSIsContainer) { Add-Failure "manifest missing file: $rel" }
+    elseif ($item.Length -eq 0) { Add-Failure "manifest empty file: $rel" }
   }
 }
 

@@ -1,6 +1,6 @@
 schema: hebrinex.instruction_registry
 version: "0.1"
-harness_version: "0.12.0"
+harness_version: "0.13.0"
 fragments:
   - kernel
   - preflight
@@ -13,3 +13,16 @@ targets:
   codex: {adapter: codex, persistent_file: AGENTS.md, hooks: limited, memory_trust: untrusted}
   gemini: {adapter: gemini, persistent_file: AGENTS.md, hooks: limited, memory_trust: untrusted}
   generic-ai: {adapter: generic-ai, persistent_file: prompt, hooks: none, memory_trust: untrusted}
+# Fuente unica de roles: agents/<rol>.md contiene bloques marcados
+# (<!-- hebrinex:generate contract|role-defaults|prompt -->) desde los que
+# build-instructions.ps1 genera las capas derivadas. El orden de este mapa
+# define el orden del bloque role_defaults generado en capability-registry.yaml.
+role_sources:
+  leader: {source: agents/leader.md, contract: orquestador/agents/role-contracts/leader.yaml, prompt: prompts/roles/lider.prompt.md}
+  implementer: {source: agents/implementer.md, contract: orquestador/agents/role-contracts/implementer.yaml, prompt: prompts/roles/implementer.prompt.md}
+  reviewer: {source: agents/reviewer.md, contract: orquestador/agents/role-contracts/reviewer.yaml, prompt: prompts/roles/reviewer.prompt.md}
+  auditor: {source: agents/auditor.md, contract: orquestador/agents/role-contracts/auditor.yaml}
+  reporter: {source: agents/reporter.md, contract: orquestador/agents/role-contracts/reporter.yaml}
+  spec-author: {source: agents/spec_author.md, contract: orquestador/agents/role-contracts/spec-author.yaml, prompt: prompts/roles/spec-author.prompt.md}
+  worker: {source: agents/worker.md, contract: orquestador/agents/role-contracts/worker.yaml, prompt: prompts/roles/worker.prompt.md}
+role_defaults_target: orquestador/agents/capability-registry.yaml

@@ -5,6 +5,7 @@ schema_version: 1
 role: worker
 description: "Worker agent - ejecuta una tarea acotada con dispatch, ownership y handoff"
 ---
+<!-- GENERATED - No editar a mano. Fuente unica: agents/worker.md ; regenerar con scripts/build-instructions.ps1 -WriteOutputs -->
 
 Rol: worker.
 

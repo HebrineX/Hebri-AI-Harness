@@ -2,6 +2,21 @@
 
 ## [Unreleased]
 
+## [0.13.0] - 2026-07-05
+
+### Added
+- Daemon MCP "hebrinex" (`mcp/server.mjs`, SDK oficial `@modelcontextprotocol/sdk`, transporte stdio) que envuelve los scripts PowerShell existentes: `run_command` (unica via de ejecucion, via command gateway `-Apply`; block => la tool falla con reason y preflight generado), `preflight_approve` (crea envelopes via `hebrinex approve -Apply`, devuelve `approval_id` + expiracion), `approval_check` (valida un id contra el almacen via gateway CheckOnly), `session_contract` (contrato de sesion armado desde PROJECT_BINDING/state/registry/budget dentro del presupuesto `leader_light`), `gate_check` (clasifica gates G5B..G5I segun `git status/diff` read-only), `memory_route` (decide first_message | reentry_light | debug_log_intake | compactation_recovery segun estado real) y `close_cycle_check` (verifica memory-closure-checklist antes de `done`).
+- `.mcp.json` registra el daemon para Claude Code; `mcp/README.md` documenta la conexion desde Cursor (`.cursor/mcp.json`) y Codex CLI (`~/.codex/config.toml`): un solo daemon local en lugar de 8 adapters de prompt.
+- `mcp/smoke.mjs`: smoke test MCP real (cliente stdio) que valida las 7 tools, el block de comandos peligrosos y el rechazo de approvals inexistentes.
+- `scripts/validate-mcp.ps1`: valida estructura del daemon siempre y corre el smoke solo si hay `node` y dependencias instaladas (skip limpio si no); integrado en `init.sh` y CI (step "MCP daemon").
+- `agents/worker.md`: fuente narrativa del rol worker (antes solo existia como contrato y prompt derivados).
+- Ruta de migracion `orquestador/migration/versions/0.12.0-to-0.13.0.yaml` + entrada en `migration-registry.yaml`.
+
+### Changed
+- Deduplicacion de capas de roles: `agents/<rol>.md` es la fuente unica; `orquestador/agents/role-contracts/*.yaml`, `prompts/roles/*.prompt.md` y el bloque `role_defaults` de `capability-registry.yaml` se generan con `scripts/build-instructions.ps1 -WriteOutputs` desde bloques marcados (`<!-- hebrinex:generate contract|role-defaults|prompt -->`). Semantica de roles sin cambios (los derivados solo suman avisos GENERATED).
+- `scripts/build-instructions.ps1`: el modo default ahora es drift-check real (exit 2 listando derivados editados a mano); `-WriteOutputs` regenera los 13 derivados. `instruction-registry.yaml` declara `role_sources` y `role_defaults_target`.
+- `scripts/validate-drift.ps1` exige el wiring `role_sources` e invoca el builder en modo check; `scripts/validate-agent-contracts.ps1` exige el header GENERATED en cada contrato y los bloques fuente en cada `agents/<rol>.md`.
+
 ## [0.12.0] - 2026-07-05
 
 ### Added

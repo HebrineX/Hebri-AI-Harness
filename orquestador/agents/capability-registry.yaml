@@ -1,6 +1,6 @@
 schema: hebrinex.capability_registry
 version: "0.1"
-harness_version: "0.12.0"
+harness_version: "0.13.0"
 defaults:
   unknown_capability: block
   missing_capability: block
@@ -85,6 +85,7 @@ capabilities:
     requires_backup_or_recovery: true
     requires_evidence: true
 role_defaults:
+  # GENERATED - No editar a mano. Fuente unica: bloques role-defaults en agents/*.md
   leader:
     allow: [read_declared_files, inspect_diff, run_readonly_audit, approve_work, block_work, summarize_evidence]
     deny: [edit_approved_write_set, git_remote_write, access_secrets, privileged_execution, destructive_filesystem]

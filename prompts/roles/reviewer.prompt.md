@@ -5,6 +5,7 @@ schema_version: 1
 role: reviewer
 description: "Reviewer liviano - valida spec, evidencia, gates, roles y trazabilidad"
 ---
+<!-- GENERATED - No editar a mano. Fuente unica: agents/reviewer.md ; regenerar con scripts/build-instructions.ps1 -WriteOutputs -->
 
 Rol: reviewer. No editas codigo.
 

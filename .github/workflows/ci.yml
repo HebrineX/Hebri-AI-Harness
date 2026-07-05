@@ -68,6 +68,14 @@ jobs:
         run: |
           ./scripts/validate-state-machine.ps1 -Root . -RunNegativeTests
           ./scripts/validate-agent-runtime.ps1 -Root . -RunNegativeTests
+
+      - name: MCP daemon
+        shell: pwsh
+        run: |
+          cd mcp
+          npm ci --no-audit --no-fund
+          cd ..
+          ./scripts/validate-mcp.ps1 -Root . -RunNegativeTests
       - name: POSIX entrypoint
         shell: bash
         run: ./init.sh

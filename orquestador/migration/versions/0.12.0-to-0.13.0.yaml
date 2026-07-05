@@ -1,0 +1,61 @@
+schema: hebrinex.migration_route
+version: "0.1"
+id: "0.12.0-to-0.13.0"
+source_version: "0.12.0"
+target_version: "0.13.0"
+status: active
+mode_support:
+  check_only: true
+  apply: true
+  rollback: planned
+preconditions:
+  - HARNESS_VERSION equals 0.12.0
+  - PROJECT_BINDING.yaml exists
+  - binding_mode is bound or source_template
+  - current root contains orquestador/
+  - CLI stable contract from 0.12.0 is present
+additive_paths:
+  - .mcp.json
+  - mcp/package.json
+  - mcp/package-lock.json
+  - mcp/README.md
+  - mcp/server.mjs
+  - mcp/smoke.mjs
+  - scripts/validate-mcp.ps1
+  - agents/worker.md
+  - orquestador/migration/versions/0.12.0-to-0.13.0.yaml
+never_overwrite:
+  - PROJECT_BINDING.yaml
+  - HARNESS_VERSION
+  - orquestador/sdd/progress/state.yaml
+  - orquestador/sdd/progress/registry.yaml
+  - orquestador/sdd/progress/cycles/
+  - orquestador/sdd/progress/locks/
+  - orquestador/sdd/progress/approvals/
+  - orquestador/memory/local/
+  - orquestador/memory/project/
+preserve_state:
+  state_yaml: true
+  registry_yaml: true
+  cycles: true
+  locks: true
+  approvals: true
+  local_memory: true
+  project_memory: true
+  evidence: true
+check_only_output:
+  - detected_version
+  - route_id
+  - binding_mode
+  - files_to_add
+  - files_to_preserve
+  - validators_required
+  - expected_post_migration_contract
+apply_success_requires:
+  - backup_verified
+  - approval_store_active
+  - command_gateway_controlled
+  - mcp_daemon_available
+  - role_layers_generated
+notes:
+  - "0.13.0 agrega el daemon MCP hebrinex (mcp/ + .mcp.json + validate-mcp.ps1) y convierte agents/*.md en fuente unica de roles (role-contracts, prompts/roles y role_defaults generados por build-instructions.ps1)."

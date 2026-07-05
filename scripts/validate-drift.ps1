@@ -11,6 +11,12 @@ $registry = Txt "orquestador/instruction-builder/instruction-registry.yaml"
 foreach($needle in @("harness_version: `"$version`"","claude-code","codex","gemini","generic-ai","kernel","preflight","denylists")){ if($registry -notmatch [regex]::Escape($needle)){ Fail "registry missing $needle" } }
 foreach($frag in @("kernel","preflight","memory-routing","roles","claude-hooks","denylists")){ [void](Txt "orquestador/instruction-builder/fragments/$frag.md") }
 foreach($rel in @("prompts/adapters/preset-claude.prompt.md","prompts/adapters/preset-codex.prompt.md","prompts/adapters/preset-gemini.prompt.md","orquestador/integrations/claude/CLAUDE.template.md")){ $t=Txt $rel; if($t -match "infoHebri[.]md.*(load|cargar como operativo)"){ Fail "$rel loads infoHebri operationally" } }
-if($RunNegativeTests){ $bad="HARNESS_VERSION=0.8.6 infoHebri.md load"; if($bad -notmatch "0[.]8[.]6"){ Fail "negative version drift test did not trigger" }; if($bad -notmatch "infoHebri[.]md.*load"){ Fail "negative infoHebri test did not trigger" } }
+if($registry -notmatch "role_sources:"){ Fail "instruction registry missing role_sources (single-source role layers)" }
+if($registry -notmatch "role_defaults_target:"){ Fail "instruction registry missing role_defaults_target" }
+# Drift de capas de roles: los derivados (role-contracts, prompts/roles, role_defaults)
+# deben coincidir byte a byte con lo generado desde agents/*.md.
+& (Join-Path $Root "scripts/build-instructions.ps1") -Root $Root | Out-Null
+if($LASTEXITCODE -ne 0){ Fail "derived role layers drifted from agents/*.md source (run scripts/build-instructions.ps1 -WriteOutputs)" }
+if($RunNegativeTests){ $bad="HARNESS_VERSION=0.8.6 infoHebri.md load"; if($bad -notmatch "0[.]8[.]6"){ Fail "negative version drift test did not trigger" }; if($bad -notmatch "infoHebri[.]md.*load"){ Fail "negative infoHebri test did not trigger" }; $badDerived="# hand edited derived file without GENERATED header"; if($badDerived -match "^# GENERATED"){ Fail "negative derived-header test did not trigger" } }
 if($failures.Count){ Write-Host "Strong drift validation failed:"; $failures | ForEach-Object { Write-Host "- $_" }; exit 2 }
 Write-Host "OK. Strong drift validation passed."

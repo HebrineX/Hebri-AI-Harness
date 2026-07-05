@@ -5,6 +5,7 @@ schema_version: 1
 role: implementer
 description: "Implementer liviano - ejecuta tasks aprobadas con lock, ownership y handoff"
 ---
+<!-- GENERATED - No editar a mano. Fuente unica: agents/implementer.md ; regenerar con scripts/build-instructions.ps1 -WriteOutputs -->
 
 Rol: implementer.
 

@@ -104,6 +104,15 @@ $roles = @('leader', 'implementer', 'reviewer', 'auditor', 'reporter', 'spec-aut
 foreach ($role in $roles) {
   Assert-Contains 'orquestador/agents/agent-registry.yaml' ("id:\s*$([regex]::Escape($role))") "agent registry missing role: $role"
   Assert-RoleArtifactSet $role
+  Assert-Contains "orquestador/agents/role-contracts/$role.yaml" '# GENERATED - No editar a mano' "role contract $role must be generated from agents source (build-instructions.ps1)"
+}
+
+# Fuente unica de roles: cada contrato deriva de agents/<rol>.md via instruction-builder.
+$roleSourceFiles = @('agents/leader.md', 'agents/implementer.md', 'agents/reviewer.md', 'agents/auditor.md', 'agents/reporter.md', 'agents/spec_author.md', 'agents/worker.md')
+foreach ($sourceFile in $roleSourceFiles) {
+  Assert-File $sourceFile
+  Assert-Contains $sourceFile 'hebrinex:generate contract' "$sourceFile must embed the generated contract block"
+  Assert-Contains $sourceFile 'hebrinex:generate role-defaults' "$sourceFile must embed the generated role-defaults block"
 }
 
 $handoffs = @(

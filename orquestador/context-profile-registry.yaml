@@ -1,6 +1,6 @@
 schema: hebrinex.context_profile_registry
 version: "0.1"
-harness_version: "0.12.0"
+harness_version: "0.13.0"
 source:
   budget_file:
     path: orquestador/context-budget.yaml

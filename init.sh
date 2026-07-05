@@ -104,6 +104,9 @@ require_grep "scripts/validate-harness.ps1" "$ROOT/orquestador/harness-manifest.
 require_grep "scripts/validate-agent-contracts.ps1" "$ROOT/orquestador/harness-manifest.txt" "validate-agent-contracts.ps1 no esta en manifest"
 require_grep "scripts/validate-security-policy.ps1" "$ROOT/orquestador/harness-manifest.txt" "validate-security-policy.ps1 no esta en manifest"
 require_grep "scripts/validate-migration.ps1" "$ROOT/orquestador/harness-manifest.txt" "validate-migration.ps1 no esta en manifest"
+require_grep "scripts/validate-mcp.ps1" "$ROOT/orquestador/harness-manifest.txt" "validate-mcp.ps1 no esta en manifest"
+require_grep "mcp/server.mjs" "$ROOT/orquestador/harness-manifest.txt" "mcp/server.mjs no esta en manifest"
+require_grep "\.mcp\.json" "$ROOT/orquestador/harness-manifest.txt" ".mcp.json no esta en manifest"
 require_grep "scripts/audit-harness.ps1" "$ROOT/orquestador/harness-manifest.txt" "audit-harness.ps1 no esta en manifest"
 require_grep "scripts/migrate-harness.ps1" "$ROOT/orquestador/harness-manifest.txt" "migrate-harness.ps1 no esta en manifest"
 require_grep "scripts/validate-release.ps1" "$ROOT/orquestador/harness-manifest.txt" "validate-release.ps1 no esta en manifest"
@@ -180,6 +183,7 @@ if [ "$BINDING_MODE" = "source_template" ]; then
   require_grep "validate-fixtures[.]ps1 -Root [.] -RunNegativeTests" "$CI_FILE" "CI oficial no ejecuta fixtures"
   require_grep "validate-state-machine[.]ps1 -Root [.] -RunNegativeTests" "$CI_FILE" "CI oficial no ejecuta state-machine"
   require_grep "validate-agent-runtime[.]ps1 -Root [.] -RunNegativeTests" "$CI_FILE" "CI oficial no ejecuta agent-runtime"
+  require_grep "validate-mcp[.]ps1 -Root [.] -RunNegativeTests" "$CI_FILE" "CI oficial no ejecuta validate-mcp"
   require_grep "[.]/init[.]sh" "$CI_FILE" "CI oficial no ejecuta init.sh"
 fi
 require_grep "ComputeHash" "$ROOT/scripts/build-instructions.ps1" "build-instructions.ps1 debe usar ComputeHash compatible PS 5.1"
@@ -197,6 +201,7 @@ if grep -q "HashData\|ToHexString" "$ROOT/scripts/build-instructions.ps1"; then 
 "$PSH" -NoProfile -ExecutionPolicy Bypass -File "$ROOT/scripts/validate-agent-contracts.ps1" -Root "$ROOT" -RunNegativeTests
 "$PSH" -NoProfile -ExecutionPolicy Bypass -File "$ROOT/scripts/validate-security-policy.ps1" -Root "$ROOT" -RunNegativeTests
 "$PSH" -NoProfile -ExecutionPolicy Bypass -File "$ROOT/scripts/validate-migration.ps1" -Root "$ROOT" -RunNegativeTests
+"$PSH" -NoProfile -ExecutionPolicy Bypass -File "$ROOT/scripts/validate-mcp.ps1" -Root "$ROOT" -RunNegativeTests
 "$PSH" -NoProfile -ExecutionPolicy Bypass -File "$ROOT/scripts/validate-state-machine.ps1" -Root "$ROOT" -RunNegativeTests
 "$PSH" -NoProfile -ExecutionPolicy Bypass -File "$ROOT/scripts/validate-agent-runtime.ps1" -Root "$ROOT" -RunNegativeTests
 "$PSH" -NoProfile -ExecutionPolicy Bypass -File "$ROOT/scripts/audit-harness.ps1" -Root "$ROOT" -RunNegativeTests
