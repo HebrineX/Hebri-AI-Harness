@@ -1,6 +1,6 @@
 param(
   [string]$Root = (Split-Path -Parent $PSScriptRoot),
-  [string]$TargetVersion = '0.13.0',
+  [string]$TargetVersion = '0.13.1',
   [switch]$CheckOnly,
   [switch]$Apply
 )

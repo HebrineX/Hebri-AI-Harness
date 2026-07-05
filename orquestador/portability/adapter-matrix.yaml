@@ -1,6 +1,6 @@
 schema: hebrinex.portability.adapter_matrix
 version: "0.1"
-harness_version: "0.13.0"
+harness_version: "0.13.1"
 hosts:
   - adapter_id: claude-code
     persistent_instruction_file: CLAUDE.md

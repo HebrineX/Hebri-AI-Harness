@@ -2,6 +2,15 @@
 
 ## [Unreleased]
 
+## [0.13.1] - 2026-07-05
+
+### Fixed
+- `validate-bootstrap.ps1` now validates bootstrapped bound harnesses with `validate-harness.ps1 -SkipNestedValidators`, avoiding recursive/source-template validation inside `.hebrinex` while preserving full validation for the source template.
+- Bound validator failures in `hebrinex.ps1` now include the last validator output lines instead of only `exit_code`, making CI failures actionable.
+
+### Added
+- Migration route `orquestador/migration/versions/0.13.0-to-0.13.1.yaml` for the bootstrap/bound validation hotfix.
+
 ## [0.13.0] - 2026-07-05
 
 ### Added

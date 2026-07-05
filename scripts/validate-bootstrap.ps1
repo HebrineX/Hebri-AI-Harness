@@ -48,6 +48,12 @@ function Get-LastExitCodeValue() {
   return [int]$global:LASTEXITCODE
 }
 
+function Format-CommandOutput([object[]]$Output, [int]$MaxLines = 80) {
+  $lines = @($Output | ForEach-Object { [string]$_ })
+  if ($lines.Count -gt $MaxLines) { $lines = $lines[($lines.Count - $MaxLines)..($lines.Count - 1)] }
+  return ($lines -join ' | ')
+}
+
 function Assert-BoundHarnessShape([string]$HarnessRoot, [string]$ProjectRoot) {
   $bindingPath = Join-Path $HarnessRoot 'PROJECT_BINDING.yaml'
   if (-not (Test-Path -LiteralPath $bindingPath -PathType Leaf)) {
@@ -128,8 +134,10 @@ function Invoke-SourceTemplateBootstrapSmoke() {
     $boundValidator = Join-Path $boundRoot 'scripts/validate-harness.ps1'
     if (Test-Path -LiteralPath $boundValidator -PathType Leaf) {
       $global:LASTEXITCODE = 0
-      & $boundValidator -Root $boundRoot -RunNegativeTests *> $null
-      if ((Get-LastExitCodeValue) -ne 0) { Add-Failure "bootstrapped bound harness validate-harness failed: $(Get-LastExitCodeValue)" }
+      $boundOutput = & $boundValidator -Root $boundRoot -RunNegativeTests -SkipNestedValidators *>&1
+      if ((Get-LastExitCodeValue) -ne 0) {
+        Add-Failure ("bootstrapped bound harness validate-harness failed: {0}; output: {1}" -f (Get-LastExitCodeValue), (Format-CommandOutput $boundOutput))
+      }
     }
     else { Add-Failure 'bootstrapped harness missing validate-harness.ps1' }
   }
@@ -150,6 +158,8 @@ function Run-NegativeTests() {
 $Root = (Resolve-Path -LiteralPath $Root).Path
 Write-Host "Validating bootstrap service at $Root"
 
+Assert-Contains 'scripts/validate-harness.ps1' 'SkipNestedValidators' 'validate-harness must support bound smoke without nested validators'
+Assert-Contains 'scripts/validate-bootstrap.ps1' 'SkipNestedValidators' 'bootstrap bound smoke must avoid recursive nested validators'
 Assert-Contains 'scripts/hebrinex.ps1' 'bootstrap -CheckOnly\|-Apply' 'CLI help must expose bootstrap Apply'
 Assert-Contains 'scripts/hebrinex.ps1' 'Copy-HarnessManifestToBoundRoot' 'bootstrap Apply must copy via manifest allowlist'
 Assert-Contains 'scripts/hebrinex.ps1' 'Test-BootstrapExcludedPath' 'bootstrap Apply must define exclusion filter'

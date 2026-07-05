@@ -1,6 +1,7 @@
 param(
   [string]$Root = (Split-Path -Parent $PSScriptRoot),
-  [switch]$RunNegativeTests
+  [switch]$RunNegativeTests,
+  [switch]$SkipNestedValidators
 )
 
 $ErrorActionPreference = 'Stop'
@@ -455,20 +456,25 @@ try { & (Resolve-HarnessPath 'scripts/hebrinex.ps1') command -Root $Root -CheckO
 try { & (Resolve-HarnessPath 'scripts/hebrinex.ps1') state-machine -Root $Root -FromState 'requested' -ToState 'contract_resolved' *> $null } catch { Add-Failure 'hebrinex.ps1 state-machine must pass allowed transition' }
 try { & (Resolve-HarnessPath 'scripts/hebrinex.ps1') agent-runtime -Root $Root -RoleId 'implementer' -Capability 'edit_approved_write_set' *> $null } catch { Add-Failure 'hebrinex.ps1 agent-runtime must pass allowed capability' }
 
-Invoke-Validator 'validate-release' 'scripts/validate-release.ps1'
-Invoke-Validator 'validate-cli' 'scripts/validate-cli.ps1'
-Invoke-Validator 'validate-bootstrap' 'scripts/validate-bootstrap.ps1'
-Invoke-Validator 'validate-bound-update' 'scripts/validate-bound-update.ps1'
-Invoke-Validator 'validate-bound-backups' 'scripts/validate-bound-backups.ps1'
-Invoke-Validator 'validate-bound-restore' 'scripts/validate-bound-restore.ps1'
-Invoke-Validator 'validate-agent-contracts' 'scripts/validate-agent-contracts.ps1'
-Invoke-Validator 'validate-security-policy' 'scripts/validate-security-policy.ps1'
-Invoke-Validator 'validate-migration' 'scripts/validate-migration.ps1'
-Invoke-Validator 'validate-fixtures' 'scripts/validate-fixtures.ps1'
-Invoke-Validator 'validate-command-gateway' 'scripts/validate-command-gateway.ps1'
-Invoke-Validator 'validate-state-machine' 'scripts/validate-state-machine.ps1'
-Invoke-Validator 'validate-agent-runtime' 'scripts/validate-agent-runtime.ps1'
-Invoke-Validator 'audit-harness' 'scripts/audit-harness.ps1'
+if ($SkipNestedValidators) {
+  Write-Host 'Nested validators skipped for bound smoke.'
+}
+else {
+  Invoke-Validator 'validate-release' 'scripts/validate-release.ps1'
+  Invoke-Validator 'validate-cli' 'scripts/validate-cli.ps1'
+  Invoke-Validator 'validate-bootstrap' 'scripts/validate-bootstrap.ps1'
+  Invoke-Validator 'validate-bound-update' 'scripts/validate-bound-update.ps1'
+  Invoke-Validator 'validate-bound-backups' 'scripts/validate-bound-backups.ps1'
+  Invoke-Validator 'validate-bound-restore' 'scripts/validate-bound-restore.ps1'
+  Invoke-Validator 'validate-agent-contracts' 'scripts/validate-agent-contracts.ps1'
+  Invoke-Validator 'validate-security-policy' 'scripts/validate-security-policy.ps1'
+  Invoke-Validator 'validate-migration' 'scripts/validate-migration.ps1'
+  Invoke-Validator 'validate-fixtures' 'scripts/validate-fixtures.ps1'
+  Invoke-Validator 'validate-command-gateway' 'scripts/validate-command-gateway.ps1'
+  Invoke-Validator 'validate-state-machine' 'scripts/validate-state-machine.ps1'
+  Invoke-Validator 'validate-agent-runtime' 'scripts/validate-agent-runtime.ps1'
+  Invoke-Validator 'audit-harness' 'scripts/audit-harness.ps1'
+}
 
 Test-BoundCopySimulation
 if ($RunNegativeTests) { Run-NegativeTests }

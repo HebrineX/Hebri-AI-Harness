@@ -1,6 +1,6 @@
 # Daemon MCP "hebrinex"
 
-harness_version: "0.13.0"
+harness_version: "0.13.1"
 
 Servidor MCP local (stdio, Node >= 18, SDK oficial `@modelcontextprotocol/sdk`)
 que expone el enforcement del Hebri-AI-Harness como tools. Es la pieza

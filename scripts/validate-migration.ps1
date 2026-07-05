@@ -145,6 +145,7 @@ $requiredFiles = @(
   'orquestador/migration/versions/0.10.11-to-0.11.0.yaml',
   'orquestador/migration/versions/0.11.0-to-0.12.0.yaml',
   'orquestador/migration/versions/0.12.0-to-0.13.0.yaml',
+  'orquestador/migration/versions/0.13.0-to-0.13.1.yaml',
   'orquestador/migration/contracts/post-migration-contract.yaml',
   'orquestador/migration/reports/migration-report.template.yaml',
   'scripts/migrate-harness.ps1',
@@ -159,6 +160,7 @@ Assert-Contains 'orquestador/migration/migration-registry.yaml' '0[.]8[.]10-to-0
 Assert-Contains 'orquestador/migration/migration-registry.yaml' '0[.]10[.]11-to-0[.]11[.]0' 'migration registry must include 0.10.11-to-0.11.0'
 Assert-Contains 'orquestador/migration/migration-registry.yaml' '0[.]11[.]0-to-0[.]12[.]0' 'migration registry must include 0.11.0-to-0.12.0'
 Assert-Contains 'orquestador/migration/migration-registry.yaml' '0[.]12[.]0-to-0[.]13[.]0' 'migration registry must include 0.12.0-to-0.13.0'
+Assert-Contains 'orquestador/migration/migration-registry.yaml' '0[.]13[.]0-to-0[.]13[.]1' 'migration registry must include 0.13.0-to-0.13.1'
 Assert-Contains 'orquestador/migration/migration-registry.yaml' 'scripts/validate-state-machine[.]ps1' 'migration registry must require state machine validator'
 Assert-Contains 'orquestador/migration/migration-registry.yaml' 'scripts/validate-agent-runtime[.]ps1' 'migration registry must require agent runtime validator'
 Assert-Contains 'orquestador/migration/migration-registry.yaml' 'PROJECT_BINDING[.]yaml' 'migration must preserve PROJECT_BINDING.yaml'
@@ -194,10 +196,16 @@ Assert-Contains 'orquestador/migration/versions/0.12.0-to-0.13.0.yaml' 'check_on
 Assert-Contains 'orquestador/migration/versions/0.12.0-to-0.13.0.yaml' 'apply:\s*true' '0.12.0 route must support Apply'
 Assert-Contains 'orquestador/migration/versions/0.12.0-to-0.13.0.yaml' 'mcp_daemon_available' '0.12.0 route must require the MCP daemon'
 Assert-Contains 'orquestador/migration/versions/0.12.0-to-0.13.0.yaml' 'role_layers_generated' '0.12.0 route must require generated role layers'
+Assert-Contains 'orquestador/migration/versions/0.13.0-to-0.13.1.yaml' 'source_version:\s*"0[.]13[.]0"' '0.13.0 route source mismatch'
+Assert-Contains 'orquestador/migration/versions/0.13.0-to-0.13.1.yaml' 'target_version:\s*"0[.]13[.]1"' '0.13.0 route target mismatch'
+Assert-Contains 'orquestador/migration/versions/0.13.0-to-0.13.1.yaml' 'check_only:\s*true' '0.13.0 route must support CheckOnly'
+Assert-Contains 'orquestador/migration/versions/0.13.0-to-0.13.1.yaml' 'apply:\s*true' '0.13.0 route must support Apply'
+Assert-Contains 'orquestador/migration/versions/0.13.0-to-0.13.1.yaml' 'bootstrap_bound_smoke_validated' '0.13.0 route must require bootstrap bound smoke validation'
+Assert-Contains 'orquestador/migration/versions/0.13.0-to-0.13.1.yaml' 'bound_validator_output_reported' '0.13.0 route must require bound validator output reporting'
 
 Assert-Contains 'orquestador/migration/reports/migration-report.template.yaml' 'wrote_files:\s*false' 'report template must represent CheckOnly no-write'
 Assert-Contains 'orquestador/migration/reports/migration-report.template.yaml' 'backup:' 'report template must include backup section'
-Assert-Contains 'orquestador/migration/contracts/post-migration-contract.yaml' 'target_version:\s*"0[.]13[.]0"' 'post migration template must target 0.13.0'
+Assert-Contains 'orquestador/migration/contracts/post-migration-contract.yaml' 'target_version:\s*"0[.]13[.]1"' 'post migration template must target 0.13.1'
 $currentHarnessVersion = (Read-HarnessText 'HARNESS_VERSION').Trim()
 $bindingText = Read-HarnessText 'PROJECT_BINDING.yaml'
 $bindingMode = Get-Scalar $bindingText 'binding_mode'

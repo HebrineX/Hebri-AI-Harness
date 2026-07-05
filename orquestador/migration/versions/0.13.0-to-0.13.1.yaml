@@ -1,0 +1,53 @@
+schema: hebrinex.migration_route
+version: "0.1"
+id: "0.13.0-to-0.13.1"
+source_version: "0.13.0"
+target_version: "0.13.1"
+status: active
+mode_support:
+  check_only: true
+  apply: true
+  rollback: planned
+preconditions:
+  - HARNESS_VERSION equals 0.13.0
+  - PROJECT_BINDING.yaml exists
+  - binding_mode is bound or source_template
+  - current root contains orquestador/
+  - bootstrap service from 0.13.0 is present
+changed_paths:
+  - scripts/hebrinex.ps1
+  - scripts/validate-bootstrap.ps1
+  - scripts/validate-harness.ps1
+  - orquestador/migration/versions/0.13.0-to-0.13.1.yaml
+never_overwrite:
+  - PROJECT_BINDING.yaml
+  - HARNESS_VERSION
+  - orquestador/sdd/progress/state.yaml
+  - orquestador/sdd/progress/registry.yaml
+  - orquestador/sdd/progress/cycles/
+  - orquestador/sdd/progress/locks/
+  - orquestador/sdd/progress/approvals/
+  - orquestador/memory/local/
+  - orquestador/memory/project/
+preserve_state:
+  state_yaml: true
+  registry_yaml: true
+  cycles: true
+  locks: true
+  approvals: true
+  local_memory: true
+  project_memory: true
+  evidence: true
+check_only_output:
+  - detected_version
+  - route_id
+  - binding_mode
+  - validators_required
+  - expected_post_migration_contract
+apply_success_requires:
+  - backup_verified
+  - bootstrap_bound_smoke_validated
+  - nested_validator_scope_applied
+  - bound_validator_output_reported
+notes:
+  - "0.13.1 corrige el smoke de bootstrap/bound para evitar validacion recursiva completa dentro de .hebrinex y mejora el reporte de fallos bound en CI."

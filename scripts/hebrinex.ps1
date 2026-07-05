@@ -6,7 +6,7 @@ param(
   [switch]$RunNegativeTests,
   [switch]$CheckOnly,
   [switch]$Apply,
-  [string]$TargetVersion = '0.13.0',
+  [string]$TargetVersion = '0.13.1',
   [string]$ProjectRoot = '',
   [string]$BackupId = '',
   [string]$ApprovalId = '',
@@ -691,7 +691,7 @@ function Invoke-BoundUpdateApply([string]$ProjectRootValue) {
   $validatorResults['validate_security_policy'] = Invoke-BoundValidator $target.BoundRoot 'scripts/validate-security-policy.ps1'
   $reportPath = Write-BoundUpdateMigrationReport $target.BoundRoot $updateId $sourceVersion $version $target.ProjectRoot $backup $validatorResults $copyResult $startedAt (Get-Date).ToUniversalTime().ToString('o')
   $validatorResults['validate_migration'] = Invoke-BoundValidator $target.BoundRoot 'scripts/validate-migration.ps1' @('-RequireApplied')
-  $validatorResults['validate_harness'] = Invoke-BoundValidator $target.BoundRoot 'scripts/validate-harness.ps1' @('-RunNegativeTests')
+  $validatorResults['validate_harness'] = Invoke-BoundValidator $target.BoundRoot 'scripts/validate-harness.ps1' @('-RunNegativeTests','-SkipNestedValidators')
   $reportPath = Write-BoundUpdateMigrationReport $target.BoundRoot $updateId $sourceVersion $version $target.ProjectRoot $backup $validatorResults $copyResult $startedAt (Get-Date).ToUniversalTime().ToString('o')
 
   return [ordered]@{
@@ -1007,7 +1007,7 @@ function Invoke-BoundRestoreApply([string]$ProjectRootValue, [string]$RequestedB
   $validatorResults['validate_security_policy'] = Invoke-BoundValidator $target.BoundRoot 'scripts/validate-security-policy.ps1'
   $reportPath = Write-BoundRestoreMigrationReport $target.BoundRoot $restoreId $sourceVersion $targetVersion $target.ProjectRoot $restoreSource $preRestoreBackup $validatorResults $restoredFiles $startedAt (Get-Date).ToUniversalTime().ToString('o')
   $validatorResults['validate_migration'] = Invoke-BoundValidator $target.BoundRoot 'scripts/validate-migration.ps1' @('-RequireApplied')
-  $validatorResults['validate_harness'] = Invoke-BoundValidator $target.BoundRoot 'scripts/validate-harness.ps1' @('-RunNegativeTests')
+  $validatorResults['validate_harness'] = Invoke-BoundValidator $target.BoundRoot 'scripts/validate-harness.ps1' @('-RunNegativeTests','-SkipNestedValidators')
   $reportPath = Write-BoundRestoreMigrationReport $target.BoundRoot $restoreId $sourceVersion $targetVersion $target.ProjectRoot $restoreSource $preRestoreBackup $validatorResults $restoredFiles $startedAt (Get-Date).ToUniversalTime().ToString('o')
 
   return [ordered]@{
@@ -1057,11 +1057,20 @@ function Write-BoundRestoreCheckOnly([string]$ProjectRootValue, [string]$Request
   Write-Host 'requires_project_root=true'
   Write-Host 'requires_backup_id=true'
 }
+function Format-BoundValidatorOutput([object[]]$Output, [int]$MaxLines = 80) {
+  $lines = @($Output | ForEach-Object { [string]$_ })
+  if ($lines.Count -gt $MaxLines) { $lines = $lines[($lines.Count - $MaxLines)..($lines.Count - 1)] }
+  return ($lines -join ' | ')
+}
+
 function Invoke-BoundValidator([string]$BoundRoot, [string]$RelativePath, [string[]]$ExtraArgs = @()) {
   $scriptPath = Join-Path $BoundRoot $RelativePath
   if (-not (Test-Path -LiteralPath $scriptPath -PathType Leaf)) { throw "missing bound validator: $RelativePath" }
-  & $scriptPath -Root $BoundRoot @ExtraArgs *> $null
-  if ($LASTEXITCODE -ne 0) { throw "bound validator failed: $RelativePath exit_code=$LASTEXITCODE" }
+  $global:LASTEXITCODE = 0
+  $validatorOutput = & $scriptPath -Root $BoundRoot @ExtraArgs *>&1
+  if ($LASTEXITCODE -ne 0) {
+    throw "bound validator failed: $RelativePath exit_code=$LASTEXITCODE output=$(Format-BoundValidatorOutput $validatorOutput)"
+  }
   return 'ok'
 }
 
@@ -1092,7 +1101,7 @@ function Invoke-BootstrapApply([string]$ProjectRootValue) {
   $validatorResults['validate_security_policy'] = Invoke-BoundValidator $boundRoot 'scripts/validate-security-policy.ps1'
   $reportPath = Write-BootstrapMigrationReport $boundRoot $bootstrapId $version $projectRootPath $backup $validatorResults $startedAt (Get-Date).ToUniversalTime().ToString('o')
   $validatorResults['validate_migration'] = Invoke-BoundValidator $boundRoot 'scripts/validate-migration.ps1' @('-RequireApplied')
-  $validatorResults['validate_harness'] = Invoke-BoundValidator $boundRoot 'scripts/validate-harness.ps1' @('-RunNegativeTests')
+  $validatorResults['validate_harness'] = Invoke-BoundValidator $boundRoot 'scripts/validate-harness.ps1' @('-RunNegativeTests','-SkipNestedValidators')
   $reportPath = Write-BootstrapMigrationReport $boundRoot $bootstrapId $version $projectRootPath $backup $validatorResults $startedAt (Get-Date).ToUniversalTime().ToString('o')
 
   return [ordered]@{
@@ -1148,7 +1157,7 @@ function Show-Help() {
   Write-Host '  hebrinex.ps1 approve -CheckOnly|-Apply -CommandText <command> [-Purpose <text>] [-TtlMinutes <1-1440>]'
   Write-Host '  hebrinex.ps1 validate [-RunNegativeTests]'
   Write-Host '  hebrinex.ps1 audit [-RunNegativeTests]'
-  Write-Host '  hebrinex.ps1 migrate -CheckOnly|-Apply [-TargetVersion 0.13.0]'
+  Write-Host '  hebrinex.ps1 migrate -CheckOnly|-Apply [-TargetVersion 0.13.1]'
   Write-Host '  hebrinex.ps1 bootstrap -CheckOnly|-Apply -ProjectRoot <path>'
   Write-Host '  hebrinex.ps1 update-bound -CheckOnly|-Apply -ProjectRoot <path>'
   Write-Host '  hebrinex.ps1 list-bound-backups -CheckOnly -ProjectRoot <path>'

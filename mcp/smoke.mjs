@@ -34,7 +34,7 @@ const transport = new StdioClientTransport({
   args: [join(HERE, 'server.mjs')],
   stderr: 'ignore',
 });
-const client = new Client({ name: 'hebrinex-smoke', version: '0.13.0' });
+const client = new Client({ name: 'hebrinex-smoke', version: '0.13.1' });
 
 try {
   await client.connect(transport);

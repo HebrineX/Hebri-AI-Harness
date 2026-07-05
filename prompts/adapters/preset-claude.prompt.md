@@ -1,5 +1,5 @@
 ---
-description: "Preset Claude alineado a Hebri-AI-Harness 0.13.0"
+description: "Preset Claude alineado a Hebri-AI-Harness 0.13.1"
 ---
 
 # Preset Claude
@@ -8,6 +8,6 @@ Entrada minima: `PROJECT_BINDING.yaml`, `session-pin.md`, `memory-registry.yaml`
 
 Reglas: `CLAUDE.md` solo apunta al harness, no `infoHebri.md`, compactacion => `compactation-recovery.md`, efectos solo con preflight + `SI`.
 
-## Claude Integration 0.13.0
+## Claude Integration 0.13.1
 
 Si Claude pierde foco, usar el reentry brief generado. No asumir memoria interna como evidencia.

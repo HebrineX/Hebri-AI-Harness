@@ -235,7 +235,7 @@ function fail(payload) {
 
 const server = new McpServer({
   name: 'hebrinex',
-  version: '0.13.0',
+  version: '0.13.1',
 });
 
 // 1. run_command — unica via de ejecucion. Todo pasa por el command gateway.
