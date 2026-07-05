@@ -1,10 +1,10 @@
 # Context Loading Policy
 
-Version: 0.13.1
+Version: 0.14.0
 
 ## Objetivo
 
-Reducir 70-80% el consumo operativo del harness. La regla por defecto es cargar kernel liviano, no contrato completo.
+Minimizar el consumo operativo del harness: el kernel liviano ahorra un 90% medido frente a la documentacion operativa completa (`hebrinex usage`, marker `savings_docs_pct`). La regla por defecto es cargar kernel liviano, no contrato completo.
 
 ## Orden Obligatorio
 

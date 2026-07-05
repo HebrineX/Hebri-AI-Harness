@@ -1,6 +1,6 @@
 # Harness Resolution
 
-Version: 0.13.1
+Version: 0.14.0
 
 Un proyecto solo opera con el `.hebrinex` dentro de su raiz y vinculado por `PROJECT_BINDING.yaml`.
 

@@ -57,8 +57,8 @@ if ($mcpJsonText -notmatch 'mcp/server\.mjs') {
   Add-Failure '.mcp.json does not point to mcp/server.mjs'
 }
 
-# Las 7 tools comprometidas deben estar registradas en el server.
-foreach ($tool in @('run_command','preflight_approve','approval_check','session_contract','gate_check','memory_route','close_cycle_check')) {
+# Las 8 tools comprometidas deben estar registradas en el server.
+foreach ($tool in @('run_command','preflight_approve','approval_check','session_contract','gate_check','memory_route','close_cycle_check','session_usage')) {
   if ($serverText -notmatch ("registerTool\('" + [regex]::Escape($tool) + "'")) {
     Add-Failure "mcp/server.mjs does not register tool: $tool"
   }
@@ -77,6 +77,22 @@ if ($serverText -match 'child_process.*exec\(|\bexecSync\b|\bexec\(') {
 
 Assert-Contains 'orquestador/harness-manifest.txt' '(?m)^file mcp/server\.mjs$' 'harness-manifest.txt does not include mcp/server.mjs'
 Assert-Contains 'orquestador/harness-manifest.txt' '(?m)^file scripts/validate-mcp\.ps1$' 'harness-manifest.txt does not include validate-mcp.ps1'
+Assert-Contains 'orquestador/harness-manifest.txt' '(?m)^file mcp/model-pricing\.yaml$' 'harness-manifest.txt does not include mcp/model-pricing.yaml'
+
+# session_usage: precios editables fuera del codigo + sin datos inventados.
+$pricingText = Read-HarnessText 'mcp/model-pricing.yaml'
+if ($pricingText -notmatch 'schema:\s*hebrinex\.model_pricing') {
+  Add-Failure 'mcp/model-pricing.yaml must declare schema hebrinex.model_pricing'
+}
+if ($pricingText -notmatch '(?m)^models:\s*$') {
+  Add-Failure 'mcp/model-pricing.yaml must declare a models table'
+}
+if ($serverText -notmatch 'model-pricing\.yaml') {
+  Add-Failure 'mcp/server.mjs must read prices from mcp/model-pricing.yaml (not hardcoded)'
+}
+if ($serverText -notmatch 'transcripts_dir_not_found') {
+  Add-Failure 'session_usage must fail with a clear error when transcripts are missing'
+}
 
 # --- Smoke (solo si hay node y dependencias instaladas) ------------------------
 

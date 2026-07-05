@@ -1,12 +1,12 @@
 param(
   [Parameter(Position = 0)]
-  [ValidateSet('help','status','budget','preflight','approve','validate','audit','migrate','bootstrap','update-bound','list-bound-backups','restore-bound','command','state-machine','agent-runtime')]
+  [ValidateSet('help','status','budget','usage','preflight','approve','validate','audit','migrate','bootstrap','update-bound','list-bound-backups','restore-bound','command','state-machine','agent-runtime')]
   [string]$Command = 'help',
   [string]$Root = (Split-Path -Parent $PSScriptRoot),
   [switch]$RunNegativeTests,
   [switch]$CheckOnly,
   [switch]$Apply,
-  [string]$TargetVersion = '0.13.1',
+  [string]$TargetVersion = '0.14.0',
   [string]$ProjectRoot = '',
   [string]$BackupId = '',
   [string]$ApprovalId = '',
@@ -95,6 +95,104 @@ function Write-BudgetLine([string]$Name, [int]$MaxTokens, [string[]]$RelativePat
   if ($used -gt $hard) { $status = 'block' }
   elseif ($used -gt $MaxTokens) { $status = 'warn' }
   Write-Host "$Name=$used/$MaxTokens hard=$hard status=$status"
+}
+
+$UsageKernelFiles = @(
+  'PROJECT_BINDING.yaml',
+  'orquestador/memory/local/session-pin.md',
+  'orquestador/memory/memory-registry.yaml',
+  'orquestador/memory/memory-routing.yaml',
+  'orquestador/context-budget.yaml',
+  'orquestador/entrypoints/first-message.md'
+)
+
+# File-sets canonicos por perfil (mismos sets que `budget`, mas reentry_light via
+# memory-routing). Los perfiles sin file-set estatico (leader_full, audit_global,
+# adapter_portability) tienen read-set dinamico y se reportan como dynamic.
+$UsageProfileFiles = @{
+  memory_bootstrap = @('PROJECT_BINDING.yaml','orquestador/memory/local/session-pin.md','orquestador/memory/memory-registry.yaml','orquestador/memory/memory-routing.yaml','orquestador/context-budget.yaml','orquestador/entrypoints/reentry-light.md')
+  first_message    = @('PROJECT_BINDING.yaml','orquestador/memory/local/session-pin.md','orquestador/memory/memory-registry.yaml','orquestador/memory/memory-routing.yaml','orquestador/context-budget.yaml','orquestador/entrypoints/first-message.md')
+  reentry_light    = @('PROJECT_BINDING.yaml','orquestador/memory/local/session-pin.md','orquestador/memory/memory-registry.yaml','orquestador/memory/memory-routing.yaml','orquestador/context-budget.yaml','orquestador/entrypoints/reentry-light.md')
+  debug_log_intake = @('PROJECT_BINDING.yaml','orquestador/memory/local/session-pin.md','orquestador/memory/memory-registry.yaml','orquestador/memory/memory-routing.yaml','orquestador/context-budget.yaml','orquestador/entrypoints/debug-log-intake.md','orquestador/entrypoints/reentry-light.md')
+  leader_light     = @('PROJECT_BINDING.yaml','orquestador/memory/local/session-pin.md','orquestador/memory/memory-registry.yaml','orquestador/memory/memory-routing.yaml','orquestador/context-budget.yaml','orquestador/sdd/progress/state.yaml','orquestador/sdd/progress/registry.yaml','orquestador/method/session-contract.md')
+  runtime_status   = @('PROJECT_BINDING.yaml','orquestador/memory/local/session-pin.md','orquestador/context-budget.yaml','orquestador/runtime/active-session.template.json')
+  runtime_reentry  = @('PROJECT_BINDING.yaml','orquestador/memory/local/session-pin.md','orquestador/context-budget.yaml','orquestador/runtime/active-session.template.json','orquestador/sdd/progress/state.yaml','orquestador/sdd/progress/registry.yaml')
+}
+
+function Get-BudgetProfileNames([string]$BudgetText) {
+  $names = New-Object System.Collections.Generic.List[string]
+  $inside = $false
+  foreach ($line in ($BudgetText -split "`n")) {
+    if ($line -match '^budgets:\s*$') { $inside = $true; continue }
+    if ($inside -and $line -match '^[A-Za-z0-9_.-]+:') { $inside = $false }
+    if ($inside -and $line -match '^\s+([A-Za-z0-9_]+):\s*\{') { [void]$names.Add($Matches[1]) }
+  }
+  return $names
+}
+
+function Get-ManifestTreeTokens() {
+  $chars = [long]0
+  $files = 0
+  foreach ($entry in (Get-HarnessManifestEntries)) {
+    if ($entry.Kind -ne 'file') { continue }
+    $path = Resolve-HarnessPath $entry.RelativePath
+    if (Test-Path -LiteralPath $path -PathType Leaf) {
+      $chars += (Get-Item -LiteralPath $path).Length
+      $files++
+    }
+  }
+  return [ordered]@{ Tokens = [math]::Ceiling($chars / 4); Files = $files }
+}
+
+# Arbol de documentacion operativa: lo que un agente sin disciplina de kernel
+# cargaria de verdad (AGENTS.md + method/* + prompts/**). Es el denominador del
+# claim de ahorro del README; el arbol completo queda como metrica secundaria.
+function Get-DocsTreeTokens() {
+  $chars = [long]0
+  $files = 0
+  foreach ($entry in (Get-HarnessManifestEntries)) {
+    if ($entry.Kind -ne 'file') { continue }
+    $norm = ($entry.RelativePath -replace '\\', '/')
+    if ($norm -ne 'AGENTS.md' -and $norm -notmatch '^orquestador/method/' -and $norm -notmatch '^prompts/') { continue }
+    $path = Resolve-HarnessPath $entry.RelativePath
+    if (Test-Path -LiteralPath $path -PathType Leaf) {
+      $chars += (Get-Item -LiteralPath $path).Length
+      $files++
+    }
+  }
+  return [ordered]@{ Tokens = [math]::Ceiling($chars / 4); Files = $files }
+}
+
+function Write-UsageReport() {
+  $budgetText = Read-HarnessText 'orquestador/context-budget.yaml'
+  $kernelTokens = Estimate-Tokens $UsageKernelFiles
+  $tree = Get-ManifestTreeTokens
+  if ($tree.Tokens -le 0) { throw 'usage: manifest tree is empty, cannot compute savings' }
+  $docsTree = Get-DocsTreeTokens
+  if ($docsTree.Tokens -le 0) { throw 'usage: docs tree is empty, cannot compute savings' }
+  $savingsPct = [int][math]::Round((1 - ($kernelTokens / [double]$tree.Tokens)) * 100)
+  $savingsDocsPct = [int][math]::Round((1 - ($kernelTokens / [double]$docsTree.Tokens)) * 100)
+  Write-Host 'Hebri-AI-Harness usage'
+  Write-Host 'method=file_chars_div_4'
+  Write-Host "kernel_files=$($UsageKernelFiles.Count)"
+  Write-Host "kernel_tokens=$kernelTokens"
+  foreach ($name in (Get-BudgetProfileNames $budgetText)) {
+    $max = Get-InlineBudget $budgetText $name
+    if ($UsageProfileFiles.ContainsKey($name)) {
+      $tokens = Estimate-Tokens $UsageProfileFiles[$name]
+      Write-Host "profile_${name}_tokens=$tokens max_tokens=$max"
+    }
+    else {
+      Write-Host "profile_${name}_tokens=dynamic max_tokens=$max"
+    }
+  }
+  Write-Host "docs_tree_files=$($docsTree.Files)"
+  Write-Host "docs_tree_tokens=$($docsTree.Tokens)"
+  Write-Host "savings_docs_pct=$savingsDocsPct"
+  Write-Host "full_tree_files=$($tree.Files)"
+  Write-Host "full_tree_tokens=$($tree.Tokens)"
+  Write-Host "savings_pct=$savingsPct"
+  Write-Host 'writes=false'
 }
 
 function Invoke-ChildScript {
@@ -1146,18 +1244,19 @@ function Write-BootstrapCheckOnly([string]$ProjectRootValue) {
 }
 function Show-Help() {
   Write-Host 'Hebri-AI-Harness CLI Core'
-  Write-Host 'cli_contract_version=0.3'
+  Write-Host 'cli_contract_version=0.4'
   Write-Host 'cli_status=stable'
-  Write-Host 'commands=help,status,budget,preflight,approve,validate,audit,migrate,bootstrap,update-bound,list-bound-backups,restore-bound,command,state-machine,agent-runtime'
+  Write-Host 'commands=help,status,budget,usage,preflight,approve,validate,audit,migrate,bootstrap,update-bound,list-bound-backups,restore-bound,command,state-machine,agent-runtime'
   Write-Host ''
   Write-Host 'Usage:'
   Write-Host '  hebrinex.ps1 status [-Root <path>]'
   Write-Host '  hebrinex.ps1 budget [-Root <path>]'
+  Write-Host '  hebrinex.ps1 usage [-Root <path>]'
   Write-Host '  hebrinex.ps1 preflight [-ApprovalId <id>] [-Action <text>] [-ReadSet <text>] [-WriteSet <text>]'
   Write-Host '  hebrinex.ps1 approve -CheckOnly|-Apply -CommandText <command> [-Purpose <text>] [-TtlMinutes <1-1440>]'
   Write-Host '  hebrinex.ps1 validate [-RunNegativeTests]'
   Write-Host '  hebrinex.ps1 audit [-RunNegativeTests]'
-  Write-Host '  hebrinex.ps1 migrate -CheckOnly|-Apply [-TargetVersion 0.13.1]'
+  Write-Host '  hebrinex.ps1 migrate -CheckOnly|-Apply [-TargetVersion 0.14.0]'
   Write-Host '  hebrinex.ps1 bootstrap -CheckOnly|-Apply -ProjectRoot <path>'
   Write-Host '  hebrinex.ps1 update-bound -CheckOnly|-Apply -ProjectRoot <path>'
   Write-Host '  hebrinex.ps1 list-bound-backups -CheckOnly -ProjectRoot <path>'
@@ -1204,6 +1303,9 @@ switch ($Command) {
     Write-BudgetLine 'leader_light' (Get-InlineBudget $budgetText 'leader_light') @('PROJECT_BINDING.yaml','orquestador/memory/local/session-pin.md','orquestador/memory/memory-registry.yaml','orquestador/memory/memory-routing.yaml','orquestador/context-budget.yaml','orquestador/sdd/progress/state.yaml','orquestador/sdd/progress/registry.yaml','orquestador/method/session-contract.md')
     Write-BudgetLine 'runtime_status' (Get-InlineBudget $budgetText 'runtime_status') @('PROJECT_BINDING.yaml','orquestador/memory/local/session-pin.md','orquestador/context-budget.yaml','orquestador/runtime/active-session.template.json')
     Write-BudgetLine 'runtime_reentry' (Get-InlineBudget $budgetText 'runtime_reentry') @('PROJECT_BINDING.yaml','orquestador/memory/local/session-pin.md','orquestador/context-budget.yaml','orquestador/runtime/active-session.template.json','orquestador/sdd/progress/state.yaml','orquestador/sdd/progress/registry.yaml')
+  }
+  'usage' {
+    Write-UsageReport
   }
   'preflight' {
     Write-Host "Approval ID: $ApprovalId"

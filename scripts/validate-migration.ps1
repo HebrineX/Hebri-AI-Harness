@@ -146,6 +146,7 @@ $requiredFiles = @(
   'orquestador/migration/versions/0.11.0-to-0.12.0.yaml',
   'orquestador/migration/versions/0.12.0-to-0.13.0.yaml',
   'orquestador/migration/versions/0.13.0-to-0.13.1.yaml',
+  'orquestador/migration/versions/0.13.0-to-0.14.0.yaml',
   'orquestador/migration/contracts/post-migration-contract.yaml',
   'orquestador/migration/reports/migration-report.template.yaml',
   'scripts/migrate-harness.ps1',
@@ -161,6 +162,7 @@ Assert-Contains 'orquestador/migration/migration-registry.yaml' '0[.]10[.]11-to-
 Assert-Contains 'orquestador/migration/migration-registry.yaml' '0[.]11[.]0-to-0[.]12[.]0' 'migration registry must include 0.11.0-to-0.12.0'
 Assert-Contains 'orquestador/migration/migration-registry.yaml' '0[.]12[.]0-to-0[.]13[.]0' 'migration registry must include 0.12.0-to-0.13.0'
 Assert-Contains 'orquestador/migration/migration-registry.yaml' '0[.]13[.]0-to-0[.]13[.]1' 'migration registry must include 0.13.0-to-0.13.1'
+Assert-Contains 'orquestador/migration/migration-registry.yaml' '0[.]13[.]0-to-0[.]14[.]0' 'migration registry must include 0.13.0-to-0.14.0'
 Assert-Contains 'orquestador/migration/migration-registry.yaml' 'scripts/validate-state-machine[.]ps1' 'migration registry must require state machine validator'
 Assert-Contains 'orquestador/migration/migration-registry.yaml' 'scripts/validate-agent-runtime[.]ps1' 'migration registry must require agent runtime validator'
 Assert-Contains 'orquestador/migration/migration-registry.yaml' 'PROJECT_BINDING[.]yaml' 'migration must preserve PROJECT_BINDING.yaml'
@@ -202,16 +204,22 @@ Assert-Contains 'orquestador/migration/versions/0.13.0-to-0.13.1.yaml' 'check_on
 Assert-Contains 'orquestador/migration/versions/0.13.0-to-0.13.1.yaml' 'apply:\s*true' '0.13.0 route must support Apply'
 Assert-Contains 'orquestador/migration/versions/0.13.0-to-0.13.1.yaml' 'bootstrap_bound_smoke_validated' '0.13.0 route must require bootstrap bound smoke validation'
 Assert-Contains 'orquestador/migration/versions/0.13.0-to-0.13.1.yaml' 'bound_validator_output_reported' '0.13.0 route must require bound validator output reporting'
+Assert-Contains 'orquestador/migration/versions/0.13.0-to-0.14.0.yaml' 'source_version:\s*"0[.]13[.]0"' '0.14.0 route source mismatch'
+Assert-Contains 'orquestador/migration/versions/0.13.0-to-0.14.0.yaml' 'target_version:\s*"0[.]14[.]0"' '0.14.0 route target mismatch'
+Assert-Contains 'orquestador/migration/versions/0.13.0-to-0.14.0.yaml' 'check_only:\s*true' '0.14.0 route must support CheckOnly'
+Assert-Contains 'orquestador/migration/versions/0.13.0-to-0.14.0.yaml' 'apply:\s*true' '0.14.0 route must support Apply'
+Assert-Contains 'orquestador/migration/versions/0.13.0-to-0.14.0.yaml' 'usage_command_available' '0.14.0 route must require the usage command'
+Assert-Contains 'orquestador/migration/versions/0.13.0-to-0.14.0.yaml' 'session_usage_tool_available' '0.14.0 route must require the session_usage tool'
 
 Assert-Contains 'orquestador/migration/reports/migration-report.template.yaml' 'wrote_files:\s*false' 'report template must represent CheckOnly no-write'
 Assert-Contains 'orquestador/migration/reports/migration-report.template.yaml' 'backup:' 'report template must include backup section'
-Assert-Contains 'orquestador/migration/contracts/post-migration-contract.yaml' 'target_version:\s*"0[.]13[.]1"' 'post migration template must target 0.13.1'
+Assert-Contains 'orquestador/migration/contracts/post-migration-contract.yaml' 'target_version:\s*"0[.]14[.]0"' 'post migration template must target 0.14.0'
 $currentHarnessVersion = (Read-HarnessText 'HARNESS_VERSION').Trim()
 $bindingText = Read-HarnessText 'PROJECT_BINDING.yaml'
 $bindingMode = Get-Scalar $bindingText 'binding_mode'
 $contractText = Read-HarnessText 'orquestador/migration/contracts/post-migration-contract.yaml'
 Assert-TextContains $contractText 'agent_authority:\s*harness_only' 'post migration contract must keep harness_only authority'
-if ($RequireApplied -or ($currentHarnessVersion -match '^0[.](10|11|12|13)[.][0-9]+$' -and $bindingMode -eq 'bound')) {
+if ($RequireApplied -or ($currentHarnessVersion -match '^0[.](10|11|12|13|14)[.][0-9]+$' -and $bindingMode -eq 'bound')) {
   Assert-AppliedMigrationEvidence
 }
 else {
@@ -235,7 +243,7 @@ if ($currentHarnessVersion -in @('0.8.10', '0.9.0', '0.10.11')) {
     Add-Failure 'migrate-harness CheckOnly changed file tree signature'
   }
 }
-elseif ($currentHarnessVersion -notmatch '^0[.](10|11|12|13)[.][0-9]+$') {
+elseif ($currentHarnessVersion -notmatch '^0[.](10|11|12|13|14)[.][0-9]+$') {
   Add-Failure "unsupported HARNESS_VERSION for migration validation: $currentHarnessVersion"
 }
 

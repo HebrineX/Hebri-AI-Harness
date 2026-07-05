@@ -2,6 +2,20 @@
 
 ## [Unreleased]
 
+## [0.14.0] - 2026-07-05
+
+### Added
+- `hebrinex usage` (CLI, contrato publico sube a `0.4`): mide en tokens estimados (chars/4, mismo metodo que `budget`) el kernel minimo (binding + session-pin + memory-registry + memory-routing + context-budget + entrypoint first-message), cada perfil de `context-budget.yaml` (los perfiles con read-set dinamico — `leader_full`, `audit_global`, `adapter_portability` — se reportan `dynamic`, no se inventan file-sets), la documentacion operativa (`AGENTS.md` + `method/` + `prompts/` segun manifest) y el arbol completo declarado en `orquestador/harness-manifest.txt`. Markers parseables: `kernel_tokens=`, `docs_tree_tokens=`, `savings_docs_pct=`, `full_tree_tokens=`, `savings_pct=` (enteros) y una linea `profile_<name>_tokens=` por perfil. Read-only (`writes=false`).
+- Tool MCP `session_usage` (`mcp/server.mjs`): parsea los transcripts JSONL de Claude Code del proyecto (`~/.claude/projects/<proyecto>/*.jsonl`) y reporta para la sesion mas reciente (o un `session_id` dado) tokens in/out/cache totales y por modelo (con desglose cache 5m/1h), turnos y costo estimado en USD. Precios por modelo en `mcp/model-pricing.yaml` (tabla editable, nada hardcodeado). Sin transcripts falla con error claro (`transcripts_dir_not_found` / `transcript_not_found`), no inventa datos. Probada contra una sesion real de esta fase.
+- `mcp/model-pricing.yaml`: tabla de precios editable (USD por millon de tokens, con `cache_read`/`cache_write_5m`/`cache_write_1h`); match de modelo por prefijo mas largo para cubrir ids con sufijo de fecha.
+- Baseline de consumo `orquestador/sdd/progress/evidence/usage-baseline-0.14.0.yaml`: snapshot de kernel_tokens, tokens por perfil, full_tree_tokens y savings_pct medido; la fase de poda metodologica (0.17.0) demostrara su ahorro con diff contra este archivo.
+- Ruta de migracion `orquestador/migration/versions/0.13.0-to-0.14.0.yaml` + entrada en `migration-registry.yaml`.
+
+### Changed
+- El README deja de declarar el objetivo anterior de ahorro de contexto como claim sin medir: ahora cita un porcentaje conservador respaldado por medicion ("ahorro medido: 90% (hebrinex usage)", medido: 94% frente a la documentacion operativa completa y 99% frente al arbol completo del manifest). `validate-release.ps1` recalcula `savings_docs_pct` invocando `hebrinex usage` y falla si el numero del README difiere en mas de ±5 puntos del medido - el denominador del claim es la documentacion operativa, no el arbol completo, para no inflar el numero comparando contra package-lock y codigo.
+- `scripts/validate-cli.ps1` cubre `usage` (markers, perfiles medidos/dynamic, rango 0-100 de savings_pct) y el contrato `0.4`; `scripts/validate-mcp.ps1` exige `session_usage`, `mcp/model-pricing.yaml` (sin precios en el codigo) y errores claros sin transcripts; `mcp/smoke.mjs` valida las 8 tools y ejercita `session_usage` (datos reales o error claro, nunca datos inventados).
+- `scripts/validate-migration.ps1` soporta 0.14.x y exige la ruta y el contrato post-migracion 0.14.0.
+
 ## [0.13.1] - 2026-07-05
 
 ### Fixed
@@ -440,7 +454,7 @@
 - `context-profiles.md` now separates `leader_light` from `leader_full` and fixes the budget table drift.
 - `context-loading-policy.md` makes budget reporting mandatory and treats over-budget loading as a stop condition.
 - Entrypoints now deny full context by default and keep debug/log intake on the light route.
-- README documents the 70-80% token reduction target as a contract objective.
+- README documents the token reduction target as a contract objective.
 
 ### Fixed
 - Prevents local personal documentation from being copied into consumer `.hebrinex` contexts.

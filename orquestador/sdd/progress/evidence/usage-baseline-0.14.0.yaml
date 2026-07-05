@@ -1,0 +1,36 @@
+schema: hebrinex.usage_baseline
+version: "0.1"
+harness_version: "0.14.0"
+measured_at: "2026-07-05"
+method: file_chars_div_4
+source_command: "scripts/hebrinex.ps1 usage"
+purpose: >
+  Baseline de consumo de contexto del release 0.14.0. La fase de poda
+  metodologica (0.17.0) debe demostrar su ahorro con diff contra este archivo.
+kernel:
+  files: 6
+  tokens: 1604
+profiles:
+  memory_bootstrap: {tokens: 1613, max_tokens: 1700}
+  first_message: {tokens: 1604, max_tokens: 1800}
+  reentry_light: {tokens: 1613, max_tokens: 1800}
+  debug_log_intake: {tokens: 1760, max_tokens: 2000}
+  leader_light: {tokens: 2477, max_tokens: 2600}
+  leader_full: {tokens: dynamic, max_tokens: 8000}
+  audit_global: {tokens: dynamic, max_tokens: 12000}
+  adapter_portability: {tokens: dynamic, max_tokens: 3500}
+  runtime_status: {tokens: 974, max_tokens: 1000}
+  runtime_reentry: {tokens: 1567, max_tokens: 1600}
+docs_tree:
+  files: 66
+  tokens: 24740
+savings_docs_pct: 94
+full_tree:
+  files: 374
+  tokens: 209354
+savings_pct: 99
+readme_claim_pct: 90
+notes:
+  - "docs_tree = AGENTS.md + orquestador/method/ + prompts/ segun manifest: denominador del claim del README (conservador: cita 90, medido 94, tolerancia ±5 en validate-release)."
+  - "full_tree incluye todo el manifest (codigo, package-lock, schemas); metrica secundaria para la poda 0.17.0."
+  - "Los perfiles dynamic no tienen file-set estatico; su read-set depende del caso y requiere aprobacion."

@@ -95,6 +95,35 @@ if ($bindingMode -eq 'source_template') {
   Assert-ContainsText '.github/workflows/ci.yml' '[.]/init[.]sh' 'CI must run init.sh'
 }
 
+# Anti-drift del claim de ahorro: el README debe citar el porcentaje MEDIDO por
+# `hebrinex usage` (formato estable "ahorro medido: NN% (hebrinex usage)") y no
+# puede diferir en mas de ±5 puntos del recalculado aqui. El denominador del
+# claim es el arbol de documentacion operativa (savings_docs_pct), no el arbol
+# completo del manifest: comparar contra package-lock y codigo inflaria el numero.
+$readmeText = Read-HarnessText 'README.md'
+$claimMatch = [regex]::Match($readmeText, 'ahorro medido:\s*(-?[0-9]+)%\s*\(hebrinex usage\)')
+if (-not $claimMatch.Success) {
+  Add-Failure 'README.md must cite the measured savings as "ahorro medido: NN% (hebrinex usage)"'
+}
+else {
+  $usageScript = Resolve-HarnessPath 'scripts/hebrinex.ps1'
+  $usageOutput = @()
+  try { $usageOutput = & $usageScript usage -Root $Root *>&1 }
+  catch { Add-Failure "hebrinex usage failed while recomputing savings: $($_.Exception.Message)" }
+  $usageText = (@($usageOutput | ForEach-Object { [string]$_ })) -join "`n"
+  $measuredMatch = [regex]::Match($usageText, 'savings_docs_pct=(-?[0-9]+)')
+  if (-not $measuredMatch.Success) {
+    Add-Failure 'hebrinex usage did not emit a parseable savings_docs_pct marker'
+  }
+  else {
+    $claimedPct = [int]$claimMatch.Groups[1].Value
+    $measuredPct = [int]$measuredMatch.Groups[1].Value
+    if ([math]::Abs($claimedPct - $measuredPct) -gt 5) {
+      Add-Failure "README savings claim ($claimedPct%) drifts more than 5 points from measured savings_docs_pct ($measuredPct%)"
+    }
+  }
+}
+
 if ($RequireTag) {
   $tag = "v$version"
   $tagExists = $false

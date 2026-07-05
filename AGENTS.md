@@ -1,7 +1,7 @@
 # AGENTS.md - Kernel Operativo Hebri-AI-Harness
 
 Referencia metodologica: https://github.com/HebrineX/Hebri-AI-Structure
-Version operativa esperada: 0.13.1
+Version operativa esperada: 0.14.0
 
 ## Regla Raiz
 

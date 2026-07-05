@@ -5,7 +5,7 @@ param(
 
 $ErrorActionPreference = 'Stop'
 $script:Failures = New-Object System.Collections.Generic.List[string]
-$StableCommands = @('help','status','budget','preflight','approve','validate','audit','migrate','bootstrap','update-bound','list-bound-backups','restore-bound','command','state-machine','agent-runtime')
+$StableCommands = @('help','status','budget','usage','preflight','approve','validate','audit','migrate','bootstrap','update-bound','list-bound-backups','restore-bound','command','state-machine','agent-runtime')
 $CommandCsv = $StableCommands -join ','
 
 function Add-Failure([string]$Message) {
@@ -109,7 +109,7 @@ $cliText = Read-HarnessText 'scripts/hebrinex.ps1'
 $contractText = Read-HarnessText 'orquestador/method/cli-contract.md'
 
 Assert-Contains 'scripts/hebrinex.ps1' 'Hebri-AI-Harness CLI Core' 'CLI must expose core marker'
-Assert-Contains 'scripts/hebrinex.ps1' 'cli_contract_version=0[.]3' 'CLI help must expose contract version marker'
+Assert-Contains 'scripts/hebrinex.ps1' 'cli_contract_version=0[.]4' 'CLI help must expose contract version marker'
 Assert-Contains 'scripts/hebrinex.ps1' 'cli_status=stable' 'CLI help must expose stable status marker'
 Assert-Contains 'scripts/hebrinex.ps1' ('commands=' + [regex]::Escape($CommandCsv)) 'CLI help must expose full command set marker'
 Assert-Contains 'scripts/hebrinex.ps1' 'migrate requires exactly one mode: -CheckOnly or -Apply' 'migrate must enforce exclusive mode'
@@ -138,7 +138,7 @@ Assert-Contains 'orquestador/method/cli-contract.md' 'A release is not usable if
 
 $help = Assert-CliSuccess -Name 'help' -Arguments @('help')
 Assert-OutputContains $help 'Hebri-AI-Harness CLI Core' 'help output must include CLI marker'
-Assert-OutputContains $help 'cli_contract_version=0[.]3' 'help output must include contract version'
+Assert-OutputContains $help 'cli_contract_version=0[.]4' 'help output must include contract version'
 Assert-OutputContains $help 'cli_status=stable' 'help output must include stable status'
 Assert-OutputContains $help ('commands=' + [regex]::Escape($CommandCsv)) 'help output must include command csv'
 foreach ($command in $StableCommands) {
@@ -153,6 +153,26 @@ Assert-OutputContains $status 'runtime_authority=non_authoritative' 'status must
 $budget = Assert-CliSuccess -Name 'budget' -Arguments @('budget')
 foreach ($budgetKey in @('memory_bootstrap','first_message','debug_log_intake','leader_light','runtime_status','runtime_reentry')) {
   Assert-OutputContains $budget ($budgetKey + '=') ('budget output must include ' + $budgetKey)
+}
+
+$usage = Assert-CliSuccess -Name 'usage' -Arguments @('usage')
+foreach ($usageMarker in @('kernel_tokens=[0-9]+','docs_tree_tokens=[0-9]+','savings_docs_pct=-?[0-9]+','full_tree_tokens=[0-9]+','savings_pct=-?[0-9]+','writes=false')) {
+  Assert-OutputContains $usage $usageMarker ('usage output must include marker: ' + $usageMarker)
+}
+foreach ($usageProfile in @('memory_bootstrap','first_message','reentry_light','debug_log_intake','leader_light','runtime_status','runtime_reentry')) {
+  Assert-OutputContains $usage ('profile_' + $usageProfile + '_tokens=[0-9]+') ('usage output must measure profile: ' + $usageProfile)
+}
+foreach ($usageDynamicProfile in @('leader_full','audit_global','adapter_portability')) {
+  Assert-OutputContains $usage ('profile_' + $usageDynamicProfile + '_tokens=dynamic') ('usage output must mark dynamic profile: ' + $usageDynamicProfile)
+}
+foreach ($savingsMarker in @('savings_pct', 'savings_docs_pct')) {
+  $savingsMatch = [regex]::Match($usage.Text, ('(?m)^' + $savingsMarker + '=(-?[0-9]+)'))
+  if ($savingsMatch.Success) {
+    $savingsValue = [int]$savingsMatch.Groups[1].Value
+    if ($savingsValue -lt 0 -or $savingsValue -gt 100) {
+      Add-Failure ('usage ' + $savingsMarker + ' out of range 0-100: ' + $savingsValue)
+    }
+  }
 }
 
 $preflight = Assert-CliSuccess -Name 'preflight' -Arguments @('preflight','-ApprovalId','VALIDATE-CLI-CHECK','-Action','validate stable CLI','-ReadSet','scripts/hebrinex.ps1','-WriteSet','none','-Verification','validate-cli')

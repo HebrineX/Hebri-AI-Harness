@@ -8,6 +8,7 @@
 
 import { spawn } from 'node:child_process';
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
+import { homedir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
@@ -235,7 +236,7 @@ function fail(payload) {
 
 const server = new McpServer({
   name: 'hebrinex',
-  version: '0.13.1',
+  version: '0.14.0',
 });
 
 // 1. run_command — unica via de ejecucion. Todo pasa por el command gateway.
@@ -692,6 +693,181 @@ server.registerTool('close_cycle_check', {
     rule: 'No declarar done si hay gaps: local/daily/cycle/project deben evaluarse antes de cerrar.',
   };
   return pass ? ok(payload) : fail(payload);
+});
+
+// 7. session_usage — consumo real de tokens/costo desde los transcripts de
+// Claude Code de este proyecto. Read-only; precios en mcp/model-pricing.yaml.
+
+function parsePricingModels(text) {
+  const models = {};
+  let inside = false;
+  for (const line of text.split('\n')) {
+    if (/^models:\s*$/.test(line)) { inside = true; continue; }
+    if (inside && /^[A-Za-z0-9_.-]+:/.test(line)) inside = false;
+    if (!inside) continue;
+    const match = line.match(/^\s+([A-Za-z0-9._-]+):\s*\{([^}]*)\}/);
+    if (!match) continue;
+    const fields = {};
+    for (const part of match[2].split(',')) {
+      const idx = part.indexOf(':');
+      if (idx === -1) continue;
+      const key = part.slice(0, idx).trim();
+      const value = Number(part.slice(idx + 1).trim());
+      if (key && Number.isFinite(value)) fields[key] = value;
+    }
+    models[match[1]] = fields;
+  }
+  return models;
+}
+
+// Prefijo mas largo: "claude-haiku-4-5-20251001" matchea "claude-haiku-4-5".
+function findPricing(models, modelId) {
+  if (!modelId) return null;
+  if (models[modelId]) return models[modelId];
+  let best = null;
+  for (const key of Object.keys(models)) {
+    if (modelId.startsWith(key) && (!best || key.length > best.length)) best = key;
+  }
+  return best ? models[best] : null;
+}
+
+function claudeProjectsDir() {
+  // Claude Code deriva el nombre del directorio del proyecto reemplazando todo
+  // caracter no alfanumerico del path por '-'.
+  return join(homedir(), '.claude', 'projects', ROOT.replace(/[^A-Za-z0-9]/g, '-'));
+}
+
+server.registerTool('session_usage', {
+  title: 'Hebrinex session usage (read-only)',
+  description: [
+    'Parsea los transcripts JSONL de Claude Code de este proyecto',
+    '(~/.claude/projects/<proyecto>/*.jsonl) y reporta, para la sesion mas',
+    'reciente o un session_id dado: tokens in/out/cache totales, turnos y costo',
+    'estimado en USD segun mcp/model-pricing.yaml (tabla editable). Read-only;',
+    'si no hay transcripts falla con error claro, no inventa datos.',
+  ].join(' '),
+  inputSchema: {
+    session_id: z.string().optional().describe('Session id (uuid del .jsonl); default: la sesion mas reciente por mtime.'),
+  },
+}, async ({ session_id }) => {
+  const projectsDir = claudeProjectsDir();
+  if (!existsSync(projectsDir)) {
+    return fail({ status: 'error', reason: 'transcripts_dir_not_found', transcripts_dir: projectsDir });
+  }
+  let transcriptPath;
+  if (session_id) {
+    if (!/^[A-Za-z0-9-]+$/.test(session_id)) {
+      return fail({ status: 'error', reason: 'invalid_session_id', session_id });
+    }
+    transcriptPath = join(projectsDir, `${session_id}.jsonl`);
+    if (!existsSync(transcriptPath)) {
+      return fail({ status: 'error', reason: 'transcript_not_found', transcript: transcriptPath });
+    }
+  } else {
+    const candidates = readdirSync(projectsDir)
+      .filter((name) => name.endsWith('.jsonl'))
+      .map((name) => ({ name, mtime: statSync(join(projectsDir, name)).mtimeMs }))
+      .sort((a, b) => b.mtime - a.mtime);
+    if (candidates.length === 0) {
+      return fail({ status: 'error', reason: 'no_transcripts_found', transcripts_dir: projectsDir });
+    }
+    transcriptPath = join(projectsDir, candidates[0].name);
+  }
+
+  const pricingText = readText('mcp/model-pricing.yaml');
+  if (!pricingText) {
+    return fail({ status: 'error', reason: 'pricing_file_missing', expected: 'mcp/model-pricing.yaml' });
+  }
+  const pricingModels = parsePricingModels(pricingText);
+
+  const totals = { input_tokens: 0, output_tokens: 0, cache_read_input_tokens: 0, cache_creation_input_tokens: 0 };
+  const byModel = {};
+  let assistantTurns = 0;
+  let userTurns = 0;
+  let parseErrors = 0;
+  let firstTimestamp = '';
+  let lastTimestamp = '';
+  for (const line of readFileSync(transcriptPath, 'utf8').split(/\r?\n/)) {
+    if (!line.trim()) continue;
+    let entry;
+    try { entry = JSON.parse(line); } catch { parseErrors += 1; continue; }
+    if (entry.timestamp) {
+      if (!firstTimestamp) firstTimestamp = entry.timestamp;
+      lastTimestamp = entry.timestamp;
+    }
+    if (entry.type === 'user') { userTurns += 1; continue; }
+    if (entry.type !== 'assistant') continue;
+    const usage = entry.message?.usage;
+    if (!usage) continue;
+    assistantTurns += 1;
+    const model = entry.message?.model || 'unknown';
+    if (!byModel[model]) {
+      byModel[model] = {
+        input_tokens: 0, output_tokens: 0, cache_read_input_tokens: 0,
+        cache_creation_input_tokens: 0, cache_creation_5m_tokens: 0, cache_creation_1h_tokens: 0,
+        messages: 0,
+      };
+    }
+    const bucket = byModel[model];
+    bucket.messages += 1;
+    for (const key of ['input_tokens', 'output_tokens', 'cache_read_input_tokens', 'cache_creation_input_tokens']) {
+      const value = Number(usage[key]) || 0;
+      bucket[key] += value;
+      totals[key] += value;
+    }
+    const creation = usage.cache_creation || {};
+    bucket.cache_creation_5m_tokens += Number(creation.ephemeral_5m_input_tokens) || 0;
+    bucket.cache_creation_1h_tokens += Number(creation.ephemeral_1h_input_tokens) || 0;
+  }
+
+  if (assistantTurns === 0) {
+    return fail({ status: 'error', reason: 'no_assistant_usage_in_transcript', transcript: transcriptPath });
+  }
+
+  let totalCost = 0;
+  let costComplete = true;
+  const models = {};
+  const unpricedModels = [];
+  for (const [model, bucket] of Object.entries(byModel)) {
+    const pricing = findPricing(pricingModels, model);
+    const bucketTokens = bucket.input_tokens + bucket.output_tokens
+      + bucket.cache_read_input_tokens + bucket.cache_creation_input_tokens;
+    let cost = null;
+    if (bucketTokens === 0) {
+      // Mensajes sinteticos/sin usage no aportan costo ni invalidan el total.
+      cost = 0;
+    } else if (pricing) {
+      // Si no hay desglose 5m/1h se cobra la creacion entera a tarifa 5m.
+      const write5m = bucket.cache_creation_5m_tokens || (bucket.cache_creation_1h_tokens ? 0 : bucket.cache_creation_input_tokens);
+      const write1h = bucket.cache_creation_1h_tokens;
+      cost = (bucket.input_tokens * (pricing.input || 0)
+        + bucket.output_tokens * (pricing.output || 0)
+        + bucket.cache_read_input_tokens * (pricing.cache_read || 0)
+        + write5m * (pricing.cache_write_5m || 0)
+        + write1h * (pricing.cache_write_1h || 0)) / 1_000_000;
+      totalCost += cost;
+    } else {
+      costComplete = false;
+      unpricedModels.push(model);
+    }
+    models[model] = { ...bucket, estimated_cost_usd: cost === null ? null : Number(cost.toFixed(4)) };
+  }
+
+  return ok({
+    session_id: session_id || transcriptPath.split(/[\\/]/).pop().replace(/\.jsonl$/, ''),
+    transcript: transcriptPath,
+    first_timestamp: firstTimestamp,
+    last_timestamp: lastTimestamp,
+    turns: { assistant_messages: assistantTurns, user_messages: userTurns },
+    totals,
+    models,
+    estimated_cost_usd: Number(totalCost.toFixed(4)),
+    cost_complete: costComplete,
+    unpriced_models: unpricedModels,
+    pricing_source: 'mcp/model-pricing.yaml',
+    parse_errors: parseErrors,
+    notes: 'Costo estimado con precios de lista; cache_creation sin desglose 5m/1h se cobra a tarifa 5m.',
+  });
 });
 
 // ---------------------------------------------------------------------------

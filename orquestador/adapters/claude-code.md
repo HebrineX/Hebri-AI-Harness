@@ -1,10 +1,10 @@
 # Claude Code Adapter
 
-Contrato base compartido: leer `orquestador/adapters/_shared-core.md` (entrada minima 0.13.1, presupuesto en `orquestador/context-budget.yaml`, preflight + `SI` antes de efectos).
+Contrato base compartido: leer `orquestador/adapters/_shared-core.md` (entrada minima 0.14.0, presupuesto en `orquestador/context-budget.yaml`, preflight + `SI` antes de efectos).
 
 Notas especificas: archivo de instrucciones persistente `CLAUDE.md`; hooks reales soportados.
 
-## Claude Integration 0.13.1
+## Claude Integration 0.14.0
 
 - Usar `orquestador/integrations/claude/CLAUDE.template.md` como entrada.
 - Hooks reales: `SessionStart` genera e inyecta `orquestador/runtime/claude/reentry-brief.md`

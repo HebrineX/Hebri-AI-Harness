@@ -1,8 +1,8 @@
 # Hebri-AI-Harness
 
-Referencia operativa actual: **0.13.1**.
+Referencia operativa actual: **0.14.0**.
 
-Sistema operativo para agentes IA basado en [Hebri-AI-Structure](https://github.com/HebrineX/Hebri-AI-Structure). Objetivo: contrato, trazabilidad y aprobaciones con 70-80% menos contexto frente a leer todo `.hebrinex`.
+Sistema operativo para agentes IA basado en [Hebri-AI-Structure](https://github.com/HebrineX/Hebri-AI-Structure). Objetivo: contrato, trazabilidad y aprobaciones con el minimo contexto — ahorro medido: 90% (hebrinex usage) frente a leer la documentacion operativa completa (`AGENTS.md` + `method/` + `prompts/`).
 
 ## Uso Diario
 
@@ -36,7 +36,8 @@ Si un proyecto no tiene `.hebrinex`, no se opera con un harness externo. Se copi
 
 - Daemon MCP "hebrinex" (`mcp/`): un unico servidor MCP local (Node, stdio) expone el enforcement del harness como tools para Claude Code, Cursor, Codex CLI y cualquier cliente MCP, en lugar de 8 adapters de prompt. Ver seccion "Daemon MCP".
 - Fuente unica de roles: `agents/<rol>.md` contiene bloques marcados desde los que `scripts/build-instructions.ps1 -WriteOutputs` genera `orquestador/agents/role-contracts/*.yaml`, `prompts/roles/*.prompt.md` y el bloque `role_defaults` de `capability-registry.yaml`. Los derivados llevan aviso GENERATED y no se editan a mano: el drift-check (`build-instructions.ps1` en modo default, corrido por `init.sh` y `validate-drift.ps1`) falla si alguien lo hace.
-- CLI estable: `scripts/hebrinex.ps1` expone contrato versionado (0.3), markers parseables y validacion dedicada con `validate-cli.ps1`.
+- Medicion real de consumo: `hebrinex usage` mide el kernel contra la documentacion operativa (`docs_tree_tokens=`, `savings_docs_pct=` — denominador del claim de este README) y contra el arbol completo del manifest (`full_tree_tokens=`, `savings_pct=`, metrica para la poda), con una linea por perfil. `validate-release.ps1` recalcula `savings_docs_pct` y falla si el porcentaje citado en este README deriva mas de ±5 puntos del medido.
+- CLI estable: `scripts/hebrinex.ps1` expone contrato versionado (0.4), markers parseables y validacion dedicada con `validate-cli.ps1`.
 - Approval store ejecutable: `hebrinex approve -Apply` materializa el `SI` como envelope con expiracion y hash exacto de la accion; el Command Gateway valida `-ApprovalId` contra el almacen y bloquea envelopes falsos, vencidos o con comando distinto.
 - Hooks reales de Claude Code: `SessionStart` inyecta el reentry brief y `PreToolUse` clasifica comandos con el gateway (`allow` sin prompt para read-only seguro, `ask` para patrones bloqueados). Instalador: `scripts/install-claude-hooks.ps1`.
 - Gateway endurecido: rechazo de symlinks en Apply, kill del arbol de procesos completo en timeout y modulo comun `scripts/lib/hebri-common.psm1`.
@@ -47,7 +48,7 @@ Si un proyecto no tiene `.hebrinex`, no se opera con un harness externo. Se copi
   fixtures de migracion, fixtures negativos de seguridad, CLI estable e `init.sh`.
 - Agent Contract System: los agentes existen por contratos YAML gobernados por el harness, no por prompts ni autoasignacion de IA.
 - Seguridad AppSec verificable: permisos, write-scope, comandos, red, secretos, escalacion, logging y supply-chain se validan por registries.
-- Servicio de migracion: rutas 0.8.10/0.9.0 -> 0.10.0, 0.10.11 -> 0.11.0, 0.11.0 -> 0.12.0, 0.12.0 -> 0.13.0 y 0.13.0 -> 0.13.1 con CheckOnly, Apply con backup, reporte y contrato post-migracion aplicado.
+- Servicio de migracion: rutas 0.8.10/0.9.0 -> 0.10.0, 0.10.11 -> 0.11.0, 0.11.0 -> 0.12.0, 0.12.0 -> 0.13.0 y 0.13.0 -> 0.14.0 con CheckOnly, Apply con backup, reporte y contrato post-migracion aplicado.
 - Schemas y fixtures de validacion cubren contratos de agentes, seguridad y
   migracion con casos negativos.
 - Command Gateway seguro: `hebrinex command -CheckOnly` clasifica comandos y
@@ -95,6 +96,7 @@ del harness sin cargar todo el contexto. El contrato publico vive en
 pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/hebrinex.ps1 help
 pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/hebrinex.ps1 status
 pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/hebrinex.ps1 budget
+pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/hebrinex.ps1 usage
 pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/hebrinex.ps1 preflight
 pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/hebrinex.ps1 validate -RunNegativeTests
 pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/hebrinex.ps1 audit -RunNegativeTests
@@ -110,8 +112,8 @@ pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/hebrinex.ps1 state-machine
 pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/hebrinex.ps1 agent-runtime -RoleId implementer -Capability edit_approved_write_set -Json
 ```
 
-La salida de `help` incluye `cli_contract_version=0.3`, `cli_status=stable` y
-la lista cerrada de comandos publicos. `status`, `budget`, `preflight` y los
+La salida de `help` incluye `cli_contract_version=0.4`, `cli_status=stable` y
+la lista cerrada de comandos publicos. `status`, `budget`, `usage`, `preflight` y los
 modos `-CheckOnly` no escriben. La CLI delega en validadores, migrador,
 bootstrap/update/restore, Command Gateway, state machine y agent runtime existentes; no reemplaza
 `state.yaml`, `registry.yaml`, gates ni evidencia.

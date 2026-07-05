@@ -1,0 +1,59 @@
+schema: hebrinex.migration_route
+version: "0.1"
+id: "0.13.0-to-0.14.0"
+source_version: "0.13.0"
+target_version: "0.14.0"
+status: active
+mode_support:
+  check_only: true
+  apply: true
+  rollback: planned
+preconditions:
+  - HARNESS_VERSION equals 0.13.0 or 0.13.1
+  - PROJECT_BINDING.yaml exists
+  - binding_mode is bound or source_template
+  - current root contains orquestador/
+  - MCP daemon from 0.13.0 is present
+changed_paths:
+  - scripts/hebrinex.ps1
+  - scripts/validate-cli.ps1
+  - scripts/validate-release.ps1
+  - scripts/validate-harness.ps1
+  - scripts/validate-mcp.ps1
+  - orquestador/method/cli-contract.md
+  - mcp/server.mjs
+  - mcp/smoke.mjs
+  - mcp/model-pricing.yaml
+  - orquestador/migration/versions/0.13.0-to-0.14.0.yaml
+never_overwrite:
+  - PROJECT_BINDING.yaml
+  - HARNESS_VERSION
+  - orquestador/sdd/progress/state.yaml
+  - orquestador/sdd/progress/registry.yaml
+  - orquestador/sdd/progress/cycles/
+  - orquestador/sdd/progress/locks/
+  - orquestador/sdd/progress/approvals/
+  - orquestador/memory/local/
+  - orquestador/memory/project/
+preserve_state:
+  state_yaml: true
+  registry_yaml: true
+  cycles: true
+  locks: true
+  approvals: true
+  local_memory: true
+  project_memory: true
+  evidence: true
+check_only_output:
+  - detected_version
+  - route_id
+  - binding_mode
+  - validators_required
+  - expected_post_migration_contract
+apply_success_requires:
+  - backup_verified
+  - usage_command_available
+  - session_usage_tool_available
+  - readme_savings_claim_measured
+notes:
+  - "0.14.0 agrega medicion real de consumo: `hebrinex usage` (contrato CLI 0.4), tool MCP session_usage con precios editables en mcp/model-pricing.yaml, y anti-drift del claim de ahorro del README en validate-release."

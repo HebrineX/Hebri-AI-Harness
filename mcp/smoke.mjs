@@ -34,7 +34,7 @@ const transport = new StdioClientTransport({
   args: [join(HERE, 'server.mjs')],
   stderr: 'ignore',
 });
-const client = new Client({ name: 'hebrinex-smoke', version: '0.13.1' });
+const client = new Client({ name: 'hebrinex-smoke', version: '0.14.0' });
 
 try {
   await client.connect(transport);
@@ -49,6 +49,7 @@ try {
     'preflight_approve',
     'run_command',
     'session_contract',
+    'session_usage',
   ];
   check(JSON.stringify(names) === JSON.stringify(expected), `tools registradas: ${names.join(',')}`);
 
@@ -80,6 +81,33 @@ try {
   const badApproval = await client.callTool({ name: 'approval_check', arguments: { approval_id: 'APR-INEXISTENTE-000000', command_text: 'git push' } });
   const badApprovalPayload = parsePayload(badApproval);
   check(badApproval.isError === true && badApprovalPayload?.valid === false, 'approval_check rechaza approval inexistente');
+
+  // session_usage: en una maquina con transcripts reporta totales y costo;
+  // sin transcripts (p. ej. CI) debe fallar con error claro, nunca inventar datos.
+  const usage = await client.callTool({ name: 'session_usage', arguments: {} });
+  const usagePayload = parsePayload(usage);
+  if (usage.isError === true) {
+    check(
+      ['transcripts_dir_not_found', 'no_transcripts_found', 'no_assistant_usage_in_transcript'].includes(usagePayload?.reason),
+      `session_usage sin transcripts falla con razon clara (${usagePayload?.reason})`,
+    );
+  } else {
+    check(
+      typeof usagePayload?.totals?.output_tokens === 'number'
+        && typeof usagePayload?.estimated_cost_usd === 'number'
+        && typeof usagePayload?.turns?.assistant_messages === 'number'
+        && usagePayload?.pricing_source === 'mcp/model-pricing.yaml',
+      'session_usage reporta totales, turnos y costo estimado',
+    );
+  }
+
+  const badSession = await client.callTool({ name: 'session_usage', arguments: { session_id: 'no-existe-000' } });
+  const badSessionPayload = parsePayload(badSession);
+  check(
+    badSession.isError === true
+      && ['transcript_not_found', 'transcripts_dir_not_found'].includes(badSessionPayload?.reason),
+    'session_usage con session_id inexistente falla con error claro',
+  );
 } catch (error) {
   failures.push(`excepcion: ${error.message}`);
   console.error(`FAIL: excepcion durante smoke: ${error.stack || error.message}`);

@@ -1,18 +1,19 @@
 # CLI Contract
 
-Version: 0.13.1
-Contract version: 0.3
+Version: 0.14.0
+Contract version: 0.4
 Status: stable
 
 `scripts/hebrinex.ps1` is the stable public CLI for Hebri-AI-Harness. It is a thin operational entrypoint: it exposes status, budgets, preflight envelopes, validators, migration/bootstrap flows, the Command Gateway, state-machine checks and agent-runtime enforcement, but it does not replace `state.yaml`, `registry.yaml`, gates, approvals, evidence or agent contracts.
 
 ## Stable Commands
 
-The public command set for contract version `0.3` is closed:
+The public command set for contract version `0.4` is closed:
 
 - `help`
 - `status`
 - `budget`
+- `usage`
 - `preflight`
 - `approve`
 - `validate`
@@ -33,9 +34,9 @@ A command outside this list is not part of the public CLI contract.
 `help` must emit parseable markers:
 
 ```text
-cli_contract_version=0.3
+cli_contract_version=0.4
 cli_status=stable
-commands=help,status,budget,preflight,approve,validate,audit,migrate,bootstrap,update-bound,list-bound-backups,restore-bound,command,state-machine,agent-runtime
+commands=help,status,budget,usage,preflight,approve,validate,audit,migrate,bootstrap,update-bound,list-bound-backups,restore-bound,command,state-machine,agent-runtime
 ```
 
 Operational commands must keep parseable `key=value` lines or machine-readable JSON for validators and automation. Human prose can be added around those lines only when it does not remove or rename contract markers.
@@ -44,6 +45,7 @@ Required markers:
 
 - `status`: `harness_version`, `binding_mode`, `project_root`, `runtime_authority=non_authoritative`.
 - `budget`: `memory_bootstrap`, `first_message`, `debug_log_intake`, `leader_light`, `runtime_status`, `runtime_reentry`.
+- `usage`: `kernel_tokens=`, `docs_tree_tokens=`, `savings_docs_pct=` (entero redondeado; denominador del claim del README: `AGENTS.md` + `orquestador/method/` + `prompts/` segun manifest), `full_tree_tokens=`, `savings_pct=` (frente al arbol completo del manifest; metrica para la poda), una linea `profile_<name>_tokens=` por perfil de `context-budget.yaml` y `writes=false`. Read-only; mide con el mismo metodo chars/4 que `budget`.
 - `preflight`: `Approval ID`, `Read-set`, `Write-set`, `Riesgo`, `Verificacion`, `Requiere SI: SI`.
 - `migrate -CheckOnly`: `writes=false` when no migration write is performed.
 - `bootstrap -CheckOnly`: `writes=false`, `apply_available=true`, `requires_project_root=true`.
@@ -69,7 +71,7 @@ Mode-bearing commands require exactly one execution mode:
 
 `list-bound-backups` is inventory-only and supports only `-CheckOnly`.
 
-Read-only commands (`help`, `status`, `budget`, `preflight`, `state-machine`, `agent-runtime`) must not write files. `validate` and `audit` may run validators but must not declare operational work complete by themselves.
+Read-only commands (`help`, `status`, `budget`, `usage`, `preflight`, `state-machine`, `agent-runtime`) must not write files. `validate` and `audit` may run validators but must not declare operational work complete by themselves.
 
 ## Safety Contract
 

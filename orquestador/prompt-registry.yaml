@@ -1,6 +1,6 @@
 schema: hebrinex.prompt_registry
 version: "0.1"
-harness_version: "0.13.1"
+harness_version: "0.14.0"
 root: prompts
 categories:
   roles:
