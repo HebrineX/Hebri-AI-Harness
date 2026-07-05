@@ -12,34 +12,9 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
-function Resolve-HarnessPath([string]$RelativePath) {
-  Join-Path $Root $RelativePath
-}
-
-function Read-HarnessText([string]$RelativePath) {
-  $path = Resolve-HarnessPath $RelativePath
-  if (-not (Test-Path -LiteralPath $path -PathType Leaf)) {
-    throw "missing file: $RelativePath"
-  }
-  return [IO.File]::ReadAllText($path)
-}
-
-function Get-YamlList([string]$Text, [string]$Key) {
-  $items = New-Object System.Collections.Generic.List[string]
-  $inside = $false
-  foreach ($line in ($Text -split "`n")) {
-    if ($line -match ('^' + [regex]::Escape($Key) + ':\s*$')) {
-      $inside = $true
-      continue
-    }
-    if ($inside -and $line -match '^[A-Za-z0-9_.-]+:\s*') { break }
-    if ($inside -and $line -match '^\s*-\s*(.+?)\s*$') {
-      $value = $Matches[1].Trim().Trim('"').Trim("'")
-      if (-not [string]::IsNullOrWhiteSpace($value)) { [void]$items.Add($value) }
-    }
-  }
-  return $items
-}
+# -Scope Local: no contaminar el scope del caller cuando el gateway se invoca
+# in-process (p. ej. desde validadores que definen helpers homonimos).
+Import-Module (Join-Path $PSScriptRoot 'lib/hebri-common.psm1') -Force -DisableNameChecking -Scope Local
 
 function Test-ContainsLiteral([string]$Text, [string]$Needle) {
   if ([string]::IsNullOrWhiteSpace($Needle)) { return $false }
@@ -59,22 +34,6 @@ function Test-StartsWithPattern([string]$Text, [string]$Pattern) {
   if ([string]::IsNullOrWhiteSpace($Pattern)) { return $false }
   return $Text.Equals($Pattern, [StringComparison]::OrdinalIgnoreCase) -or
     $Text.StartsWith(($Pattern + ' '), [StringComparison]::OrdinalIgnoreCase)
-}
-
-function Redact-Text([string]$Text) {
-  if ($null -eq $Text) { return '' }
-  $redacted = [regex]::Replace($Text, '(?i)(api[_-]?key|token|secret|password)\s*[:=]\s*\S+', '$1=[REDACTED]')
-  return [regex]::Replace($redacted, '(?i)bearer\s+[a-z0-9._\-]+', 'Bearer [REDACTED]')
-}
-
-function Redact-Command([string]$Text) {
-  return Redact-Text $Text
-}
-
-function Limit-Text([string]$Text, [int]$MaxLength = 4000) {
-  if ($null -eq $Text) { return '' }
-  if ($Text.Length -le $MaxLength) { return $Text }
-  return ($Text.Substring(0, $MaxLength) + '[TRUNCATED]')
 }
 
 function Test-SecretBearingCommand([string]$Text) {
@@ -134,6 +93,21 @@ function Resolve-ReadOnlyPath([string]$PathText) {
   if (-not ($fullPath.Equals($rootFull, $comparison) -or $fullPath.StartsWith(($rootFull + [IO.Path]::DirectorySeparatorChar), $comparison) -or $fullPath.StartsWith(($rootFull + [IO.Path]::AltDirectorySeparatorChar), $comparison))) {
     throw 'path_outside_root_not_allowed'
   }
+
+  # Reject symlinks/junctions below the root: a reparse point could re-route a
+  # read outside the harness even though the literal path looks contained.
+  $current = $fullPath
+  while ($current.Length -gt $rootFull.Length) {
+    if (Test-Path -LiteralPath $current) {
+      $item = Get-Item -LiteralPath $current -Force
+      if (($item.Attributes -band [IO.FileAttributes]::ReparsePoint) -ne 0) {
+        throw 'symlink_not_allowed_in_apply'
+      }
+    }
+    $parent = [IO.Path]::GetDirectoryName($current)
+    if ([string]::IsNullOrEmpty($parent) -or $parent -eq $current) { break }
+    $current = $parent
+  }
   return $fullPath
 }
 
@@ -179,58 +153,103 @@ function New-ApplyPlan([string]$Text) {
   throw 'apply_requires_strict_readonly_allowlist'
 }
 
-function Invoke-ApplyPlan([hashtable]$Plan) {
-  $job = Start-Job -ScriptBlock {
-    param($SerializedPlan, $JobRoot)
-    $ErrorActionPreference = 'Stop'
-    try {
-      Set-Location -LiteralPath $JobRoot
-      $kind = [string]$SerializedPlan['kind']
-      $path = [string]$SerializedPlan['path']
-      $pattern = [string]$SerializedPlan['pattern']
-      switch ($kind) {
-        'get_content' {
-          $stdout = (Get-Content -LiteralPath $path -ErrorAction Stop | Out-String).TrimEnd()
-          [pscustomobject]@{ ExitCode = 0; Stdout = $stdout; Stderr = '' }
-        }
-        'test_path' {
-          $stdout = [string](Test-Path -LiteralPath $path)
-          [pscustomobject]@{ ExitCode = 0; Stdout = $stdout; Stderr = '' }
-        }
-        'get_childitem' {
-          $stdout = (Get-ChildItem -LiteralPath $path -Force -ErrorAction Stop | Select-Object Name,Mode,Length | Out-String).TrimEnd()
-          [pscustomobject]@{ ExitCode = 0; Stdout = $stdout; Stderr = '' }
-        }
-        'select_string' {
-          $stdout = (Select-String -LiteralPath $path -Pattern $pattern -ErrorAction Stop | Out-String).TrimEnd()
-          [pscustomobject]@{ ExitCode = 0; Stdout = $stdout; Stderr = '' }
-        }
-        'git_status_short' {
-          $output = & git -C $JobRoot status --short 2>&1
-          $exitCode = if ($null -eq $LASTEXITCODE) { 0 } else { $LASTEXITCODE }
-          [pscustomobject]@{ ExitCode = $exitCode; Stdout = (($output | Out-String).TrimEnd()); Stderr = '' }
-        }
-        default { [pscustomobject]@{ ExitCode = 2; Stdout = ''; Stderr = "unsupported apply plan: $kind" } }
-      }
-    }
-    catch {
-      [pscustomobject]@{ ExitCode = 1; Stdout = ''; Stderr = $_.Exception.Message }
-    }
-  } -ArgumentList $Plan, $Root
+function Get-PowerShellExecutablePath() {
+  $current = (Get-Process -Id $PID).Path
+  if (-not [string]::IsNullOrWhiteSpace($current)) { return $current }
+  $pwsh = Get-Command pwsh -ErrorAction SilentlyContinue
+  if ($null -ne $pwsh) { return $pwsh.Source }
+  return (Get-Command powershell -ErrorAction SilentlyContinue).Source
+}
 
-  $completed = Wait-Job -Job $job -Timeout $TimeoutSeconds
-  if ($null -eq $completed) {
-    Stop-Job -Job $job -Force | Out-Null
-    Remove-Job -Job $job -Force | Out-Null
+function Stop-ProcessTree([System.Diagnostics.Process]$Process) {
+  try { $Process.Kill($true) }
+  catch {
+    try {
+      if ($env:OS -eq 'Windows_NT') { & taskkill /PID $Process.Id /T /F 2>$null | Out-Null }
+      else { Stop-Process -Id $Process.Id -Force -ErrorAction SilentlyContinue }
+    }
+    catch {}
+  }
+}
+
+$script:ApplyRunnerSource = @'
+$ErrorActionPreference = 'Stop'
+try {
+  $planJson = [Text.Encoding]::UTF8.GetString([Convert]::FromBase64String($env:HEBRI_APPLY_PLAN))
+  $plan = $planJson | ConvertFrom-Json
+  $kind = [string]$plan.kind
+  $path = [string]$plan.path
+  $pattern = [string]$plan.pattern
+  $planRoot = [string]$plan.root
+  Set-Location -LiteralPath $planRoot
+  $stdout = ''
+  $code = 0
+  switch ($kind) {
+    'get_content' { $stdout = (Get-Content -LiteralPath $path -ErrorAction Stop | Out-String).TrimEnd() }
+    'test_path' { $stdout = [string](Test-Path -LiteralPath $path) }
+    'get_childitem' { $stdout = (Get-ChildItem -LiteralPath $path -Force -ErrorAction Stop | Select-Object Name,Mode,Length | Out-String).TrimEnd() }
+    'select_string' { $stdout = (Select-String -LiteralPath $path -Pattern $pattern -ErrorAction Stop | Out-String).TrimEnd() }
+    'git_status_short' {
+      $output = & git -C $planRoot status --short 2>&1
+      if ($null -ne $LASTEXITCODE) { $code = $LASTEXITCODE }
+      $stdout = ($output | Out-String).TrimEnd()
+    }
+    default {
+      [pscustomobject]@{ ExitCode = 2; Stdout = ''; Stderr = "unsupported apply plan: $kind" } | ConvertTo-Json -Compress
+      exit 0
+    }
+  }
+  [pscustomobject]@{ ExitCode = $code; Stdout = $stdout; Stderr = '' } | ConvertTo-Json -Compress
+}
+catch {
+  [pscustomobject]@{ ExitCode = 1; Stdout = ''; Stderr = $_.Exception.Message } | ConvertTo-Json -Compress
+}
+'@
+
+function Invoke-ApplyPlan([hashtable]$Plan) {
+  $planPayload = [ordered]@{
+    kind = [string]$Plan['kind']
+    path = [string]$Plan['path']
+    pattern = [string]$Plan['pattern']
+    root = $Root
+  }
+  $planBase64 = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes(($planPayload | ConvertTo-Json -Compress)))
+  $encodedRunner = [Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($script:ApplyRunnerSource))
+
+  $psi = New-Object System.Diagnostics.ProcessStartInfo
+  $psi.FileName = Get-PowerShellExecutablePath
+  $psi.Arguments = "-NoProfile -NonInteractive -ExecutionPolicy Bypass -EncodedCommand $encodedRunner"
+  $psi.UseShellExecute = $false
+  $psi.RedirectStandardOutput = $true
+  $psi.RedirectStandardError = $true
+  $psi.CreateNoWindow = $true
+  $psi.WorkingDirectory = $Root
+  $psi.EnvironmentVariables['HEBRI_APPLY_PLAN'] = $planBase64
+
+  $process = New-Object System.Diagnostics.Process
+  $process.StartInfo = $psi
+  [void]$process.Start()
+  $stdoutTask = $process.StandardOutput.ReadToEndAsync()
+  $stderrTask = $process.StandardError.ReadToEndAsync()
+
+  if (-not $process.WaitForExit($TimeoutSeconds * 1000)) {
+    # Kill the whole tree so grandchildren (e.g. git) do not survive the timeout.
+    Stop-ProcessTree $process
     return [ordered]@{ attempted = $true; exit_code = 124; timed_out = $true; timeout_seconds = $TimeoutSeconds; stdout = ''; stderr = 'command timed out' }
   }
 
-  $received = Receive-Job -Job $job
-  Remove-Job -Job $job -Force | Out-Null
-  if ($null -eq $received) {
-    return [ordered]@{ attempted = $true; exit_code = 1; timed_out = $false; timeout_seconds = $TimeoutSeconds; stdout = ''; stderr = 'no command output received' }
+  $stdoutRaw = $stdoutTask.Result
+  $stderrRaw = $stderrTask.Result
+  $item = $null
+  try {
+    $lastLine = @($stdoutRaw -split "`n" | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })[-1]
+    if ($null -ne $lastLine) { $item = $lastLine | ConvertFrom-Json }
   }
-  $item = @($received)[-1]
+  catch { $item = $null }
+  if ($null -eq $item) {
+    $fallbackError = if ([string]::IsNullOrWhiteSpace($stderrRaw)) { 'no command output received' } else { $stderrRaw }
+    return [ordered]@{ attempted = $true; exit_code = 1; timed_out = $false; timeout_seconds = $TimeoutSeconds; stdout = ''; stderr = (Limit-Text (Redact-Text $fallbackError)) }
+  }
   return [ordered]@{
     attempted = $true
     exit_code = [int]$item.ExitCode
@@ -249,9 +268,9 @@ if ($TimeoutSeconds -lt 1 -or $TimeoutSeconds -gt 120) {
 }
 
 $Root = (Resolve-Path -LiteralPath $Root).Path
-$registryText = Read-HarnessText 'orquestador/security/command-risk-registry.yaml'
-$blockedPatterns = Get-YamlList $registryText 'blocked_patterns'
-$safePatterns = Get-YamlList $registryText 'safe_patterns'
+$registryText = Read-HarnessText -Root $Root -RelativePath 'orquestador/security/command-risk-registry.yaml'
+$blockedPatterns = Get-YamlList -Text $registryText -Key 'blocked_patterns'
+$safePatterns = Get-YamlList -Text $registryText -Key 'safe_patterns'
 $command = $CommandText.Trim()
 $mode = if ($Apply) { 'Apply' } else { 'CheckOnly' }
 
@@ -320,6 +339,26 @@ if (-not [string]::IsNullOrWhiteSpace($RiskClass) -and $RiskClass -ne $detectedR
   $requiresSi = $true
 }
 
+# Approval enforcement: a declared ApprovalId is validated against the approval
+# store. A missing, expired, unapproved or mismatched envelope blocks the call
+# instead of being echoed back as if it were legitimate.
+$approvalStatus = 'not_provided'
+$approvalReason = ''
+if (-not [string]::IsNullOrWhiteSpace($ApprovalId)) {
+  $approvalCheck = Test-ApprovalEnvelope -Root $Root -ApprovalId $ApprovalId -CommandText $command
+  $approvalReason = [string]$approvalCheck.Reason
+  if ($approvalCheck.Valid) {
+    $approvalStatus = 'valid'
+  }
+  else {
+    $approvalStatus = 'invalid'
+    $decision = 'block'
+    $reason = $approvalReason
+    $requiresPreflight = $true
+    $requiresSi = $true
+  }
+}
+
 if ($Apply -and $decision -eq 'allow') {
   try {
     $plan = New-ApplyPlan $command
@@ -335,7 +374,7 @@ if ($Apply -and $decision -eq 'allow') {
   }
 }
 
-$safeCommand = Redact-Command $command
+$safeCommand = Redact-Text $command
 $effectiveApprovalId = $ApprovalId
 if ([string]::IsNullOrWhiteSpace($effectiveApprovalId)) { $effectiveApprovalId = 'COMMAND-GATEWAY-REQUIRED' }
 
@@ -356,12 +395,14 @@ $preflight = [ordered]@{
 
 $result = [ordered]@{
   schema = 'hebrinex.command_gateway.result'
-  version = '0.3'
+  version = '0.4'
   root = $Root
   mode = $mode
   command_text = $safeCommand
   purpose = $Purpose
   approval_id = $ApprovalId
+  approval_status = $approvalStatus
+  approval_reason = $approvalReason
   decision = $decision
   risk_class = $detectedRisk
   requires_preflight = $requiresPreflight
@@ -390,6 +431,8 @@ Write-Output "mode=$mode"
 Write-Output "command_text=$safeCommand"
 Write-Output "purpose=$Purpose"
 Write-Output "approval_id=$ApprovalId"
+Write-Output "approval_status=$approvalStatus"
+Write-Output "approval_reason=$approvalReason"
 Write-Output "decision=$decision"
 Write-Output "risk_class=$detectedRisk"
 Write-Output "requires_preflight=$($requiresPreflight.ToString().ToLowerInvariant())"

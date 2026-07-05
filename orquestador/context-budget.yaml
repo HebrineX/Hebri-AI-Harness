@@ -1,7 +1,13 @@
 schema: hebrinex.context_budget
-version: "0.1"
-harness_version: "0.11.0"
+version: "0.2"
+harness_version: "0.12.0"
 objective: "70-80% tokens."
+
+measurement:
+  method: file_chars_div_4
+  scope: kernel_files_only
+  excludes: host_instruction_file_and_chat_contract
+  verified_by: hebrinex_budget_and_init_sh
 
 default_policy:
   default_route: reentry_light
@@ -18,7 +24,7 @@ budgets:
   leader_full: {max_tokens:8000, requires_approval:true}
   audit_global: {max_tokens:12000, requires_approval:true}
   adapter_portability: {max_tokens:3500}
-  runtime_status: {max_tokens:900}
+  runtime_status: {max_tokens:1000}
   runtime_reentry: {max_tokens:1600}
 deny_by_default:
   - infoHebri.md

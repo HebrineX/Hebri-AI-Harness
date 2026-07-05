@@ -1,6 +1,6 @@
 # Release Roadmap
 
-Version: 0.11.0
+Version: 0.12.0
 
 Este archivo fija el roadmap operativo luego de la reconciliacion de la linea
 0.10.x. Los tags publicados no se reescriben ni se mueven; cualquier correccion
@@ -56,3 +56,17 @@ El release `0.11.0` esta cerrado solo si:
 GitHub debe mantener el check `Harness contract` como required check en branch
 protection para que un PR no mergee si rompe contrato, agentes, seguridad,
 migracion, runtime enforcement o CLI.
+
+## 0.12.0 Approval & Hooks Release
+
+`0.12.0` materializa el `SI` del operador y activa hooks reales de host:
+
+- `hebrinex approve` crea approval envelopes con expiracion y hash exacto;
+- el Command Gateway valida `-ApprovalId` contra el almacen y bloquea envelopes
+  falsos, vencidos, no aprobados o con comando distinto;
+- hooks de Claude Code (`SessionStart`, `PreToolUse`) instalables con
+  `scripts/install-claude-hooks.ps1 -CheckOnly|-Apply`;
+- Apply del gateway rechaza symlinks y mata el arbol de procesos en timeout;
+- modulo comun `scripts/lib/hebri-common.psm1` y adapters condensados en
+  `orquestador/adapters/_shared-core.md`;
+- el migration engine declara y valida `0.11.0 -> 0.12.0`.

@@ -147,7 +147,11 @@ Assert-Contains 'scripts/command-gateway.ps1' 'Command Gateway' 'command gateway
 Assert-Contains 'scripts/command-gateway.ps1' 'Invoke-ApplyPlan' 'command gateway must execute Apply through controlled plan only'
 Assert-Contains 'scripts/command-gateway.ps1' 'path_outside_root_not_allowed' 'command gateway Apply must block path traversal outside root'
 Assert-Contains 'scripts/command-gateway.ps1' 'hebrinex.command_gateway.result' 'command gateway must emit structured result schema'
-Assert-Contains 'orquestador/runtime/schemas/command-gateway-result.schema.json' '"version": \{ "const": "0\.3" \}' 'command gateway schema must declare result version 0.3'
+Assert-Contains 'orquestador/runtime/schemas/command-gateway-result.schema.json' '"version": \{ "const": "0\.4" \}' 'command gateway schema must declare result version 0.4'
+Assert-Contains 'orquestador/runtime/schemas/command-gateway-result.schema.json' '"approval_status"' 'command gateway schema must expose approval status'
+Assert-Contains 'scripts/command-gateway.ps1' 'symlink_not_allowed_in_apply' 'command gateway Apply must reject reparse points'
+Assert-Contains 'scripts/command-gateway.ps1' 'Stop-ProcessTree' 'command gateway must kill the full process tree on timeout'
+Assert-Contains 'scripts/command-gateway.ps1' 'Test-ApprovalEnvelope' 'command gateway must validate approvals against the store'
 Assert-Contains 'orquestador/runtime/schemas/command-gateway-result.schema.json' '"Apply"' 'command gateway schema must allow Apply mode'
 Assert-Contains 'orquestador/runtime/schemas/command-gateway-result.schema.json' '"execution"' 'command gateway schema must include execution evidence'
 Assert-Contains 'orquestador/runtime/templates/command-gateway-result.template.json' '"executes": false' 'command gateway template must default to non-execution'
@@ -181,8 +185,11 @@ $allowedJson = Invoke-GatewayJson 'Get-Content README.md'
 if ($allowedJson.ExitCode -ne 0 -or $allowedJson.Json.decision -ne 'allow') {
   Add-Failure 'gateway JSON should allow read-only command'
 }
-if ($allowedJson.Json.schema -ne 'hebrinex.command_gateway.result' -or $allowedJson.Json.executes -ne $false -or $allowedJson.Json.version -ne '0.3') {
-  Add-Failure 'gateway JSON must expose schema, version 0.3 and executes=false for CheckOnly'
+if ($allowedJson.Json.schema -ne 'hebrinex.command_gateway.result' -or $allowedJson.Json.executes -ne $false -or $allowedJson.Json.version -ne '0.4') {
+  Add-Failure 'gateway JSON must expose schema, version 0.4 and executes=false for CheckOnly'
+}
+if ($allowedJson.Json.approval_status -ne 'not_provided') {
+  Add-Failure 'gateway JSON must report approval_status=not_provided when no approval id is passed'
 }
 
 $applyJson = Invoke-GatewayJson 'Test-Path README.md' '' 'Apply'
@@ -215,6 +222,35 @@ if ($secretJson.Text -match 'abc123') {
 $mismatchJson = Invoke-GatewayJson 'Get-Content README.md' 'write'
 if ($mismatchJson.ExitCode -eq 0 -or $mismatchJson.Json.reason -ne 'declared_risk_mismatch') {
   Add-Failure 'gateway must block declared risk mismatch'
+}
+
+# Approval store roundtrip: a real envelope must validate, a fake one must block.
+# Prefix avoids clobbering this validator's own positional helpers.
+Import-Module (Resolve-HarnessPath 'scripts/lib/hebri-common.psm1') -Force -DisableNameChecking -Prefix 'Hebri' -Scope Local
+$approvalEnvelope = $null
+try {
+  $approvalEnvelope = New-HebriApprovalEnvelope -Root $Root -CommandText 'Get-Content README.md' -Purpose 'validator approval roundtrip' -TtlMinutes 5
+  $gatewayScript = Resolve-HarnessPath 'scripts/command-gateway.ps1'
+  $validApproval = & $gatewayScript -Root $Root -CheckOnly -CommandText 'Get-Content README.md' -ApprovalId $approvalEnvelope.Id 2>&1
+  $validApprovalText = $validApproval -join "`n"
+  if ($LASTEXITCODE -ne 0 -or $validApprovalText -notmatch 'approval_status=valid') {
+    Add-Failure 'gateway must accept a valid approval envelope'
+  }
+  $mismatchApproval = & $gatewayScript -Root $Root -CheckOnly -CommandText 'Get-Content AGENTS.md' -ApprovalId $approvalEnvelope.Id 2>&1
+  $mismatchApprovalText = $mismatchApproval -join "`n"
+  if ($LASTEXITCODE -eq 0 -or $mismatchApprovalText -notmatch 'approval_command_mismatch') {
+    Add-Failure 'gateway must block an approval used for a different command'
+  }
+  $fakeApproval = & $gatewayScript -Root $Root -CheckOnly -CommandText 'Get-Content README.md' -ApprovalId 'APR-FAKE-DOES-NOT-EXIST' 2>&1
+  $fakeApprovalText = $fakeApproval -join "`n"
+  if ($LASTEXITCODE -eq 0 -or $fakeApprovalText -notmatch 'approval_not_found') {
+    Add-Failure 'gateway must block a fake approval id'
+  }
+}
+finally {
+  if ($null -ne $approvalEnvelope -and (Test-Path -LiteralPath $approvalEnvelope.Path)) {
+    Remove-Item -LiteralPath $approvalEnvelope.Path -Force
+  }
 }
 
 if ($RunNegativeTests) {

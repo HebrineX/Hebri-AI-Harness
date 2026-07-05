@@ -1,19 +1,20 @@
 # CLI Contract
 
-Version: 0.11.0
-Contract version: 0.2
+Version: 0.12.0
+Contract version: 0.3
 Status: stable
 
 `scripts/hebrinex.ps1` is the stable public CLI for Hebri-AI-Harness. It is a thin operational entrypoint: it exposes status, budgets, preflight envelopes, validators, migration/bootstrap flows, the Command Gateway, state-machine checks and agent-runtime enforcement, but it does not replace `state.yaml`, `registry.yaml`, gates, approvals, evidence or agent contracts.
 
 ## Stable Commands
 
-The public command set for contract version `0.2` is closed:
+The public command set for contract version `0.3` is closed:
 
 - `help`
 - `status`
 - `budget`
 - `preflight`
+- `approve`
 - `validate`
 - `audit`
 - `migrate`
@@ -32,9 +33,9 @@ A command outside this list is not part of the public CLI contract.
 `help` must emit parseable markers:
 
 ```text
-cli_contract_version=0.2
+cli_contract_version=0.3
 cli_status=stable
-commands=help,status,budget,preflight,validate,audit,migrate,bootstrap,update-bound,list-bound-backups,restore-bound,command,state-machine,agent-runtime
+commands=help,status,budget,preflight,approve,validate,audit,migrate,bootstrap,update-bound,list-bound-backups,restore-bound,command,state-machine,agent-runtime
 ```
 
 Operational commands must keep parseable `key=value` lines or machine-readable JSON for validators and automation. Human prose can be added around those lines only when it does not remove or rename contract markers.
@@ -49,6 +50,8 @@ Required markers:
 - `update-bound -CheckOnly`: `writes=false`, `apply_available=true`, `requires_project_root=true`.
 - `list-bound-backups -CheckOnly`: `writes=false`, `apply_available=false`, `requires_project_root=true`.
 - `restore-bound -CheckOnly`: `writes=false`, `apply_available=true`, `requires_project_root=true`.
+- `approve -CheckOnly`: `writes=false`, `apply_available=true`.
+- `approve -Apply`: `approval_id`, `approval_path`, `expires_at`, `command_sha256`, `writes=true`.
 - `command -Json`: JSON schema `hebrinex.command_gateway.result`.
 - `state-machine -Json`: JSON schema `hebrinex.runtime.state_machine.decision`.
 - `agent-runtime -Json`: JSON schema `hebrinex.runtime.agent_enforcement.decision`.
@@ -62,6 +65,7 @@ Mode-bearing commands require exactly one execution mode:
 - `update-bound` requires exactly one of `-CheckOnly` or `-Apply`.
 - `restore-bound` requires exactly one of `-CheckOnly` or `-Apply`.
 - `command` requires exactly one of `-CheckOnly` or `-Apply`.
+- `approve` requires exactly one of `-CheckOnly` or `-Apply`.
 
 `list-bound-backups` is inventory-only and supports only `-CheckOnly`.
 
@@ -73,6 +77,8 @@ The CLI is not an agent and does not define agent authority. Agent definitions r
 
 Security-sensitive actions keep deny-by-default behavior:
 
+- `approve -Apply` materializes one operator `SI` as an approval envelope in `orquestador/sdd/progress/approvals/` with expiry and an exact action hash; it approves only that exact command text.
+- `command` with `-ApprovalId` validates the envelope against the approval store; missing, expired, unapproved or mismatched envelopes block the call.
 - `command -CheckOnly` classifies and reports; it does not execute the command text.
 - `command -Apply` delegates to the Command Gateway and executes only strict read-only allowlisted plans.
 - `state-machine` reads lifecycle contracts and blocks invalid transitions.

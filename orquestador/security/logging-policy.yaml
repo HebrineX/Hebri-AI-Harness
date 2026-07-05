@@ -1,6 +1,6 @@
 schema: hebrinex.security.logging_policy
 version: "0.1"
-harness_version: "0.11.0"
+harness_version: "0.12.0"
 defaults:
   redact_before_write: true
   chat_memory_is_evidence: false

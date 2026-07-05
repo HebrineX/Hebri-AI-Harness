@@ -1,12 +1,12 @@
 param(
   [Parameter(Position = 0)]
-  [ValidateSet('help','status','budget','preflight','validate','audit','migrate','bootstrap','update-bound','list-bound-backups','restore-bound','command','state-machine','agent-runtime')]
+  [ValidateSet('help','status','budget','preflight','approve','validate','audit','migrate','bootstrap','update-bound','list-bound-backups','restore-bound','command','state-machine','agent-runtime')]
   [string]$Command = 'help',
   [string]$Root = (Split-Path -Parent $PSScriptRoot),
   [switch]$RunNegativeTests,
   [switch]$CheckOnly,
   [switch]$Apply,
-  [string]$TargetVersion = '0.11.0',
+  [string]$TargetVersion = '0.12.0',
   [string]$ProjectRoot = '',
   [string]$BackupId = '',
   [string]$ApprovalId = '',
@@ -22,10 +22,13 @@ param(
   [string]$Capability = '',
   [string]$FromState = '',
   [string]$ToState = '',
+  [int]$TtlMinutes = 60,
   [switch]$Json
 )
 
 $ErrorActionPreference = 'Stop'
+
+Import-Module (Join-Path $PSScriptRoot 'lib/hebri-common.psm1') -Force -DisableNameChecking -Prefix 'Hebri' -Scope Local
 
 function Resolve-HarnessPath([string]$RelativePath) {
   Join-Path $Root $RelativePath
@@ -1134,17 +1137,18 @@ function Write-BootstrapCheckOnly([string]$ProjectRootValue) {
 }
 function Show-Help() {
   Write-Host 'Hebri-AI-Harness CLI Core'
-  Write-Host 'cli_contract_version=0.2'
+  Write-Host 'cli_contract_version=0.3'
   Write-Host 'cli_status=stable'
-  Write-Host 'commands=help,status,budget,preflight,validate,audit,migrate,bootstrap,update-bound,list-bound-backups,restore-bound,command,state-machine,agent-runtime'
+  Write-Host 'commands=help,status,budget,preflight,approve,validate,audit,migrate,bootstrap,update-bound,list-bound-backups,restore-bound,command,state-machine,agent-runtime'
   Write-Host ''
   Write-Host 'Usage:'
   Write-Host '  hebrinex.ps1 status [-Root <path>]'
   Write-Host '  hebrinex.ps1 budget [-Root <path>]'
   Write-Host '  hebrinex.ps1 preflight [-ApprovalId <id>] [-Action <text>] [-ReadSet <text>] [-WriteSet <text>]'
+  Write-Host '  hebrinex.ps1 approve -CheckOnly|-Apply -CommandText <command> [-Purpose <text>] [-TtlMinutes <1-1440>]'
   Write-Host '  hebrinex.ps1 validate [-RunNegativeTests]'
   Write-Host '  hebrinex.ps1 audit [-RunNegativeTests]'
-  Write-Host '  hebrinex.ps1 migrate -CheckOnly|-Apply [-TargetVersion 0.11.0]'
+  Write-Host '  hebrinex.ps1 migrate -CheckOnly|-Apply [-TargetVersion 0.12.0]'
   Write-Host '  hebrinex.ps1 bootstrap -CheckOnly|-Apply -ProjectRoot <path>'
   Write-Host '  hebrinex.ps1 update-bound -CheckOnly|-Apply -ProjectRoot <path>'
   Write-Host '  hebrinex.ps1 list-bound-backups -CheckOnly -ProjectRoot <path>'
@@ -1174,6 +1178,12 @@ switch ($Command) {
     Write-Host "session_contract_status=$(Get-SectionScalar $stateText 'session_contract' 'status')"
     Write-Host "active_cycle_status=$(Get-SectionScalar $stateText 'active_cycle' 'status')"
     Write-Host "active_approval_id=$(Get-SectionScalar $stateText 'approvals' 'active_approval_id')"
+    $locks = Get-HebriLockInventory -Root $Root
+    Write-Host "open_locks=$($locks.Active.Count + $locks.Expired.Count)"
+    Write-Host "expired_locks=$($locks.Expired.Count)"
+    foreach ($lock in $locks.Expired) {
+      Write-Host "expired_lock=$($lock.LockId) expires_at=$($lock.ExpiresAt) file=$($lock.File)"
+    }
     Write-Host 'runtime_authority=non_authoritative'
   }
   'budget' {
@@ -1198,6 +1208,36 @@ switch ($Command) {
     Write-Host "Verificacion: $Verification"
     Write-Host 'Evidencia esperada: salida de comando y validadores aplicables'
     Write-Host 'Requiere SI: SI'
+  }
+  'approve' {
+    if (($CheckOnly -and $Apply) -or (-not $CheckOnly -and -not $Apply)) {
+      throw 'approve requires exactly one mode: -CheckOnly or -Apply'
+    }
+    if ([string]::IsNullOrWhiteSpace($CommandText)) {
+      throw 'approve requires -CommandText with the exact action to approve'
+    }
+    $safeCommandText = Redact-HebriText $CommandText
+    if ($CheckOnly) {
+      Write-Host 'Hebri-AI-Harness approve CheckOnly'
+      Write-Host "root=$Root"
+      Write-Host "command_text=$safeCommandText"
+      Write-Host "ttl_minutes=$TtlMinutes"
+      Write-Host 'approval_store=orquestador/sdd/progress/approvals'
+      Write-Host 'writes=false'
+      Write-Host 'apply_available=true'
+      break
+    }
+    $version = (Read-HarnessText 'HARNESS_VERSION').Trim()
+    $envelope = New-HebriApprovalEnvelope -Root $Root -CommandText $CommandText -Purpose $Purpose -TtlMinutes $TtlMinutes -HarnessVersion $version
+    Write-Host 'Hebri-AI-Harness approve Apply'
+    Write-Host "root=$Root"
+    Write-Host "command_text=$safeCommandText"
+    Write-Host "approval_id=$($envelope.Id)"
+    Write-Host "approval_path=$($envelope.Path)"
+    Write-Host "expires_at=$($envelope.ExpiresAt)"
+    Write-Host "command_sha256=$($envelope.CommandSha256)"
+    Write-Host 'writes=true'
+    Write-Host 'approve_status=recorded'
   }
   'validate' {
     $scriptPath = Resolve-HarnessPath 'scripts/validate-harness.ps1'

@@ -1,23 +1,14 @@
 # Claude Code Adapter
 
-## Entrada minima 0.11.0
+Contrato base compartido: leer `orquestador/adapters/_shared-core.md` (entrada minima 0.12.0, presupuesto en `orquestador/context-budget.yaml`, preflight + `SI` antes de efectos).
 
-Antes de actuar, leer solo:
-1. `PROJECT_BINDING.yaml`
-2. `orquestador/memory/local/session-pin.md`
-3. `orquestador/memory/memory-registry.yaml`
-4. `orquestador/memory/memory-routing.yaml`
-5. `orquestador/context-budget.yaml`
-6. entrypoint aplicable en `orquestador/entrypoints/`
+Notas especificas: archivo de instrucciones persistente `CLAUDE.md`; hooks reales soportados.
 
-No usar memoria de la herramienta como evidencia. No cargar `infoHebri.md`. Preflight + `SI` antes de efectos.
-## Reglas
+## Claude Integration 0.12.0
 
-- Este adapter traduce el contrato; no reemplaza .hebrinex.
-- Si se pierde foco, usar
-reentry-light.
-- Si hay logs/debug, usar debug-log-intake.
-
-## Claude Integration 0.11.0
-
-Usar `orquestador/integrations/claude/CLAUDE.template.md` y generar `orquestador/runtime/claude/reentry-brief.md` con `scripts/claude-reentry.*`. Hooks en modo `warn` por defecto.
+- Usar `orquestador/integrations/claude/CLAUDE.template.md` como entrada.
+- Hooks reales: `SessionStart` genera e inyecta `orquestador/runtime/claude/reentry-brief.md`
+  (`scripts/claude-reentry.*`); `PreToolUse` clasifica comandos con el Command Gateway
+  (`scripts/claude-pretooluse-hook.ps1`).
+- Instalar con `scripts/install-claude-hooks.ps1 -CheckOnly|-Apply`.
+- Politica completa en `orquestador/integrations/claude/hooks-policy.md`.

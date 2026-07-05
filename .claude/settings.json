@@ -5,7 +5,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "pwsh -NoProfile -ExecutionPolicy Bypass -File .hebrinex/scripts/claude-reentry.ps1"
+            "command": "pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/claude-reentry.ps1"
           }
         ]
       }
@@ -16,7 +16,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "pwsh -NoProfile -ExecutionPolicy Bypass -File .hebrinex/scripts/claude-pretooluse-hook.ps1"
+            "command": "pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/claude-pretooluse-hook.ps1"
           }
         ]
       }

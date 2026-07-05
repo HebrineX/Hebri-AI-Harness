@@ -1,6 +1,6 @@
 schema: hebrinex.project_binding
 version: "0.1"
-harness_version: "0.11.0"
+harness_version: "0.12.0"
 binding_mode: source_template
 harness_instance_id: "SOURCE-TEMPLATE"
 project_name: ""
@@ -15,4 +15,4 @@ notes:
   - "En modo bound, project_root debe apuntar a la raiz exacta del proyecto consumidor."
   - "La memoria operativa se gobierna desde orquestador/memory/memory-registry.yaml."
   - "0.10.0 agrega Agent Contract System, AppSec registries y migration service."
-  - "0.11.0 es el release usable actual; activa enforcement runtime, state machine y migracion validada."
+  - "0.12.0 es el release usable actual; activa enforcement runtime, state machine y migracion validada."

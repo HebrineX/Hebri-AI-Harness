@@ -2,6 +2,27 @@
 
 ## [Unreleased]
 
+## [0.12.0] - 2026-07-05
+
+### Added
+- Approval store ejecutable: `hebrinex approve -CheckOnly|-Apply` crea envelopes en `orquestador/sdd/progress/approvals/` con expiracion (`-TtlMinutes`) y hash SHA256 de la accion exacta.
+- Command Gateway valida `-ApprovalId` contra el almacen: bloquea `approval_not_found`, `approval_expired`, `approval_not_approved`, `approval_command_mismatch`; el resultado expone `approval_status`/`approval_reason` (schema `0.4`).
+- Hooks reales de Claude Code: `SessionStart` genera e inyecta el reentry brief; `PreToolUse` (`scripts/claude-pretooluse-hook.ps1`) clasifica Bash/PowerShell con el gateway (`allow` read-only seguro, `ask` para patrones bloqueados, defer para el resto). `.claude/settings.json` activo en el repo y `settings.template.json` con schema real de hooks.
+- `scripts/install-claude-hooks.ps1` ahora instala de verdad (`-CheckOnly|-Apply`), mergeando hooks en `<project_root>/.claude/settings.json`.
+- Modulo comun `scripts/lib/hebri-common.psm1` (YAML helpers, redaccion, approval store, inventario de locks) usado por gateway, CLI y reentry.
+- `hebrinex status` reporta `open_locks`/`expired_locks` desde `orquestador/sdd/progress/locks/`.
+- `orquestador/adapters/_shared-core.md`: cuerpo comun unico de adapters; los 8 `<host>.md` quedan como punteros con notas especificas.
+
+### Changed
+- La CLI publica sube a contrato `0.3` y expone `approve`.
+- `context-budget.yaml` documenta el metodo de medicion (chars/4, solo kernel) y sincera `runtime_status` a 1000 tokens (medido: ~958).
+- `claude-reentry.ps1/.sh` enriquecen el brief (binding, contrato, ciclo, locks) y lo emiten por stdout para inyeccion en contexto.
+
+### Security
+- Apply del gateway rechaza symlinks/junctions bajo el root (`symlink_not_allowed_in_apply`).
+- El timeout de Apply mata el arbol de procesos completo (proceso hijo dedicado + `Kill(true)`/`taskkill /T`), no solo el job.
+- Un `ApprovalId` inventado ya no se reporta como valido: bloquea la llamada.
+
 ## [0.11.0] - 2026-07-02
 
 ### Added

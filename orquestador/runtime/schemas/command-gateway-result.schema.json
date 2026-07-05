@@ -20,12 +20,14 @@
   ],
   "properties": {
     "schema": { "const": "hebrinex.command_gateway.result" },
-    "version": { "const": "0.3" },
+    "version": { "const": "0.4" },
     "root": { "type": "string" },
     "mode": { "enum": ["CheckOnly", "Apply"] },
     "command_text": { "type": "string" },
     "purpose": { "type": "string" },
     "approval_id": { "type": "string" },
+    "approval_status": { "enum": ["not_provided", "valid", "invalid"] },
+    "approval_reason": { "type": "string" },
     "decision": { "enum": ["allow", "block"] },
     "risk_class": {
       "enum": ["read_only", "local_validation", "write", "destructive", "network", "git_remote", "secrets", "privileged", "unknown"]

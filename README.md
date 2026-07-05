@@ -1,6 +1,6 @@
 # Hebri-AI-Harness
 
-Referencia operativa actual: **0.11.0**.
+Referencia operativa actual: **0.12.0**.
 
 Sistema operativo para agentes IA basado en [Hebri-AI-Structure](https://github.com/HebrineX/Hebri-AI-Structure). Objetivo: contrato, trazabilidad y aprobaciones con 70-80% menos contexto frente a leer todo `.hebrinex`.
 
@@ -34,13 +34,18 @@ Si un proyecto no tiene `.hebrinex`, no se opera con un harness externo. Se copi
 
 ## Novedades Actuales
 
-- CLI estable: `scripts/hebrinex.ps1` expone contrato versionado, markers parseables y validacion dedicada con `validate-cli.ps1`.
+- CLI estable: `scripts/hebrinex.ps1` expone contrato versionado (0.3), markers parseables y validacion dedicada con `validate-cli.ps1`.
+- Approval store ejecutable: `hebrinex approve -Apply` materializa el `SI` como envelope con expiracion y hash exacto de la accion; el Command Gateway valida `-ApprovalId` contra el almacen y bloquea envelopes falsos, vencidos o con comando distinto.
+- Hooks reales de Claude Code: `SessionStart` inyecta el reentry brief y `PreToolUse` clasifica comandos con el gateway (`allow` sin prompt para read-only seguro, `ask` para patrones bloqueados). Instalador: `scripts/install-claude-hooks.ps1`.
+- Gateway endurecido: rechazo de symlinks en Apply, kill del arbol de procesos completo en timeout y modulo comun `scripts/lib/hebri-common.psm1`.
+- `status` reporta locks abiertos y vencidos (`open_locks`, `expired_locks`).
+- Adapters condensados: cuerpo comun unico en `orquestador/adapters/_shared-core.md`; cada `<host>.md` solo lleva notas especificas.
 - Runtime enforcement ejecutable: `state-machine` bloquea transiciones invalidas y `agent-runtime` bloquea roles/capabilities no permitidas.
 - CI oficial: GitHub Actions ejecuta validadores, auditores, drift checks,
   fixtures de migracion, fixtures negativos de seguridad, CLI estable e `init.sh`.
 - Agent Contract System: los agentes existen por contratos YAML gobernados por el harness, no por prompts ni autoasignacion de IA.
 - Seguridad AppSec verificable: permisos, write-scope, comandos, red, secretos, escalacion, logging y supply-chain se validan por registries.
-- Servicio de migracion: rutas 0.8.10/0.9.0 -> 0.10.0 y 0.10.11 -> 0.11.0 con CheckOnly, Apply con backup, reporte y contrato post-migracion aplicado.
+- Servicio de migracion: rutas 0.8.10/0.9.0 -> 0.10.0 y 0.10.11 -> 0.12.0 con CheckOnly, Apply con backup, reporte y contrato post-migracion aplicado.
 - Schemas y fixtures de validacion cubren contratos de agentes, seguridad y
   migracion con casos negativos.
 - Command Gateway seguro: `hebrinex command -CheckOnly` clasifica comandos y
@@ -95,13 +100,14 @@ pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/hebrinex.ps1 bootstrap -Ch
 pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/hebrinex.ps1 update-bound -CheckOnly -ProjectRoot C:\path\project
 pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/hebrinex.ps1 list-bound-backups -CheckOnly -ProjectRoot C:\path\project
 pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/hebrinex.ps1 restore-bound -CheckOnly -ProjectRoot C:\path\project -BackupId <id>
-pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/hebrinex.ps1 command -CheckOnly -CommandText "Get-Content README.md"
+pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/hebrinex.ps1 approve -Apply -CommandText "Get-Content README.md" -TtlMinutes 30
+pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/hebrinex.ps1 command -CheckOnly -CommandText "Get-Content README.md" -ApprovalId APR-<id>
 pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/hebrinex.ps1 command -Apply -CommandText "Test-Path README.md"
 pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/hebrinex.ps1 state-machine -FromState requested -ToState contract_resolved -Json
 pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/hebrinex.ps1 agent-runtime -RoleId implementer -Capability edit_approved_write_set -Json
 ```
 
-La salida de `help` incluye `cli_contract_version=0.2`, `cli_status=stable` y
+La salida de `help` incluye `cli_contract_version=0.3`, `cli_status=stable` y
 la lista cerrada de comandos publicos. `status`, `budget`, `preflight` y los
 modos `-CheckOnly` no escriben. La CLI delega en validadores, migrador,
 bootstrap/update/restore, Command Gateway, state machine y agent runtime existentes; no reemplaza

@@ -5,7 +5,7 @@ param(
 
 $ErrorActionPreference = 'Stop'
 $script:Failures = New-Object System.Collections.Generic.List[string]
-$StableCommands = @('help','status','budget','preflight','validate','audit','migrate','bootstrap','update-bound','list-bound-backups','restore-bound','command','state-machine','agent-runtime')
+$StableCommands = @('help','status','budget','preflight','approve','validate','audit','migrate','bootstrap','update-bound','list-bound-backups','restore-bound','command','state-machine','agent-runtime')
 $CommandCsv = $StableCommands -join ','
 
 function Add-Failure([string]$Message) {
@@ -109,7 +109,7 @@ $cliText = Read-HarnessText 'scripts/hebrinex.ps1'
 $contractText = Read-HarnessText 'orquestador/method/cli-contract.md'
 
 Assert-Contains 'scripts/hebrinex.ps1' 'Hebri-AI-Harness CLI Core' 'CLI must expose core marker'
-Assert-Contains 'scripts/hebrinex.ps1' 'cli_contract_version=0[.]2' 'CLI help must expose contract version marker'
+Assert-Contains 'scripts/hebrinex.ps1' 'cli_contract_version=0[.]3' 'CLI help must expose contract version marker'
 Assert-Contains 'scripts/hebrinex.ps1' 'cli_status=stable' 'CLI help must expose stable status marker'
 Assert-Contains 'scripts/hebrinex.ps1' ('commands=' + [regex]::Escape($CommandCsv)) 'CLI help must expose full command set marker'
 Assert-Contains 'scripts/hebrinex.ps1' 'migrate requires exactly one mode: -CheckOnly or -Apply' 'migrate must enforce exclusive mode'
@@ -117,6 +117,7 @@ Assert-Contains 'scripts/hebrinex.ps1' 'bootstrap requires exactly one mode: -Ch
 Assert-Contains 'scripts/hebrinex.ps1' 'update-bound requires exactly one mode: -CheckOnly or -Apply' 'update-bound must enforce exclusive mode'
 Assert-Contains 'scripts/hebrinex.ps1' 'restore-bound requires exactly one mode: -CheckOnly or -Apply' 'restore-bound must enforce exclusive mode'
 Assert-Contains 'scripts/hebrinex.ps1' 'command requires exactly one mode: -CheckOnly or -Apply' 'command must enforce exclusive mode'
+Assert-Contains 'scripts/hebrinex.ps1' 'approve requires exactly one mode: -CheckOnly or -Apply' 'approve must enforce exclusive mode'
 Assert-Contains 'scripts/hebrinex.ps1' 'list-bound-backups supports only -CheckOnly' 'list-bound-backups must remain CheckOnly-only'
 Assert-Contains 'scripts/state-machine.ps1' 'hebrinex.runtime.state_machine.decision' 'state-machine must expose decision schema'
 Assert-Contains 'scripts/agent-runtime.ps1' 'hebrinex.runtime.agent_enforcement.decision' 'agent-runtime must expose decision schema'
@@ -137,7 +138,7 @@ Assert-Contains 'orquestador/method/cli-contract.md' 'A release is not usable if
 
 $help = Assert-CliSuccess -Name 'help' -Arguments @('help')
 Assert-OutputContains $help 'Hebri-AI-Harness CLI Core' 'help output must include CLI marker'
-Assert-OutputContains $help 'cli_contract_version=0[.]2' 'help output must include contract version'
+Assert-OutputContains $help 'cli_contract_version=0[.]3' 'help output must include contract version'
 Assert-OutputContains $help 'cli_status=stable' 'help output must include stable status'
 Assert-OutputContains $help ('commands=' + [regex]::Escape($CommandCsv)) 'help output must include command csv'
 foreach ($command in $StableCommands) {
@@ -163,6 +164,29 @@ Assert-OutputContains $preflight 'Requiere SI: SI' 'preflight output must requir
 $migrate = Assert-CliSuccess -Name 'migrate CheckOnly' -Arguments @('migrate','-CheckOnly')
 Assert-OutputContains $migrate 'writes=false' 'migrate CheckOnly must declare writes=false'
 
+$approveCheck = Assert-CliSuccess -Name 'approve CheckOnly' -Arguments @('approve','-CheckOnly','-CommandText','Get-Content README.md')
+Assert-OutputContains $approveCheck 'writes=false' 'approve CheckOnly must declare writes=false'
+Assert-OutputContains $approveCheck 'apply_available=true' 'approve CheckOnly must declare apply availability'
+
+$approveApply = Assert-CliSuccess -Name 'approve Apply' -Arguments @('approve','-Apply','-CommandText','Get-Content README.md','-Purpose','validate-cli approval roundtrip','-TtlMinutes','5')
+Assert-OutputContains $approveApply 'approval_id=APR-' 'approve Apply must emit approval id'
+Assert-OutputContains $approveApply 'expires_at=' 'approve Apply must emit expiry'
+Assert-OutputContains $approveApply 'writes=true' 'approve Apply must declare writes=true'
+$approvalIdMatch = [regex]::Match($approveApply.Text, 'approval_id=(APR-[A-Za-z0-9-]+)')
+if ($approvalIdMatch.Success) {
+  $roundtripId = $approvalIdMatch.Groups[1].Value
+  $roundtrip = Assert-CliSuccess -Name 'command with valid approval' -Arguments @('command','-CheckOnly','-CommandText','Get-Content README.md','-ApprovalId',$roundtripId)
+  Assert-OutputContains $roundtrip 'approval_status=valid' 'gateway must accept a valid approval envelope'
+  $fakeApproval = Assert-CliFailure -Name 'command with fake approval' -Arguments @('command','-CheckOnly','-CommandText','Get-Content README.md','-ApprovalId','APR-FAKE-DOES-NOT-EXIST') -ExpectedPattern 'approval_not_found'
+  Assert-OutputContains $fakeApproval 'approval_status=invalid' 'gateway must reject a fake approval id'
+  $approvalFile = Resolve-HarnessPath ('orquestador/sdd/progress/approvals/' + $roundtripId + '.yaml')
+  if (Test-Path -LiteralPath $approvalFile) { Remove-Item -LiteralPath $approvalFile -Force }
+}
+else {
+  Add-Failure 'approve Apply output did not contain a parseable approval id'
+}
+[void](Assert-CliFailure -Name 'approve missing command text' -Arguments @('approve','-CheckOnly') -ExpectedPattern 'approve requires -CommandText')
+
 $commandJson = Assert-CliSuccess -Name 'command CheckOnly Json' -Arguments @('command','-CheckOnly','-Json','-CommandText','Get-Content README.md')
 try { $parsedCommand = $commandJson.Text | ConvertFrom-Json }
 catch {
@@ -171,7 +195,7 @@ catch {
 }
 if ($null -ne $parsedCommand) {
   if ($parsedCommand.schema -ne 'hebrinex.command_gateway.result') { Add-Failure 'CLI command JSON must expose command gateway schema' }
-  if ($parsedCommand.version -ne '0.3') { Add-Failure 'CLI command JSON must expose gateway result version 0.3' }
+  if ($parsedCommand.version -ne '0.4') { Add-Failure 'CLI command JSON must expose gateway result version 0.4' }
   if ($parsedCommand.mode -ne 'CheckOnly') { Add-Failure 'CLI command JSON must preserve CheckOnly mode' }
   if ($parsedCommand.executes -ne $false) { Add-Failure 'CLI command CheckOnly must not execute command text' }
 }

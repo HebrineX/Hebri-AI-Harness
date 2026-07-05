@@ -353,10 +353,12 @@ Assert-Contains 'orquestador/context-budget.yaml' 'runtime_reentry' 'context-bud
 Assert-Contains 'orquestador/memory/memory-routing.yaml' 'runtime_status' 'memory routing must define runtime_status'
 Assert-Contains 'prompts/runtime/harness-runtime.prompt.md' 'active-session es cache' 'runtime prompt must keep active-session non-authoritative'
 Assert-Contains 'orquestador/integrations/claude/settings.template.json' 'SessionStart' 'Claude settings must declare SessionStart hook'
-Assert-Contains 'orquestador/integrations/claude/settings.template.json' 'UserPromptSubmit' 'Claude settings must declare UserPromptSubmit hook'
+Assert-Contains 'orquestador/integrations/claude/settings.template.json' 'PreToolUse' 'Claude settings must declare PreToolUse hook'
+Assert-Contains 'orquestador/integrations/claude/settings.template.json' 'claude-pretooluse-hook' 'Claude settings must route PreToolUse through the gateway hook'
 Assert-Contains 'orquestador/integrations/claude/CLAUDE.template.md' 'reentry-brief' 'CLAUDE template must point to reentry brief'
 Assert-Contains 'orquestador/sdd/progress/templates/claude-reentry-state.yaml' 'non_authoritative: true' 'Claude reentry state must be non-authoritative'
-Assert-Contains 'scripts/install-claude-hooks.ps1' 'Preflight only' 'Claude hook installer must be preflight-only'
+Assert-Contains 'scripts/install-claude-hooks.ps1' 'install-claude-hooks requires exactly one mode' 'Claude hook installer must enforce exclusive CheckOnly/Apply mode'
+Assert-Contains 'scripts/claude-pretooluse-hook.ps1' 'permissionDecision' 'Claude PreToolUse hook must emit permission decisions'
 Assert-Contains 'scripts/claude-reentry.ps1' 'Approvals expired' 'Claude reentry must expire approvals'
 Assert-Contains 'orquestador/instruction-builder/instruction-registry.yaml' ([regex]::Escape($currentHarnessVersion)) 'instruction registry must match harness version'
 Assert-Contains 'orquestador/instruction-builder/instruction-registry.yaml' 'generic-ai' 'instruction registry must include generic-ai target'
@@ -393,7 +395,7 @@ Assert-Contains 'orquestador/harness-manifest.txt' 'scripts/agent-runtime.ps1' '
 Assert-Contains 'orquestador/harness-manifest.txt' 'scripts/validate-state-machine.ps1' 'validate-state-machine.ps1 must be in manifest'
 Assert-Contains 'orquestador/harness-manifest.txt' 'scripts/validate-agent-runtime.ps1' 'validate-agent-runtime.ps1 must be in manifest'
 Assert-Contains 'scripts/hebrinex.ps1' 'Hebri-AI-Harness CLI Core' 'hebrinex.ps1 must expose CLI Core marker'
-Assert-Contains 'scripts/hebrinex.ps1' 'cli_contract_version=0[.]2' 'hebrinex.ps1 must expose stable CLI contract marker'
+Assert-Contains 'scripts/hebrinex.ps1' 'cli_contract_version=0[.]3' 'hebrinex.ps1 must expose stable CLI contract marker'
 Assert-Contains 'scripts/validate-cli.ps1' 'Stable CLI validation OK' 'validate-cli.ps1 must expose success marker'
 Assert-Contains 'scripts/validate-fixtures.ps1' 'Fixture validation OK' 'validate-fixtures.ps1 must expose success marker'
 Assert-Contains 'scripts/validate-bootstrap.ps1' 'Bootstrap validation OK' 'validate-bootstrap.ps1 must expose success marker'
@@ -438,7 +440,7 @@ foreach ($jsonRel in @('orquestador/integrations/claude/settings.template.json',
   try { [void](Read-HarnessText $jsonRel | ConvertFrom-Json) }
   catch { Add-Failure "$jsonRel must be valid JSON" }
 }
-Assert-Budget 'runtime_status' 900 @('PROJECT_BINDING.yaml','orquestador/memory/local/session-pin.md','orquestador/context-budget.yaml','orquestador/runtime/active-session.template.json')
+Assert-Budget 'runtime_status' 1000 @('PROJECT_BINDING.yaml','orquestador/memory/local/session-pin.md','orquestador/context-budget.yaml','orquestador/runtime/active-session.template.json')
 Assert-Budget 'runtime_reentry' 1600 @('PROJECT_BINDING.yaml','orquestador/memory/local/session-pin.md','orquestador/context-budget.yaml','orquestador/runtime/active-session.template.json','orquestador/sdd/progress/state.yaml','orquestador/sdd/progress/registry.yaml')
 
 try { & (Resolve-HarnessPath 'scripts/build-instructions.ps1') -Root $Root | Out-Null } catch { Add-Failure 'build-instructions.ps1 must pass check-only' }

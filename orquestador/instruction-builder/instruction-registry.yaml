@@ -1,6 +1,6 @@
 schema: hebrinex.instruction_registry
 version: "0.1"
-harness_version: "0.11.0"
+harness_version: "0.12.0"
 fragments:
   - kernel
   - preflight

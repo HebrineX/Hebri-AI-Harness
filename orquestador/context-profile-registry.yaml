@@ -1,6 +1,6 @@
 schema: hebrinex.context_profile_registry
 version: "0.1"
-harness_version: "0.11.0"
+harness_version: "0.12.0"
 source:
   budget_file:
     path: orquestador/context-budget.yaml
@@ -37,7 +37,7 @@ profiles:
       - path: orquestador/sdd/progress/registry.yaml
       - path: orquestador/method/session-contract.md
   - id: runtime_status
-    max_tokens: 900
+    max_tokens: 1000
     read_set:
       - path: PROJECT_BINDING.yaml
       - path: orquestador/memory/local/session-pin.md

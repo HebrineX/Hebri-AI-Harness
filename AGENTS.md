@@ -1,7 +1,7 @@
 # AGENTS.md - Kernel Operativo Hebri-AI-Harness
 
 Referencia metodologica: https://github.com/HebrineX/Hebri-AI-Structure
-Version operativa esperada: 0.11.0
+Version operativa esperada: 0.12.0
 
 ## Regla Raiz
 
@@ -71,7 +71,10 @@ Evidencia esperada:
 Requiere SI: SI
 ```
 
-El `SI` aprueba solo esa accion exacta.
+El `SI` aprueba solo esa accion exacta. Para comandos, el `SI` se materializa con
+`scripts/hebrinex.ps1 approve -Apply -CommandText <accion>`; el Command Gateway
+valida el `ApprovalId` contra el almacen (`orquestador/sdd/progress/approvals/`)
+y bloquea envelopes falsos, vencidos o con comando distinto.
 
 ## Hard Locks
 
