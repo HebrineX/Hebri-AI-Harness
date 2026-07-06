@@ -158,6 +158,8 @@ Assert-Contains 'orquestador/runtime/templates/command-gateway-result.template.j
 Assert-Contains 'orquestador/runtime/templates/command-gateway-result.template.json' '"execution"' 'command gateway template must expose execution evidence shape'
 Assert-Contains 'scripts/hebrinex.ps1' "'command'" 'CLI must expose command subcommand'
 Assert-Contains 'scripts/hebrinex.ps1' 'command -CheckOnly\|-Apply' 'CLI help must expose Apply mode'
+Assert-Contains 'scripts/command-gateway.ps1' 'rate_limit_exceeded' 'command gateway must enforce the Apply rate limit'
+Assert-Contains 'orquestador/security/command-risk-registry.yaml' 'apply_max_per_window' 'registry must declare the Apply rate limit'
 Assert-Contains 'orquestador/security/command-risk-registry.yaml' 'Invoke-Expression' 'registry must block Invoke-Expression'
 Assert-Contains 'orquestador/security/command-risk-registry.yaml' 'curl \|' 'registry must block curl pipe'
 Assert-Contains 'orquestador/security/command-risk-registry.yaml' 'git push' 'registry must block git push'
@@ -251,6 +253,29 @@ finally {
   if ($null -ne $approvalEnvelope -and (Test-Path -LiteralPath $approvalEnvelope.Path)) {
     Remove-Item -LiteralPath $approvalEnvelope.Path -Force
   }
+}
+
+# Rate limit roundtrip: fill the sliding window by hand (no config change), the
+# next allowed Apply must block with rate_limit_exceeded, and removing the
+# runtime state must reset the window. CheckOnly is never limited.
+$ratePath = Resolve-HarnessPath 'orquestador/runtime/gateway-rate.json'
+$rateBackup = if (Test-Path -LiteralPath $ratePath) { [IO.File]::ReadAllText($ratePath) } else { $null }
+try {
+  $nowUtc = (Get-Date).ToUniversalTime()
+  $rateEntries = @(1..30 | ForEach-Object { $nowUtc.AddSeconds(-$_).ToString('o') })
+  $rateState = [ordered]@{ schema = 'hebrinex.gateway_rate_state'; version = '0.1'; window_seconds = 60; entries = $rateEntries }
+  [IO.File]::WriteAllText($ratePath, ($rateState | ConvertTo-Json -Depth 3))
+  Assert-GatewayApplyBlocks 'Test-Path README.md' 'rate_limit_exceeded'
+  $checkOnlyDuringLimit = Invoke-Gateway 'Get-Content README.md' 'CheckOnly'
+  if ($checkOnlyDuringLimit.ExitCode -ne 0 -or $checkOnlyDuringLimit.Text -notmatch 'decision=allow') {
+    Add-Failure 'gateway CheckOnly must not be rate limited'
+  }
+  Remove-Item -LiteralPath $ratePath -Force
+  Assert-GatewayApplyAllows 'Test-Path README.md'
+}
+finally {
+  if ($null -ne $rateBackup) { [IO.File]::WriteAllText($ratePath, $rateBackup) }
+  elseif (Test-Path -LiteralPath $ratePath) { Remove-Item -LiteralPath $ratePath -Force }
 }
 
 if ($RunNegativeTests) {

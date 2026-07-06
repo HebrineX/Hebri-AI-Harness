@@ -242,10 +242,36 @@ function Test-ApprovalEnvelope {
 }
 
 # --- Locks --------------------------------------------------------------------
+# Lock files live in orquestador/sdd/progress/locks/L-*.lock.md with the format
+# documented in that directory's _README.md. A lock is exclusive over its paths
+# while status=active and expires_at is in the future.
+
+$script:LocksRelativeDir = 'orquestador/sdd/progress/locks'
+
+function Get-NormalizedLockPath {
+  param([AllowEmptyString()][AllowNull()][string]$Path)
+  if ($null -eq $Path) { return '' }
+  $norm = ($Path -replace '\\', '/').Trim()
+  $norm = $norm.TrimStart('.', '/')
+  return $norm.TrimEnd('/').ToLowerInvariant()
+}
+
+# Overlap = equal path, or one path is a directory prefix of the other.
+function Test-LockPathOverlap {
+  param(
+    [Parameter(Mandatory = $true)][AllowEmptyString()][string]$PathA,
+    [Parameter(Mandatory = $true)][AllowEmptyString()][string]$PathB
+  )
+  $a = Get-NormalizedLockPath $PathA
+  $b = Get-NormalizedLockPath $PathB
+  if ([string]::IsNullOrWhiteSpace($a) -or [string]::IsNullOrWhiteSpace($b)) { return $false }
+  if ($a -eq $b) { return $true }
+  return $a.StartsWith($b + '/') -or $b.StartsWith($a + '/')
+}
 
 function Get-LockInventory {
   param([Parameter(Mandatory = $true)][string]$Root)
-  $locksDir = Join-Path $Root 'orquestador/sdd/progress/locks'
+  $locksDir = Join-Path $Root $script:LocksRelativeDir
   $active = New-Object System.Collections.Generic.List[object]
   $expired = New-Object System.Collections.Generic.List[object]
   if (-not (Test-Path -LiteralPath $locksDir -PathType Container)) {
@@ -259,7 +285,9 @@ function Get-LockInventory {
     $lockId = Get-Scalar -Text $text -Key 'lock_id'
     if ([string]::IsNullOrWhiteSpace($lockId)) { $lockId = $file.BaseName }
     $expiresAt = Get-Scalar -Text $text -Key 'expires_at'
-    $entry = @{ LockId = $lockId; ExpiresAt = $expiresAt; File = $file.Name }
+    $owner = Get-Scalar -Text $text -Key 'owner_agent_id'
+    $paths = @(Get-YamlList -Text $text -Key 'paths')
+    $entry = @{ LockId = $lockId; ExpiresAt = $expiresAt; File = $file.Name; Owner = $owner; Paths = $paths }
     $expiresParsed = [datetime]::MinValue
     $hasExpiry = -not [string]::IsNullOrWhiteSpace($expiresAt) -and [datetime]::TryParse($expiresAt, [Globalization.CultureInfo]::InvariantCulture, [Globalization.DateTimeStyles]::AdjustToUniversal -bor [Globalization.DateTimeStyles]::AssumeUniversal, [ref]$expiresParsed)
     if ($hasExpiry -and $expiresParsed -le $now) {
@@ -270,6 +298,104 @@ function Get-LockInventory {
     }
   }
   return @{ Active = $active; Expired = $expired }
+}
+
+# Returns the first active (non-expired) lock whose paths overlap $Path, or $null.
+function Find-LockForPath {
+  param(
+    [Parameter(Mandatory = $true)][string]$Root,
+    [Parameter(Mandatory = $true)][AllowEmptyString()][string]$Path
+  )
+  $inventory = Get-LockInventory -Root $Root
+  foreach ($lock in $inventory.Active) {
+    foreach ($lockPath in $lock.Paths) {
+      if (Test-LockPathOverlap -PathA $Path -PathB $lockPath) { return $lock }
+    }
+  }
+  return $null
+}
+
+function New-HarnessLock {
+  param(
+    [Parameter(Mandatory = $true)][string]$Root,
+    [Parameter(Mandatory = $true)][string[]]$Paths,
+    [string]$Owner = 'operator',
+    [int]$TtlMinutes = 120,
+    [string]$Reason = '',
+    [string]$CycleId = '',
+    [string]$SliceId = ''
+  )
+  $cleanPaths = @($Paths | ForEach-Object { ([string]$_).Trim() } | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
+  if ($cleanPaths.Count -eq 0) { throw 'lock_requires_paths' }
+  if ($TtlMinutes -lt 1 -or $TtlMinutes -gt 1440) { throw 'lock_ttl_out_of_range' }
+  if ([string]::IsNullOrWhiteSpace($Owner)) { $Owner = 'operator' }
+
+  # Exclusive mode: any overlap with an active, non-expired lock is a conflict.
+  $inventory = Get-LockInventory -Root $Root
+  foreach ($lock in $inventory.Active) {
+    foreach ($lockPath in $lock.Paths) {
+      foreach ($requested in $cleanPaths) {
+        if (Test-LockPathOverlap -PathA $requested -PathB $lockPath) {
+          throw "lock_conflict: path '$requested' is locked by $($lock.LockId) (owner=$($lock.Owner), expires_at=$($lock.ExpiresAt))"
+        }
+      }
+    }
+  }
+
+  $now = (Get-Date).ToUniversalTime()
+  $stamp = $now.ToString('yyyyMMddTHHmmssZ')
+  $suffix = ([guid]::NewGuid().ToString('N')).Substring(0, 6)
+  $lockId = "L-$stamp-$suffix"
+  $expiresAt = $now.AddMinutes($TtlMinutes).ToString('o')
+  $safeReason = (Redact-Text $Reason).Replace('"', "'")
+
+  $lines = New-Object System.Collections.Generic.List[string]
+  [void]$lines.Add("lock_id: $lockId")
+  [void]$lines.Add("cycle_id: $CycleId")
+  [void]$lines.Add("slice_id: $SliceId")
+  [void]$lines.Add("owner_agent_id: $Owner")
+  [void]$lines.Add('role: operator_declared')
+  [void]$lines.Add('paths:')
+  foreach ($path in $cleanPaths) { [void]$lines.Add("  - $path") }
+  [void]$lines.Add('mode: exclusive')
+  [void]$lines.Add("created_at: $($now.ToString('o'))")
+  [void]$lines.Add("expires_at: $expiresAt")
+  [void]$lines.Add("reason: $safeReason")
+  [void]$lines.Add('status: active')
+
+  $lockPathFull = Join-Path (Join-Path $Root $script:LocksRelativeDir) ($lockId + '.lock.md')
+  Write-Utf8Text -Path $lockPathFull -Text (($lines -join "`n") + "`n")
+  return @{
+    Id = $lockId
+    Path = $lockPathFull
+    ExpiresAt = $expiresAt
+    Paths = $cleanPaths
+    Owner = $Owner
+  }
+}
+
+function Set-HarnessLockReleased {
+  param(
+    [Parameter(Mandatory = $true)][string]$Root,
+    [Parameter(Mandatory = $true)][string]$LockId
+  )
+  if ($LockId -notmatch '^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$') { throw 'lock_id_invalid_format' }
+  $locksDir = Join-Path $Root $script:LocksRelativeDir
+  if (-not (Test-Path -LiteralPath $locksDir -PathType Container)) { throw 'lock_not_found' }
+  foreach ($file in (Get-ChildItem -LiteralPath $locksDir -File -Filter '*.lock.md' -ErrorAction SilentlyContinue)) {
+    $text = [IO.File]::ReadAllText($file.FullName)
+    $fileLockId = Get-Scalar -Text $text -Key 'lock_id'
+    if ([string]::IsNullOrWhiteSpace($fileLockId)) { $fileLockId = $file.BaseName }
+    if ($fileLockId -ne $LockId) { continue }
+    $previousStatus = Get-Scalar -Text $text -Key 'status'
+    $updated = [regex]::Replace($text, '(?m)^status:.*$', 'status: released', 1)
+    if ($updated -notmatch '(?m)^released_at:') {
+      $updated = $updated.TrimEnd("`r", "`n") + "`nreleased_at: $((Get-Date).ToUniversalTime().ToString('o'))`n"
+    }
+    Write-Utf8Text -Path $file.FullName -Text $updated
+    return @{ Id = $LockId; Path = $file.FullName; PreviousStatus = $previousStatus }
+  }
+  throw 'lock_not_found'
 }
 
 Export-ModuleMember -Function @(
@@ -286,5 +412,10 @@ Export-ModuleMember -Function @(
   'Get-ApprovalPath',
   'New-ApprovalEnvelope',
   'Test-ApprovalEnvelope',
-  'Get-LockInventory'
+  'Get-LockInventory',
+  'Get-NormalizedLockPath',
+  'Test-LockPathOverlap',
+  'Find-LockForPath',
+  'New-HarnessLock',
+  'Set-HarnessLockReleased'
 )

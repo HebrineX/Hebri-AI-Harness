@@ -1,0 +1,73 @@
+schema: hebrinex.migration_route
+version: "0.1"
+id: "0.14.0-to-0.15.0"
+source_version: "0.14.0"
+target_version: "0.15.0"
+status: active
+mode_support:
+  check_only: true
+  apply: true
+  rollback: planned
+preconditions:
+  - HARNESS_VERSION equals 0.14.0
+  - PROJECT_BINDING.yaml exists
+  - binding_mode is bound or source_template
+  - current root contains orquestador/
+  - MCP daemon from 0.13.0 is present
+changed_paths:
+  - scripts/hebrinex.ps1
+  - scripts/lib/hebri-common.psm1
+  - scripts/command-gateway.ps1
+  - scripts/claude-writeguard-hook.ps1
+  - scripts/claude-stop-hook.ps1
+  - scripts/claude-precompact-hook.ps1
+  - scripts/install-claude-hooks.ps1
+  - scripts/validate-cli.ps1
+  - scripts/validate-command-gateway.ps1
+  - scripts/validate-mcp.ps1
+  - scripts/validate-harness.ps1
+  - orquestador/method/cli-contract.md
+  - orquestador/security/command-risk-registry.yaml
+  - orquestador/security/write-scope-registry.yaml
+  - orquestador/integrations/claude/settings.template.json
+  - orquestador/integrations/claude/hooks-policy.md
+  - orquestador/agents/README.md
+  - mcp/server.mjs
+  - mcp/smoke.mjs
+  - orquestador/migration/versions/0.14.0-to-0.15.0.yaml
+never_overwrite:
+  - PROJECT_BINDING.yaml
+  - HARNESS_VERSION
+  - orquestador/sdd/progress/state.yaml
+  - orquestador/sdd/progress/registry.yaml
+  - orquestador/sdd/progress/cycles/
+  - orquestador/sdd/progress/locks/
+  - orquestador/sdd/progress/approvals/
+  - orquestador/runtime/gateway-rate.json
+  - orquestador/memory/local/
+  - orquestador/memory/project/
+preserve_state:
+  state_yaml: true
+  registry_yaml: true
+  cycles: true
+  locks: true
+  approvals: true
+  local_memory: true
+  project_memory: true
+  evidence: true
+check_only_output:
+  - detected_version
+  - route_id
+  - binding_mode
+  - validators_required
+  - expected_post_migration_contract
+apply_success_requires:
+  - backup_verified
+  - lock_command_available
+  - writeguard_hook_registered
+  - stop_and_precompact_hooks_registered
+  - gateway_rate_limit_active
+  - role_assume_tool_available
+notes:
+  - "0.15.0 cierra los hooks faltantes (Stop, PreCompact, PreToolUse Edit|Write|NotebookEdit) y el enforcement restante: locks ejecutables (`hebrinex lock`, contrato CLI 0.5), rate limit del gateway en Apply e identidad de rol de la sesion MCP (role_assume + lock_acquire/lock_release)."
+  - "orquestador/runtime/gateway-rate.json es estado runtime generado: no va al manifest y su ausencia resetea la ventana."

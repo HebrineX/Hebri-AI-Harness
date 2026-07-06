@@ -236,8 +236,52 @@ function fail(payload) {
 
 const server = new McpServer({
   name: 'hebrinex',
-  version: '0.14.0',
+  version: '0.15.0',
 });
+
+// ---------------------------------------------------------------------------
+// Identidad de rol de la sesion MCP.
+//
+// El rol vive en el estado del proceso del daemon: se asume via role_assume
+// (validado contra orquestador/agents/agent-registry.yaml) y las tools con
+// efecto (run_command, lock_acquire, lock_release) consultan
+// scripts/agent-runtime.ps1 con ESE rol, no con uno declarado por el caller.
+//
+// Limite residual (documentado en orquestador/agents/README.md): el CLI
+// directo sigue aceptando -RoleId autodeclarado; la garantia fuerte de
+// identidad existe solo via MCP. Sin role_assume previo las tools con efecto
+// funcionan sin check de rol (enforced=false), compatible con 0.13/0.14.
+// ---------------------------------------------------------------------------
+
+let assumedRole = '';
+
+async function checkRoleCapability(capabilities) {
+  if (!assumedRole) return { enforced: false, allowed: true, role: '' };
+  const attempts = [];
+  for (const capability of capabilities) {
+    const run = await runPowerShellFile('scripts/agent-runtime.ps1', [
+      '-Root', ROOT, '-RoleId', assumedRole, '-Capability', capability, '-Json',
+    ]);
+    let decision = null;
+    try { decision = JSON.parse(run.stdout); } catch { decision = null; }
+    attempts.push({ capability, decision: decision?.decision ?? 'error', reason: decision?.reason ?? 'agent_runtime_output_not_json' });
+    if (run.exitCode === 0 && decision?.decision === 'allow') {
+      return { enforced: true, allowed: true, role: assumedRole, capability };
+    }
+  }
+  return { enforced: true, allowed: false, role: assumedRole, attempts };
+}
+
+function roleBlocked(toolName, roleCheck) {
+  return fail({
+    status: 'blocked',
+    reason: 'role_capability_blocked',
+    tool: toolName,
+    role: roleCheck.role,
+    attempts: roleCheck.attempts,
+    next_step: 'El rol asumido via role_assume no tiene la capability requerida; asumir un rol con permiso o pedir SI al operador.',
+  });
+}
 
 // 1. run_command — unica via de ejecucion. Todo pasa por el command gateway.
 server.registerTool('run_command', {
@@ -256,6 +300,11 @@ server.registerTool('run_command', {
     timeout_seconds: z.number().int().min(1).max(120).optional().describe('Timeout del comando en segundos (1-120, default 30).'),
   },
 }, async ({ command_text, purpose, approval_id, risk_class, timeout_seconds }) => {
+  // Con rol asumido, ejecutar comandos requiere una capability de comando local:
+  // run_local_validation (roles que implementan) o run_readonly_audit (roles
+  // read-only). Cualquiera de las dos habilita; sin rol asumido no hay check.
+  const roleCheck = await checkRoleCapability(['run_local_validation', 'run_readonly_audit']);
+  if (!roleCheck.allowed) return roleBlocked('run_command', roleCheck);
   const args = ['-Root', ROOT, '-Apply', '-Json', '-CommandText', command_text];
   if (purpose) args.push('-Purpose', purpose);
   if (approval_id) args.push('-ApprovalId', approval_id);
@@ -296,6 +345,8 @@ server.registerTool('run_command', {
     executes: result.executes,
     execution: result.execution,
     next_step: result.next_step,
+    assumed_role: assumedRole || null,
+    role_enforced: roleCheck.enforced,
   });
 });
 
@@ -867,6 +918,123 @@ server.registerTool('session_usage', {
     pricing_source: 'mcp/model-pricing.yaml',
     parse_errors: parseErrors,
     notes: 'Costo estimado con precios de lista; cache_creation sin desglose 5m/1h se cobra a tarifa 5m.',
+  });
+});
+
+// 8. role_assume — fija el rol de la sesion MCP en el estado del daemon.
+server.registerTool('role_assume', {
+  title: 'Hebrinex role assume (daemon state)',
+  description: [
+    'Valida role_id contra orquestador/agents/agent-registry.yaml y lo guarda',
+    'como rol de la sesion en el estado del proceso del daemon. A partir de ahi',
+    'las tools con efecto (run_command, lock_acquire, lock_release) consultan',
+    'scripts/agent-runtime.ps1 con ESE rol; el caller no puede declarar otro.',
+    'Limite residual documentado: el CLI directo sigue aceptando -RoleId',
+    'autodeclarado; la garantia fuerte existe solo via MCP.',
+  ].join(' '),
+  inputSchema: {
+    role_id: z.string().min(1).describe('Rol del agent-registry (leader, implementer, reviewer, auditor, reporter, spec-author, worker).'),
+  },
+}, async ({ role_id }) => {
+  const registry = readText('orquestador/agents/agent-registry.yaml');
+  if (!registry) {
+    return fail({ status: 'error', reason: 'missing_agent_registry' });
+  }
+  const roleRe = new RegExp(`^\\s*-\\s*id:\\s*${role_id.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*$`, 'm');
+  if (!roleRe.test(registry)) {
+    return fail({ status: 'error', reason: 'unknown_role', role_id, registry: 'orquestador/agents/agent-registry.yaml' });
+  }
+  const previousRole = assumedRole;
+  assumedRole = role_id;
+  return ok({
+    status: 'assumed',
+    role_id,
+    previous_role: previousRole || null,
+    contract_ref: `orquestador/agents/role-contracts/${role_id}.yaml`,
+    scope: 'proceso del daemon MCP (esta sesion); las tools con efecto usan este rol via agent-runtime.ps1',
+  });
+});
+
+// 9a. lock_acquire — envuelve `hebrinex lock -Acquire` con el rol del daemon.
+server.registerTool('lock_acquire', {
+  title: 'Hebrinex lock acquire (Apply)',
+  description: [
+    'Adquiere un lock exclusivo via `hebrinex lock -Acquire` sobre los paths',
+    'indicados (L-*.lock.md en orquestador/sdd/progress/locks/ con owner y TTL).',
+    'Solapamiento con un lock activo no vencido falla con lock_conflict. Con rol',
+    'asumido via role_assume exige la capability edit_approved_write_set.',
+  ].join(' '),
+  inputSchema: {
+    paths: z.array(z.string().min(1)).min(1).describe('Paths relativos a lockear (exclusivo).'),
+    owner: z.string().optional().describe('Owner declarado; default: el rol asumido o "mcp-daemon".'),
+    ttl_minutes: z.number().int().min(1).max(1440).optional().describe('TTL del lock en minutos (default 120).'),
+    reason: z.string().optional().describe('Motivo del lock.'),
+  },
+}, async ({ paths, owner, ttl_minutes, reason }) => {
+  const roleCheck = await checkRoleCapability(['edit_approved_write_set']);
+  if (!roleCheck.allowed) return roleBlocked('lock_acquire', roleCheck);
+  const effectiveOwner = owner || assumedRole || 'mcp-daemon';
+  const args = ['lock', '-Root', ROOT, '-Acquire', '-Paths', paths.join(','), '-Owner', effectiveOwner];
+  if (ttl_minutes) args.push('-TtlMinutes', String(ttl_minutes));
+  if (reason) args.push('-Reason', reason);
+  const run = await runPowerShellFile('scripts/hebrinex.ps1', args);
+  if (run.exitCode !== 0 || run.timedOut) {
+    const conflict = (run.stderr || '').match(/lock_conflict[^\n]*/);
+    return fail({
+      status: 'error',
+      reason: conflict ? conflict[0] : 'lock_acquire_failed',
+      exit_code: run.exitCode,
+      stderr: run.stderr.slice(0, 2000),
+    });
+  }
+  const parsed = parseKeyValueOutput(run.stdout);
+  if (!parsed.lock_id) {
+    return fail({ status: 'error', reason: 'lock_output_missing_lock_id', stdout: run.stdout.slice(0, 2000) });
+  }
+  return ok({
+    status: 'acquired',
+    lock_id: parsed.lock_id,
+    lock_path: parsed.lock_path || '',
+    owner: parsed.owner || effectiveOwner,
+    expires_at: parsed.expires_at || '',
+    paths,
+    assumed_role: assumedRole || null,
+    role_enforced: roleCheck.enforced,
+  });
+});
+
+// 9b. lock_release — envuelve `hebrinex lock -Release`.
+server.registerTool('lock_release', {
+  title: 'Hebrinex lock release (Apply)',
+  description: [
+    'Libera un lock via `hebrinex lock -Release -LockId L-...` (marca',
+    'status: released; el archivo queda como evidencia). Con rol asumido via',
+    'role_assume exige la capability edit_approved_write_set.',
+  ].join(' '),
+  inputSchema: {
+    lock_id: z.string().min(1).describe('Lock ID (L-...) a liberar.'),
+  },
+}, async ({ lock_id }) => {
+  const roleCheck = await checkRoleCapability(['edit_approved_write_set']);
+  if (!roleCheck.allowed) return roleBlocked('lock_release', roleCheck);
+  const run = await runPowerShellFile('scripts/hebrinex.ps1', ['lock', '-Root', ROOT, '-Release', '-LockId', lock_id]);
+  if (run.exitCode !== 0 || run.timedOut) {
+    const notFound = /lock_not_found/.test(run.stderr || '');
+    return fail({
+      status: 'error',
+      reason: notFound ? 'lock_not_found' : 'lock_release_failed',
+      exit_code: run.exitCode,
+      stderr: run.stderr.slice(0, 2000),
+    });
+  }
+  const parsed = parseKeyValueOutput(run.stdout);
+  return ok({
+    status: 'released',
+    lock_id,
+    lock_path: parsed.lock_path || '',
+    previous_status: parsed.previous_status || '',
+    assumed_role: assumedRole || null,
+    role_enforced: roleCheck.enforced,
   });
 });
 

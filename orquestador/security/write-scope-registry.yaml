@@ -1,6 +1,6 @@
 schema: hebrinex.security.write_scope_registry
 version: "0.1"
-harness_version: "0.14.0"
+harness_version: "0.15.0"
 defaults:
   writes_outside_project_root: block
   path_traversal: block
@@ -26,6 +26,14 @@ forbidden_paths:
   - "*.pfx"
   - "$HOME"
   - "%USERPROFILE%"
+# Rutas que el hook PreToolUse de Edit|Write|NotebookEdit (claude-writeguard-hook.ps1)
+# degrada a permissionDecision=ask: identidad del harness, autoridad de version y
+# almacenes de approvals/locks. Editables solo con SI explicito del operador.
+claude_hook_protected_paths:
+  - PROJECT_BINDING.yaml
+  - HARNESS_VERSION
+  - orquestador/sdd/progress/approvals
+  - orquestador/sdd/progress/locks
 normalization:
   require_resolved_path_under_project_root: true
   reject_dotdot_segments: true

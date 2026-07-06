@@ -1,6 +1,6 @@
 # Hebri-AI-Harness
 
-Referencia operativa actual: **0.14.0**.
+Referencia operativa actual: **0.15.0**.
 
 Sistema operativo para agentes IA basado en [Hebri-AI-Structure](https://github.com/HebrineX/Hebri-AI-Structure). Objetivo: contrato, trazabilidad y aprobaciones con el minimo contexto — ahorro medido: 90% (hebrinex usage) frente a leer la documentacion operativa completa (`AGENTS.md` + `method/` + `prompts/`).
 
@@ -34,10 +34,15 @@ Si un proyecto no tiene `.hebrinex`, no se opera con un harness externo. Se copi
 
 ## Novedades Actuales
 
+- Locks ejecutables: `hebrinex lock -Acquire/-Release/-List` crea, libera e inventaria locks exclusivos `L-*.lock.md` en `orquestador/sdd/progress/locks/` con owner, paths y TTL; adquirir un path ya lockeado por un lock activo no vencido falla con `lock_conflict`. Tools MCP `lock_acquire`/`lock_release` envuelven el comando. Contrato CLI sube a `0.5`.
+- Writeguard de ediciones: hook `PreToolUse` para `Edit|Write|NotebookEdit` (`scripts/claude-writeguard-hook.ps1`) que degrada a `permissionDecision=ask` las escrituras sobre rutas protegidas del write-scope-registry (`PROJECT_BINDING.yaml`, `HARNESS_VERSION`, `approvals/`, `locks/`) y sobre paths cubiertos por locks activos (con el `lock_id` en el motivo). Fail-open ante errores del propio hook.
+- Hooks `Stop` y `PreCompact`: al terminar cada turno el harness avisa (sin bloquear) si quedan locks, approvals vigentes, ciclo sin cerrar o `HANDOFF-*` pendientes; antes de compactar emite el resumen del memory-closure-checklist para persistir estado antes de perder memoria.
+- Rate limiting del gateway: las ejecuciones `-Apply` permitidas se limitan con ventana deslizante (`rate_limit` en `command-risk-registry.yaml`, default 30/min; excedida -> `decision=block`, `reason=rate_limit_exceeded`). `CheckOnly` no se limita; estado runtime en `orquestador/runtime/gateway-rate.json` (generado, fuera del manifest).
+- Identidad de rol via MCP: `role_assume(role_id)` valida contra el agent-registry y fija el rol en el estado del proceso del daemon; las tools con efecto (`run_command`, `lock_acquire`, `lock_release`) consultan `agent-runtime.ps1` con ESE rol. Limite residual documentado en `orquestador/agents/README.md`: el CLI directo sigue aceptando `-RoleId` autodeclarado.
 - Daemon MCP "hebrinex" (`mcp/`): un unico servidor MCP local (Node, stdio) expone el enforcement del harness como tools para Claude Code, Cursor, Codex CLI y cualquier cliente MCP, en lugar de 8 adapters de prompt. Ver seccion "Daemon MCP".
 - Fuente unica de roles: `agents/<rol>.md` contiene bloques marcados desde los que `scripts/build-instructions.ps1 -WriteOutputs` genera `orquestador/agents/role-contracts/*.yaml`, `prompts/roles/*.prompt.md` y el bloque `role_defaults` de `capability-registry.yaml`. Los derivados llevan aviso GENERATED y no se editan a mano: el drift-check (`build-instructions.ps1` en modo default, corrido por `init.sh` y `validate-drift.ps1`) falla si alguien lo hace.
 - Medicion real de consumo: `hebrinex usage` mide el kernel contra la documentacion operativa (`docs_tree_tokens=`, `savings_docs_pct=` — denominador del claim de este README) y contra el arbol completo del manifest (`full_tree_tokens=`, `savings_pct=`, metrica para la poda), con una linea por perfil. `validate-release.ps1` recalcula `savings_docs_pct` y falla si el porcentaje citado en este README deriva mas de ±5 puntos del medido.
-- CLI estable: `scripts/hebrinex.ps1` expone contrato versionado (0.4), markers parseables y validacion dedicada con `validate-cli.ps1`.
+- CLI estable: `scripts/hebrinex.ps1` expone contrato versionado (0.5), markers parseables y validacion dedicada con `validate-cli.ps1`.
 - Approval store ejecutable: `hebrinex approve -Apply` materializa el `SI` como envelope con expiracion y hash exacto de la accion; el Command Gateway valida `-ApprovalId` contra el almacen y bloquea envelopes falsos, vencidos o con comando distinto.
 - Hooks reales de Claude Code: `SessionStart` inyecta el reentry brief y `PreToolUse` clasifica comandos con el gateway (`allow` sin prompt para read-only seguro, `ask` para patrones bloqueados). Instalador: `scripts/install-claude-hooks.ps1`.
 - Gateway endurecido: rechazo de symlinks en Apply, kill del arbol de procesos completo en timeout y modulo comun `scripts/lib/hebri-common.psm1`.
@@ -48,7 +53,7 @@ Si un proyecto no tiene `.hebrinex`, no se opera con un harness externo. Se copi
   fixtures de migracion, fixtures negativos de seguridad, CLI estable e `init.sh`.
 - Agent Contract System: los agentes existen por contratos YAML gobernados por el harness, no por prompts ni autoasignacion de IA.
 - Seguridad AppSec verificable: permisos, write-scope, comandos, red, secretos, escalacion, logging y supply-chain se validan por registries.
-- Servicio de migracion: rutas 0.8.10/0.9.0 -> 0.10.0, 0.10.11 -> 0.11.0, 0.11.0 -> 0.12.0, 0.12.0 -> 0.13.0 y 0.13.0 -> 0.14.0 con CheckOnly, Apply con backup, reporte y contrato post-migracion aplicado.
+- Servicio de migracion: rutas 0.8.10/0.9.0 -> 0.10.0, 0.10.11 -> 0.11.0, 0.11.0 -> 0.12.0, 0.12.0 -> 0.13.0, 0.13.0 -> 0.14.0 y 0.14.0 -> 0.15.0 con CheckOnly, Apply con backup, reporte y contrato post-migracion aplicado.
 - Schemas y fixtures de validacion cubren contratos de agentes, seguridad y
   migracion con casos negativos.
 - Command Gateway seguro: `hebrinex command -CheckOnly` clasifica comandos y

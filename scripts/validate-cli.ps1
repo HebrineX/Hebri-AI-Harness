@@ -5,7 +5,7 @@ param(
 
 $ErrorActionPreference = 'Stop'
 $script:Failures = New-Object System.Collections.Generic.List[string]
-$StableCommands = @('help','status','budget','usage','preflight','approve','validate','audit','migrate','bootstrap','update-bound','list-bound-backups','restore-bound','command','state-machine','agent-runtime')
+$StableCommands = @('help','status','budget','usage','preflight','approve','validate','audit','migrate','bootstrap','update-bound','list-bound-backups','restore-bound','command','state-machine','agent-runtime','lock')
 $CommandCsv = $StableCommands -join ','
 
 function Add-Failure([string]$Message) {
@@ -109,7 +109,7 @@ $cliText = Read-HarnessText 'scripts/hebrinex.ps1'
 $contractText = Read-HarnessText 'orquestador/method/cli-contract.md'
 
 Assert-Contains 'scripts/hebrinex.ps1' 'Hebri-AI-Harness CLI Core' 'CLI must expose core marker'
-Assert-Contains 'scripts/hebrinex.ps1' 'cli_contract_version=0[.]4' 'CLI help must expose contract version marker'
+Assert-Contains 'scripts/hebrinex.ps1' 'cli_contract_version=0[.]5' 'CLI help must expose contract version marker'
 Assert-Contains 'scripts/hebrinex.ps1' 'cli_status=stable' 'CLI help must expose stable status marker'
 Assert-Contains 'scripts/hebrinex.ps1' ('commands=' + [regex]::Escape($CommandCsv)) 'CLI help must expose full command set marker'
 Assert-Contains 'scripts/hebrinex.ps1' 'migrate requires exactly one mode: -CheckOnly or -Apply' 'migrate must enforce exclusive mode'
@@ -118,6 +118,7 @@ Assert-Contains 'scripts/hebrinex.ps1' 'update-bound requires exactly one mode: 
 Assert-Contains 'scripts/hebrinex.ps1' 'restore-bound requires exactly one mode: -CheckOnly or -Apply' 'restore-bound must enforce exclusive mode'
 Assert-Contains 'scripts/hebrinex.ps1' 'command requires exactly one mode: -CheckOnly or -Apply' 'command must enforce exclusive mode'
 Assert-Contains 'scripts/hebrinex.ps1' 'approve requires exactly one mode: -CheckOnly or -Apply' 'approve must enforce exclusive mode'
+Assert-Contains 'scripts/hebrinex.ps1' 'lock requires exactly one mode: -Acquire, -Release or -List' 'lock must enforce exclusive mode'
 Assert-Contains 'scripts/hebrinex.ps1' 'list-bound-backups supports only -CheckOnly' 'list-bound-backups must remain CheckOnly-only'
 Assert-Contains 'scripts/state-machine.ps1' 'hebrinex.runtime.state_machine.decision' 'state-machine must expose decision schema'
 Assert-Contains 'scripts/agent-runtime.ps1' 'hebrinex.runtime.agent_enforcement.decision' 'agent-runtime must expose decision schema'
@@ -138,7 +139,7 @@ Assert-Contains 'orquestador/method/cli-contract.md' 'A release is not usable if
 
 $help = Assert-CliSuccess -Name 'help' -Arguments @('help')
 Assert-OutputContains $help 'Hebri-AI-Harness CLI Core' 'help output must include CLI marker'
-Assert-OutputContains $help 'cli_contract_version=0[.]4' 'help output must include contract version'
+Assert-OutputContains $help 'cli_contract_version=0[.]5' 'help output must include contract version'
 Assert-OutputContains $help 'cli_status=stable' 'help output must include stable status'
 Assert-OutputContains $help ('commands=' + [regex]::Escape($CommandCsv)) 'help output must include command csv'
 foreach ($command in $StableCommands) {
@@ -243,6 +244,42 @@ if ($null -ne $parsedAgent) {
   if ($parsedAgent.decision -ne 'allow') { Add-Failure 'CLI agent-runtime expected allow decision' }
   if ($parsedAgent.writes -ne $false) { Add-Failure 'CLI agent-runtime must be read-only' }
 }
+
+# Lock roundtrip: acquire -> list -> conflict -> release -> re-acquire freed path.
+$lockAcquire = Assert-CliSuccess -Name 'lock Acquire' -Arguments @('lock','-Acquire','-Paths','orquestador/testing/validate-cli-lock-demo.txt','-Owner','validate-cli','-TtlMinutes','5','-Reason','validate-cli lock roundtrip')
+Assert-OutputContains $lockAcquire 'lock_id=L-' 'lock Acquire must emit lock id'
+Assert-OutputContains $lockAcquire 'writes=true' 'lock Acquire must declare writes=true'
+Assert-OutputContains $lockAcquire 'lock_status=acquired' 'lock Acquire must declare acquired status'
+$lockIdMatch = [regex]::Match($lockAcquire.Text, 'lock_id=(L-[A-Za-z0-9-]+)')
+if ($lockIdMatch.Success) {
+  $roundtripLockId = $lockIdMatch.Groups[1].Value
+  $lockList = Assert-CliSuccess -Name 'lock List' -Arguments @('lock','-List')
+  Assert-OutputContains $lockList 'writes=false' 'lock List must be read-only'
+  Assert-OutputContains $lockList ([regex]::Escape($roundtripLockId)) 'lock List must include the acquired lock'
+  $lockConflict = Assert-CliFailure -Name 'lock conflict on locked path' -Arguments @('lock','-Acquire','-Paths','orquestador/testing/validate-cli-lock-demo.txt','-Owner','other-agent') -ExpectedPattern 'lock_conflict'
+  Assert-OutputContains $lockConflict ([regex]::Escape($roundtripLockId)) 'lock conflict must name the owning lock id'
+  $lockRelease = Assert-CliSuccess -Name 'lock Release' -Arguments @('lock','-Release','-LockId',$roundtripLockId)
+  Assert-OutputContains $lockRelease 'lock_status=released' 'lock Release must declare released status'
+  $lockReacquire = Assert-CliSuccess -Name 'lock re-Acquire after release' -Arguments @('lock','-Acquire','-Paths','orquestador/testing/validate-cli-lock-demo.txt','-Owner','validate-cli','-TtlMinutes','5')
+  $reacquireMatch = [regex]::Match($lockReacquire.Text, 'lock_id=(L-[A-Za-z0-9-]+)')
+  if ($reacquireMatch.Success) {
+    [void](Assert-CliSuccess -Name 'lock Release second' -Arguments @('lock','-Release','-LockId',$reacquireMatch.Groups[1].Value))
+    $lockFile = Resolve-HarnessPath ('orquestador/sdd/progress/locks/' + $reacquireMatch.Groups[1].Value + '.lock.md')
+    if (Test-Path -LiteralPath $lockFile) { Remove-Item -LiteralPath $lockFile -Force }
+  }
+  else {
+    Add-Failure 'lock re-acquire after release did not emit a parseable lock id'
+  }
+  $lockFile = Resolve-HarnessPath ('orquestador/sdd/progress/locks/' + $roundtripLockId + '.lock.md')
+  if (Test-Path -LiteralPath $lockFile) { Remove-Item -LiteralPath $lockFile -Force }
+}
+else {
+  Add-Failure 'lock Acquire output did not contain a parseable lock id'
+}
+[void](Assert-CliFailure -Name 'lock release missing id' -Arguments @('lock','-Release') -ExpectedPattern 'lock -Release requires -LockId')
+[void](Assert-CliFailure -Name 'lock release unknown id' -Arguments @('lock','-Release','-LockId','L-DOES-NOT-EXIST') -ExpectedPattern 'lock_not_found')
+[void](Assert-CliFailure -Name 'lock conflicting modes' -Arguments @('lock','-Acquire','-Release','-Paths','x') -ExpectedPattern 'lock requires exactly one mode')
+[void](Assert-CliFailure -Name 'lock acquire missing paths' -Arguments @('lock','-Acquire') -ExpectedPattern 'lock -Acquire requires -Paths')
 
 [void](Assert-CliFailure -Name 'state-machine invalid transition' -Arguments @('state-machine','-FromState','active','-ToState','closed') -ExpectedPattern 'invalid_transition')
 [void](Assert-CliFailure -Name 'agent-runtime reviewer write blocked' -Arguments @('agent-runtime','-RoleId','reviewer','-Capability','edit_approved_write_set') -ExpectedPattern 'denied_capability')

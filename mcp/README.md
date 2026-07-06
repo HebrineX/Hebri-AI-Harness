@@ -1,6 +1,6 @@
 # Daemon MCP "hebrinex"
 
-harness_version: "0.14.0"
+harness_version: "0.15.0"
 
 Servidor MCP local (stdio, Node >= 18, SDK oficial `@modelcontextprotocol/sdk`)
 que expone el enforcement del Hebri-AI-Harness como tools. Es la pieza
@@ -16,6 +16,10 @@ reimplementa politica; envuelve los scripts PowerShell existentes:
 | `gate_check` | Mira `git status/diff` (read-only) y clasifica que gates G5B..G5I de `gate-registry.yaml` aplican al scope tocado. | `git` read-only |
 | `memory_route` | Decide el entrypoint (`first_message` \| `reentry_light` \| `debug_log_intake` \| `compactation_recovery`) segun estado real de sesion/archivos. | lectura directa |
 | `close_cycle_check` | Verifica el memory-closure-checklist (evidencia, locks/agentes/handoffs abiertos, reporte final) antes de permitir `done`. | lectura directa |
+| `session_usage` | Parsea los transcripts JSONL de Claude Code del proyecto y reporta tokens/turnos/costo estimado (precios editables en `mcp/model-pricing.yaml`). Read-only. | lectura directa |
+| `role_assume` | Valida `role_id` contra el agent-registry y lo fija como rol de la sesion en el estado del proceso del daemon. | lectura directa + estado del daemon |
+| `lock_acquire` | Adquiere un lock exclusivo (`L-*.lock.md`, owner/paths/TTL); solapamiento con un lock activo -> `lock_conflict`. Con rol asumido exige `edit_approved_write_set`. | `scripts/hebrinex.ps1 lock -Acquire` |
+| `lock_release` | Libera un lock (`status: released`). Con rol asumido exige `edit_approved_write_set`. | `scripts/hebrinex.ps1 lock -Release` |
 
 ## Instalacion
 
@@ -86,3 +90,8 @@ Cualquier cliente con soporte MCP stdio: comando `node`, argumento
 - `preflight_approve` solo debe invocarse despues del SI explicito del operador
   humano; el envelope vale unicamente para el texto exacto aprobado y expira.
 - Las tools de lectura no escriben nada en el harness.
+- Identidad de rol: tras `role_assume`, las tools con efecto (`run_command`,
+  `lock_acquire`, `lock_release`) consultan `scripts/agent-runtime.ps1` con el
+  rol del daemon y fallan con `role_capability_blocked` si falta la capability.
+  Sin rol asumido operan sin check (`role_enforced=false`). Limite residual
+  documentado en `orquestador/agents/README.md`.

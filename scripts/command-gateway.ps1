@@ -260,6 +260,56 @@ function Invoke-ApplyPlan([hashtable]$Plan) {
   }
 }
 
+# --- Rate limiting (sliding window over allowed Apply executions) -------------
+# CheckOnly is pure classification and is never limited; blocked Apply calls do
+# not consume budget. State lives in orquestador/runtime/gateway-rate.json,
+# which is generated at runtime and intentionally NOT part of the manifest:
+# its absence simply resets the window.
+
+function Get-RateLimitConfig([string]$RegistryText) {
+  $max = 30
+  $window = 60
+  $maxRaw = Get-SectionScalar -Text $RegistryText -Section 'rate_limit' -Key 'apply_max_per_window'
+  $windowRaw = Get-SectionScalar -Text $RegistryText -Section 'rate_limit' -Key 'window_seconds'
+  $parsed = 0
+  if ([int]::TryParse($maxRaw, [ref]$parsed) -and $parsed -ge 1) { $max = $parsed }
+  if ([int]::TryParse($windowRaw, [ref]$parsed) -and $parsed -ge 1) { $window = $parsed }
+  return [ordered]@{ MaxPerWindow = $max; WindowSeconds = $window }
+}
+
+function Test-AndRecordApplyRate([int]$MaxPerWindow, [int]$WindowSeconds) {
+  $ratePath = Join-Path $Root 'orquestador/runtime/gateway-rate.json'
+  $now = (Get-Date).ToUniversalTime()
+  $entries = New-Object System.Collections.Generic.List[datetime]
+  if (Test-Path -LiteralPath $ratePath -PathType Leaf) {
+    try {
+      $state = [IO.File]::ReadAllText($ratePath) | ConvertFrom-Json
+      foreach ($stamp in @($state.entries)) {
+        $parsed = [datetime]::MinValue
+        if ([datetime]::TryParse([string]$stamp, [Globalization.CultureInfo]::InvariantCulture, [Globalization.DateTimeStyles]::AdjustToUniversal -bor [Globalization.DateTimeStyles]::AssumeUniversal, [ref]$parsed)) {
+          if ($parsed -gt $now.AddSeconds(-1 * $WindowSeconds)) { [void]$entries.Add($parsed) }
+        }
+      }
+    }
+    catch {
+      # Corrupt state must never break the gateway: reset the window.
+      $entries.Clear()
+    }
+  }
+  if ($entries.Count -ge $MaxPerWindow) {
+    return [ordered]@{ Allowed = $false; CountInWindow = $entries.Count }
+  }
+  [void]$entries.Add($now)
+  $state = [ordered]@{
+    schema = 'hebrinex.gateway_rate_state'
+    version = '0.1'
+    window_seconds = $WindowSeconds
+    entries = @($entries | ForEach-Object { $_.ToString('o') })
+  }
+  Write-Utf8Text -Path $ratePath -Text (($state | ConvertTo-Json -Depth 3) + "`n")
+  return [ordered]@{ Allowed = $true; CountInWindow = $entries.Count }
+}
+
 if (($CheckOnly -and $Apply) -or (-not $CheckOnly -and -not $Apply)) {
   throw 'command-gateway requires exactly one mode: -CheckOnly or -Apply.'
 }
@@ -362,6 +412,13 @@ if (-not [string]::IsNullOrWhiteSpace($ApprovalId)) {
 if ($Apply -and $decision -eq 'allow') {
   try {
     $plan = New-ApplyPlan $command
+    # Rate check after plan validation so rejected plans do not consume budget,
+    # and before execution so the limit actually caps effects per window.
+    $rateConfig = Get-RateLimitConfig $registryText
+    $rate = Test-AndRecordApplyRate $rateConfig.MaxPerWindow $rateConfig.WindowSeconds
+    if (-not $rate.Allowed) {
+      throw "rate_limit_exceeded: $($rate.CountInWindow) Apply executions in the last $($rateConfig.WindowSeconds)s (max $($rateConfig.MaxPerWindow))"
+    }
     $execution = Invoke-ApplyPlan $plan
     $executes = $true
   }

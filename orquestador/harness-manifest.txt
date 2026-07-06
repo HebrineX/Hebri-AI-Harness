@@ -160,6 +160,7 @@ file orquestador/sdd/specs/_template/design.md
 file orquestador/sdd/specs/_template/requirements.md
 file orquestador/sdd/specs/_template/tasks.md
 file orquestador/sdd/specs/bootstrap-harness.md
+file orquestador/sdd/progress/evidence/usage-baseline-0.15.0.yaml
 file PROGRESS.md
 file PROJECT_BINDING.yaml
 dir prompts/adapters
@@ -234,6 +235,7 @@ dir orquestador/testing
 dir orquestador/testing/fixtures
 dir orquestador/testing/fixtures/positive
 dir orquestador/testing/fixtures/negative
+file orquestador/agents/README.md
 file orquestador/agents/agent-registry.yaml
 file orquestador/agents/capability-registry.yaml
 file orquestador/agents/context-packs/auditor-context.yaml
@@ -403,6 +405,9 @@ file orquestador/integrations/claude/reentry-brief.template.md
 file orquestador/sdd/progress/templates/claude-reentry-state.yaml
 file scripts/claude-reentry.ps1
 file scripts/claude-pretooluse-hook.ps1
+file scripts/claude-writeguard-hook.ps1
+file scripts/claude-stop-hook.ps1
+file scripts/claude-precompact-hook.ps1
 file scripts/claude-reentry.sh
 file scripts/install-claude-hooks.ps1
 file scripts/install-claude-hooks.sh
@@ -433,6 +438,7 @@ file orquestador/migration/versions/0.11.0-to-0.12.0.yaml
 file orquestador/migration/versions/0.12.0-to-0.13.0.yaml
 file orquestador/migration/versions/0.13.0-to-0.13.1.yaml
 file orquestador/migration/versions/0.13.0-to-0.14.0.yaml
+file orquestador/migration/versions/0.14.0-to-0.15.0.yaml
 file orquestador/runtime/schemas/state-machine-decision.schema.json
 file orquestador/runtime/schemas/agent-runtime-decision.schema.json
 file orquestador/runtime/templates/state-machine-decision.template.json

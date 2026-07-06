@@ -19,6 +19,35 @@
             "command": "pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/claude-pretooluse-hook.ps1"
           }
         ]
+      },
+      {
+        "matcher": "Edit|Write|NotebookEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/claude-writeguard-hook.ps1"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/claude-stop-hook.ps1"
+          }
+        ]
+      }
+    ],
+    "PreCompact": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/claude-precompact-hook.ps1"
+          }
+        ]
       }
     ]
   }

@@ -1,6 +1,6 @@
 schema: hebrinex.security.command_risk_registry
 version: "0.1"
-harness_version: "0.14.0"
+harness_version: "0.15.0"
 defaults:
   unknown_command: block
   string_built_shell_from_untrusted_input: block
@@ -41,6 +41,12 @@ risk_classes:
     effect: elevated_execution
     requires_preflight: true
     requires_human_si: true
+# Rate limit del gateway: ventana deslizante sobre ejecuciones -Apply permitidas
+# (CheckOnly es clasificacion pura y no se limita; los blocks no consumen cupo).
+# Estado runtime en orquestador/runtime/gateway-rate.json (generado, fuera del manifest).
+rate_limit:
+  apply_max_per_window: 30
+  window_seconds: 60
 blocked_patterns:
   - "Invoke-Expression"
   - "iex"

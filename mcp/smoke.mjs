@@ -1,9 +1,11 @@
 #!/usr/bin/env node
 // Smoke test del daemon MCP hebrinex. Levanta server.mjs por stdio como un
-// cliente MCP real, valida que las 7 tools esten registradas y ejercita las
-// tools read-only mas run_command con un comando allowlisteado y uno bloqueado.
-// Exit 0 = OK, exit 1 = fallo (con detalle por stderr).
+// cliente MCP real, valida que las 11 tools esten registradas y ejercita las
+// tools read-only, run_command (allow + block), el ciclo de locks
+// (acquire -> conflicto -> release) y la identidad de rol (role_assume +
+// capability block). Exit 0 = OK, exit 1 = fallo (con detalle por stderr).
 
+import { rmSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
@@ -34,7 +36,7 @@ const transport = new StdioClientTransport({
   args: [join(HERE, 'server.mjs')],
   stderr: 'ignore',
 });
-const client = new Client({ name: 'hebrinex-smoke', version: '0.14.0' });
+const client = new Client({ name: 'hebrinex-smoke', version: '0.15.0' });
 
 try {
   await client.connect(transport);
@@ -45,8 +47,11 @@ try {
     'approval_check',
     'close_cycle_check',
     'gate_check',
+    'lock_acquire',
+    'lock_release',
     'memory_route',
     'preflight_approve',
+    'role_assume',
     'run_command',
     'session_contract',
     'session_usage',
@@ -108,6 +113,66 @@ try {
       && ['transcript_not_found', 'transcripts_dir_not_found'].includes(badSessionPayload?.reason),
     'session_usage con session_id inexistente falla con error claro',
   );
+
+  // Locks: acquire -> conflicto -> release. Los archivos L-*.lock.md del smoke
+  // se limpian al final para no ensuciar el working tree.
+  const lockFiles = [];
+  const acquired = await client.callTool({ name: 'lock_acquire', arguments: { paths: ['orquestador/testing/mcp-smoke-lock-demo.txt'], reason: 'mcp smoke', ttl_minutes: 5 } });
+  const acquiredPayload = parsePayload(acquired);
+  check(acquired.isError !== true && /^L-/.test(acquiredPayload?.lock_id ?? ''), 'lock_acquire adquiere lock con lock_id');
+  if (acquiredPayload?.lock_path) lockFiles.push(acquiredPayload.lock_path);
+
+  const conflicted = await client.callTool({ name: 'lock_acquire', arguments: { paths: ['orquestador/testing/mcp-smoke-lock-demo.txt'], reason: 'mcp smoke conflicto' } });
+  const conflictedPayload = parsePayload(conflicted);
+  check(conflicted.isError === true && /lock_conflict/.test(conflictedPayload?.reason ?? ''), 'lock_acquire sobre path lockeado falla con lock_conflict');
+
+  const released = await client.callTool({ name: 'lock_release', arguments: { lock_id: acquiredPayload?.lock_id ?? 'L-INVALID' } });
+  const releasedPayload = parsePayload(released);
+  check(released.isError !== true && releasedPayload?.status === 'released', 'lock_release libera el lock');
+
+  const releaseMissing = await client.callTool({ name: 'lock_release', arguments: { lock_id: 'L-DOES-NOT-EXIST' } });
+  const releaseMissingPayload = parsePayload(releaseMissing);
+  check(releaseMissing.isError === true && releaseMissingPayload?.reason === 'lock_not_found', 'lock_release con id inexistente falla con lock_not_found');
+
+  // Identidad de rol: rol invalido rechazado; reviewer no puede lockear
+  // (deny edit_approved_write_set); implementer si, y el owner es el rol del
+  // daemon aunque el caller no lo declare.
+  const badRole = await client.callTool({ name: 'role_assume', arguments: { role_id: 'invented-role' } });
+  check(badRole.isError === true && parsePayload(badRole)?.reason === 'unknown_role', 'role_assume rechaza rol fuera del agent-registry');
+
+  const reviewerRole = await client.callTool({ name: 'role_assume', arguments: { role_id: 'reviewer' } });
+  check(reviewerRole.isError !== true && parsePayload(reviewerRole)?.status === 'assumed', 'role_assume acepta reviewer');
+
+  const reviewerLock = await client.callTool({ name: 'lock_acquire', arguments: { paths: ['orquestador/testing/mcp-smoke-role-demo.txt'] } });
+  const reviewerLockPayload = parsePayload(reviewerLock);
+  check(reviewerLock.isError === true && reviewerLockPayload?.reason === 'role_capability_blocked', 'lock_acquire como reviewer bloquea por capability');
+
+  const implementerRole = await client.callTool({ name: 'role_assume', arguments: { role_id: 'implementer' } });
+  check(implementerRole.isError !== true, 'role_assume acepta implementer');
+
+  const implementerLock = await client.callTool({ name: 'lock_acquire', arguments: { paths: ['orquestador/testing/mcp-smoke-role-demo.txt'], ttl_minutes: 5 } });
+  const implementerLockPayload = parsePayload(implementerLock);
+  check(
+    implementerLock.isError !== true
+      && implementerLockPayload?.owner === 'implementer'
+      && implementerLockPayload?.role_enforced === true,
+    'lock_acquire como implementer usa el rol del daemon como owner',
+  );
+  if (implementerLockPayload?.lock_path) lockFiles.push(implementerLockPayload.lock_path);
+  if (implementerLockPayload?.lock_id) {
+    await client.callTool({ name: 'lock_release', arguments: { lock_id: implementerLockPayload.lock_id } });
+  }
+
+  const roleGuardedRun = await client.callTool({ name: 'run_command', arguments: { command_text: 'git status --short' } });
+  const roleGuardedRunPayload = parsePayload(roleGuardedRun);
+  check(
+    roleGuardedRun.isError !== true && roleGuardedRunPayload?.role_enforced === true,
+    'run_command con rol asumido pasa por agent-runtime (role_enforced=true)',
+  );
+
+  for (const lockFile of lockFiles) {
+    try { rmSync(lockFile, { force: true }); } catch { /* best effort */ }
+  }
 } catch (error) {
   failures.push(`excepcion: ${error.message}`);
   console.error(`FAIL: excepcion durante smoke: ${error.stack || error.message}`);

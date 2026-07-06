@@ -1,12 +1,15 @@
 param(
   [Parameter(Position = 0)]
-  [ValidateSet('help','status','budget','usage','preflight','approve','validate','audit','migrate','bootstrap','update-bound','list-bound-backups','restore-bound','command','state-machine','agent-runtime')]
+  [ValidateSet('help','status','budget','usage','preflight','approve','validate','audit','migrate','bootstrap','update-bound','list-bound-backups','restore-bound','command','state-machine','agent-runtime','lock')]
   [string]$Command = 'help',
   [string]$Root = (Split-Path -Parent $PSScriptRoot),
   [switch]$RunNegativeTests,
   [switch]$CheckOnly,
   [switch]$Apply,
-  [string]$TargetVersion = '0.14.0',
+  [switch]$Acquire,
+  [switch]$Release,
+  [switch]$List,
+  [string]$TargetVersion = '0.15.0',
   [string]$ProjectRoot = '',
   [string]$BackupId = '',
   [string]$ApprovalId = '',
@@ -23,6 +26,10 @@ param(
   [string]$FromState = '',
   [string]$ToState = '',
   [int]$TtlMinutes = 60,
+  [string]$Paths = '',
+  [string]$LockId = '',
+  [string]$Owner = '',
+  [string]$Reason = '',
   [switch]$Json
 )
 
@@ -1244,9 +1251,9 @@ function Write-BootstrapCheckOnly([string]$ProjectRootValue) {
 }
 function Show-Help() {
   Write-Host 'Hebri-AI-Harness CLI Core'
-  Write-Host 'cli_contract_version=0.4'
+  Write-Host 'cli_contract_version=0.5'
   Write-Host 'cli_status=stable'
-  Write-Host 'commands=help,status,budget,usage,preflight,approve,validate,audit,migrate,bootstrap,update-bound,list-bound-backups,restore-bound,command,state-machine,agent-runtime'
+  Write-Host 'commands=help,status,budget,usage,preflight,approve,validate,audit,migrate,bootstrap,update-bound,list-bound-backups,restore-bound,command,state-machine,agent-runtime,lock'
   Write-Host ''
   Write-Host 'Usage:'
   Write-Host '  hebrinex.ps1 status [-Root <path>]'
@@ -1256,7 +1263,7 @@ function Show-Help() {
   Write-Host '  hebrinex.ps1 approve -CheckOnly|-Apply -CommandText <command> [-Purpose <text>] [-TtlMinutes <1-1440>]'
   Write-Host '  hebrinex.ps1 validate [-RunNegativeTests]'
   Write-Host '  hebrinex.ps1 audit [-RunNegativeTests]'
-  Write-Host '  hebrinex.ps1 migrate -CheckOnly|-Apply [-TargetVersion 0.14.0]'
+  Write-Host '  hebrinex.ps1 migrate -CheckOnly|-Apply [-TargetVersion 0.15.0]'
   Write-Host '  hebrinex.ps1 bootstrap -CheckOnly|-Apply -ProjectRoot <path>'
   Write-Host '  hebrinex.ps1 update-bound -CheckOnly|-Apply -ProjectRoot <path>'
   Write-Host '  hebrinex.ps1 list-bound-backups -CheckOnly -ProjectRoot <path>'
@@ -1264,6 +1271,9 @@ function Show-Help() {
   Write-Host '  hebrinex.ps1 command -CheckOnly|-Apply -CommandText <command> [-Purpose <text>] [-Json]'
   Write-Host '  hebrinex.ps1 state-machine -FromState <state> -ToState <state> [-Json]'
   Write-Host '  hebrinex.ps1 agent-runtime -RoleId <role> -Capability <capability> [-FromState <state> -ToState <state>] [-Json]'
+  Write-Host '  hebrinex.ps1 lock -Acquire -Paths <p1,p2> [-Owner <id>] [-TtlMinutes <1-1440>] [-Reason <text>]'
+  Write-Host '  hebrinex.ps1 lock -Release -LockId <L-...>'
+  Write-Host '  hebrinex.ps1 lock -List'
 }
 
 $Root = (Resolve-Path -LiteralPath $Root).Path
@@ -1480,7 +1490,60 @@ switch ($Command) {
     $scriptPath = Resolve-HarnessPath 'scripts/agent-runtime.ps1'
     & $scriptPath -Root $Root -RoleId $RoleId -Capability $Capability -FromState $FromState -ToState $ToState -Json:$Json
     if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-  }  'command' {
+  }
+  'lock' {
+    $modeCount = @($Acquire, $Release, $List | Where-Object { $_ }).Count
+    if ($modeCount -ne 1) {
+      throw 'lock requires exactly one mode: -Acquire, -Release or -List'
+    }
+    if ($List) {
+      $locks = Get-HebriLockInventory -Root $Root
+      Write-Host 'Hebri-AI-Harness lock List'
+      Write-Host "root=$Root"
+      Write-Host 'writes=false'
+      Write-Host "active_locks=$($locks.Active.Count)"
+      Write-Host "expired_locks=$($locks.Expired.Count)"
+      foreach ($lock in $locks.Active) {
+        Write-Host "lock_id=$($lock.LockId) lock_state=active owner=$($lock.Owner) expires_at=$($lock.ExpiresAt) paths=$($lock.Paths -join ',')"
+      }
+      foreach ($lock in $locks.Expired) {
+        Write-Host "lock_id=$($lock.LockId) lock_state=expired owner=$($lock.Owner) expires_at=$($lock.ExpiresAt) paths=$($lock.Paths -join ',')"
+      }
+      Write-Host 'lock_status=listed'
+      break
+    }
+    if ($Acquire) {
+      if ([string]::IsNullOrWhiteSpace($Paths)) {
+        throw 'lock -Acquire requires -Paths with one or more comma-separated paths'
+      }
+      $pathList = @($Paths -split ',' | ForEach-Object { $_.Trim() } | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
+      $effectiveOwner = if (-not [string]::IsNullOrWhiteSpace($Owner)) { $Owner } elseif (-not [string]::IsNullOrWhiteSpace($RoleId)) { $RoleId } else { 'operator' }
+      $effectiveTtl = if ($PSBoundParameters.ContainsKey('TtlMinutes')) { $TtlMinutes } else { 120 }
+      $lock = New-HebriHarnessLock -Root $Root -Paths $pathList -Owner $effectiveOwner -TtlMinutes $effectiveTtl -Reason $Reason
+      Write-Host 'Hebri-AI-Harness lock Acquire'
+      Write-Host "root=$Root"
+      Write-Host "lock_id=$($lock.Id)"
+      Write-Host "lock_path=$($lock.Path)"
+      Write-Host "owner=$($lock.Owner)"
+      Write-Host "expires_at=$($lock.ExpiresAt)"
+      Write-Host "paths=$($lock.Paths -join ',')"
+      Write-Host 'writes=true'
+      Write-Host 'lock_status=acquired'
+      break
+    }
+    if ([string]::IsNullOrWhiteSpace($LockId)) {
+      throw 'lock -Release requires -LockId'
+    }
+    $released = Set-HebriHarnessLockReleased -Root $Root -LockId $LockId
+    Write-Host 'Hebri-AI-Harness lock Release'
+    Write-Host "root=$Root"
+    Write-Host "lock_id=$($released.Id)"
+    Write-Host "lock_path=$($released.Path)"
+    Write-Host "previous_status=$($released.PreviousStatus)"
+    Write-Host 'writes=true'
+    Write-Host 'lock_status=released'
+  }
+  'command' {
     if (($CheckOnly -and $Apply) -or (-not $CheckOnly -and -not $Apply)) {
       throw 'command requires exactly one mode: -CheckOnly or -Apply'
     }

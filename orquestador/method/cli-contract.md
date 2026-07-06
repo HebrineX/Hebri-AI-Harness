@@ -1,14 +1,14 @@
 # CLI Contract
 
-Version: 0.14.0
-Contract version: 0.4
+Version: 0.15.0
+Contract version: 0.5
 Status: stable
 
 `scripts/hebrinex.ps1` is the stable public CLI for Hebri-AI-Harness. It is a thin operational entrypoint: it exposes status, budgets, preflight envelopes, validators, migration/bootstrap flows, the Command Gateway, state-machine checks and agent-runtime enforcement, but it does not replace `state.yaml`, `registry.yaml`, gates, approvals, evidence or agent contracts.
 
 ## Stable Commands
 
-The public command set for contract version `0.4` is closed:
+The public command set for contract version `0.5` is closed:
 
 - `help`
 - `status`
@@ -26,6 +26,7 @@ The public command set for contract version `0.4` is closed:
 - `command`
 - `state-machine`
 - `agent-runtime`
+- `lock`
 
 A command outside this list is not part of the public CLI contract.
 
@@ -34,9 +35,9 @@ A command outside this list is not part of the public CLI contract.
 `help` must emit parseable markers:
 
 ```text
-cli_contract_version=0.4
+cli_contract_version=0.5
 cli_status=stable
-commands=help,status,budget,usage,preflight,approve,validate,audit,migrate,bootstrap,update-bound,list-bound-backups,restore-bound,command,state-machine,agent-runtime
+commands=help,status,budget,usage,preflight,approve,validate,audit,migrate,bootstrap,update-bound,list-bound-backups,restore-bound,command,state-machine,agent-runtime,lock
 ```
 
 Operational commands must keep parseable `key=value` lines or machine-readable JSON for validators and automation. Human prose can be added around those lines only when it does not remove or rename contract markers.
@@ -57,6 +58,9 @@ Required markers:
 - `command -Json`: JSON schema `hebrinex.command_gateway.result`.
 - `state-machine -Json`: JSON schema `hebrinex.runtime.state_machine.decision`.
 - `agent-runtime -Json`: JSON schema `hebrinex.runtime.agent_enforcement.decision`.
+- `lock -Acquire`: `lock_id=L-...`, `lock_path`, `owner`, `expires_at`, `paths`, `writes=true`, `lock_status=acquired`.
+- `lock -Release`: `lock_id`, `previous_status`, `writes=true`, `lock_status=released`.
+- `lock -List`: `writes=false`, `active_locks=`, `expired_locks=`, one `lock_id=... lock_state=...` line per lock.
 
 ## Mode Rules
 
@@ -68,6 +72,7 @@ Mode-bearing commands require exactly one execution mode:
 - `restore-bound` requires exactly one of `-CheckOnly` or `-Apply`.
 - `command` requires exactly one of `-CheckOnly` or `-Apply`.
 - `approve` requires exactly one of `-CheckOnly` or `-Apply`.
+- `lock` requires exactly one of `-Acquire`, `-Release` or `-List`.
 
 `list-bound-backups` is inventory-only and supports only `-CheckOnly`.
 
@@ -85,6 +90,7 @@ Security-sensitive actions keep deny-by-default behavior:
 - `command -Apply` delegates to the Command Gateway and executes only strict read-only allowlisted plans.
 - `state-machine` reads lifecycle contracts and blocks invalid transitions.
 - `agent-runtime` reads agent/capability contracts and blocks missing or denied capabilities.
+- `lock -Acquire` writes an exclusive `L-*.lock.md` under `orquestador/sdd/progress/locks/` with owner, paths and TTL (`-TtlMinutes`, default 120); any overlap with an active non-expired lock fails with `lock_conflict`. `lock -Release` marks the lock `released`; `lock -List` is read-only inventory.
 - `bootstrap`, `update-bound` and `restore-bound` require `Apply` plus their dedicated backup/preservation validators before reporting applied status.
 - Git remote operations are not part of the CLI stable execution surface.
 

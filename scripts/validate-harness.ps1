@@ -357,6 +357,34 @@ Assert-Contains 'prompts/runtime/harness-runtime.prompt.md' 'active-session es c
 Assert-Contains 'orquestador/integrations/claude/settings.template.json' 'SessionStart' 'Claude settings must declare SessionStart hook'
 Assert-Contains 'orquestador/integrations/claude/settings.template.json' 'PreToolUse' 'Claude settings must declare PreToolUse hook'
 Assert-Contains 'orquestador/integrations/claude/settings.template.json' 'claude-pretooluse-hook' 'Claude settings must route PreToolUse through the gateway hook'
+Assert-Contains 'orquestador/integrations/claude/settings.template.json' 'Edit\|Write\|NotebookEdit' 'Claude settings must declare the writeguard matcher'
+Assert-Contains 'orquestador/integrations/claude/settings.template.json' 'claude-writeguard-hook' 'Claude settings must route Edit|Write|NotebookEdit through the writeguard hook'
+Assert-Contains 'orquestador/integrations/claude/settings.template.json' 'claude-stop-hook' 'Claude settings must declare the Stop hook'
+Assert-Contains 'orquestador/integrations/claude/settings.template.json' 'claude-precompact-hook' 'Claude settings must declare the PreCompact hook'
+Assert-Contains 'scripts/claude-writeguard-hook.ps1' 'permissionDecision' 'Claude writeguard hook must emit permission decisions'
+Assert-Contains 'scripts/claude-writeguard-hook.ps1' 'claude_hook_protected_paths' 'Claude writeguard hook must read protected paths from the write-scope registry'
+Assert-Contains 'scripts/claude-stop-hook.ps1' 'systemMessage' 'Claude Stop hook must warn via systemMessage without blocking'
+Assert-Contains 'scripts/claude-precompact-hook.ps1' 'memory-closure-checklist' 'Claude PreCompact hook must reuse the memory closure checklist'
+Assert-Contains 'orquestador/security/write-scope-registry.yaml' 'claude_hook_protected_paths' 'write-scope registry must declare hook protected paths'
+
+# Writeguard functional roundtrip: a protected path must produce ask; a normal
+# path must stay silent (defer to the host permission flow). The hook reads the
+# payload from Console stdin, so it must run as a real child process.
+function Invoke-WriteguardHook([string]$RelativeTargetPath) {
+  $hookPath = Resolve-HarnessPath 'scripts/claude-writeguard-hook.ps1'
+  $targetFull = (Resolve-HarnessPath $RelativeTargetPath) -replace '\\', '/'
+  $payload = '{"tool_name":"Edit","tool_input":{"file_path":"' + $targetFull + '"}}'
+  $exe = Get-Command pwsh -ErrorAction SilentlyContinue
+  if ($null -eq $exe) { $exe = Get-Command powershell -ErrorAction SilentlyContinue }
+  if ($null -eq $exe) { return '' }
+  return ((@($payload | & $exe.Source -NoProfile -ExecutionPolicy Bypass -File $hookPath 2>$null)) -join "`n")
+}
+if ((Invoke-WriteguardHook 'HARNESS_VERSION') -notmatch '"permissionDecision":"ask"') {
+  Add-Failure 'writeguard hook must answer ask for a protected path (HARNESS_VERSION)'
+}
+if (-not [string]::IsNullOrWhiteSpace((Invoke-WriteguardHook 'README.md'))) {
+  Add-Failure 'writeguard hook must stay silent for an unprotected, unlocked path'
+}
 Assert-Contains 'orquestador/integrations/claude/CLAUDE.template.md' 'reentry-brief' 'CLAUDE template must point to reentry brief'
 Assert-Contains 'orquestador/sdd/progress/templates/claude-reentry-state.yaml' 'non_authoritative: true' 'Claude reentry state must be non-authoritative'
 Assert-Contains 'scripts/install-claude-hooks.ps1' 'install-claude-hooks requires exactly one mode' 'Claude hook installer must enforce exclusive CheckOnly/Apply mode'
@@ -396,8 +424,12 @@ Assert-Contains 'orquestador/harness-manifest.txt' 'scripts/state-machine.ps1' '
 Assert-Contains 'orquestador/harness-manifest.txt' 'scripts/agent-runtime.ps1' 'agent-runtime.ps1 must be in manifest'
 Assert-Contains 'orquestador/harness-manifest.txt' 'scripts/validate-state-machine.ps1' 'validate-state-machine.ps1 must be in manifest'
 Assert-Contains 'orquestador/harness-manifest.txt' 'scripts/validate-agent-runtime.ps1' 'validate-agent-runtime.ps1 must be in manifest'
+Assert-Contains 'orquestador/harness-manifest.txt' 'scripts/claude-writeguard-hook.ps1' 'claude-writeguard-hook.ps1 must be in manifest'
+Assert-Contains 'orquestador/harness-manifest.txt' 'scripts/claude-stop-hook.ps1' 'claude-stop-hook.ps1 must be in manifest'
+Assert-Contains 'orquestador/harness-manifest.txt' 'scripts/claude-precompact-hook.ps1' 'claude-precompact-hook.ps1 must be in manifest'
+Assert-NoContains 'orquestador/harness-manifest.txt' 'gateway-rate[.]json' 'runtime rate state must not be in manifest'
 Assert-Contains 'scripts/hebrinex.ps1' 'Hebri-AI-Harness CLI Core' 'hebrinex.ps1 must expose CLI Core marker'
-Assert-Contains 'scripts/hebrinex.ps1' 'cli_contract_version=0[.]4' 'hebrinex.ps1 must expose stable CLI contract marker'
+Assert-Contains 'scripts/hebrinex.ps1' 'cli_contract_version=0[.]5' 'hebrinex.ps1 must expose stable CLI contract marker'
 Assert-Contains 'scripts/validate-cli.ps1' 'Stable CLI validation OK' 'validate-cli.ps1 must expose success marker'
 Assert-Contains 'scripts/validate-fixtures.ps1' 'Fixture validation OK' 'validate-fixtures.ps1 must expose success marker'
 Assert-Contains 'scripts/validate-bootstrap.ps1' 'Bootstrap validation OK' 'validate-bootstrap.ps1 must expose success marker'

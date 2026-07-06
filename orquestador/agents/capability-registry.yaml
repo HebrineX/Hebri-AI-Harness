@@ -1,6 +1,6 @@
 schema: hebrinex.capability_registry
 version: "0.1"
-harness_version: "0.14.0"
+harness_version: "0.15.0"
 defaults:
   unknown_capability: block
   missing_capability: block

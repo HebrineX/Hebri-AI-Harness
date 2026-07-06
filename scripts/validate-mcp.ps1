@@ -57,11 +57,27 @@ if ($mcpJsonText -notmatch 'mcp/server\.mjs') {
   Add-Failure '.mcp.json does not point to mcp/server.mjs'
 }
 
-# Las 8 tools comprometidas deben estar registradas en el server.
-foreach ($tool in @('run_command','preflight_approve','approval_check','session_contract','gate_check','memory_route','close_cycle_check','session_usage')) {
+# Las 11 tools comprometidas deben estar registradas en el server.
+foreach ($tool in @('run_command','preflight_approve','approval_check','session_contract','gate_check','memory_route','close_cycle_check','session_usage','role_assume','lock_acquire','lock_release')) {
   if ($serverText -notmatch ("registerTool\('" + [regex]::Escape($tool) + "'")) {
     Add-Failure "mcp/server.mjs does not register tool: $tool"
   }
+}
+
+# Identidad de rol honesta: el rol vive en el estado del daemon y las tools con
+# efecto consultan agent-runtime.ps1 con ese rol (no con uno del caller).
+if ($serverText -notmatch 'assumedRole') {
+  Add-Failure 'mcp/server.mjs must keep the assumed role in daemon process state'
+}
+if ($serverText -notmatch 'scripts/agent-runtime\.ps1') {
+  Add-Failure 'mcp/server.mjs must consult scripts/agent-runtime.ps1 for role capabilities'
+}
+if ($serverText -notmatch 'role_capability_blocked') {
+  Add-Failure 'mcp/server.mjs must block effect tools when the assumed role lacks the capability'
+}
+# lock_acquire/lock_release deben envolver el comando CLI, no reimplementar locks.
+if ($serverText -notmatch "'lock',\s*'-Root'") {
+  Add-Failure 'mcp/server.mjs lock tools must wrap the hebrinex lock CLI command'
 }
 
 # run_command debe pasar por el command gateway y preflight_approve por approve.
