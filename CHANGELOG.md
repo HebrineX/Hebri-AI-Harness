@@ -19,6 +19,9 @@
 - `scripts/validate-harness.ps1` exige los hooks nuevos en `settings.template.json`, los tres scripts nuevos en el manifest y que `gateway-rate.json` NO este en el manifest; marker CLI `0.5`.
 - `scripts/validate-migration.ps1` soporta 0.15.x y exige la ruta y el contrato post-migracion 0.15.0.
 
+### Fixed
+- `hebrinex usage` ahora resuelve `Root` a path absoluto y mide archivos del manifest con `System.IO`, evitando fallas de provider en GitHub Actions/Linux al recomputar `savings_docs_pct` cuando el manifest incluye `.gitattributes`.
+
 ### Added
 - `hebrinex usage` (CLI, contrato publico sube a `0.4`): mide en tokens estimados (chars/4, mismo metodo que `budget`) el kernel minimo (binding + session-pin + memory-registry + memory-routing + context-budget + entrypoint first-message), cada perfil de `context-budget.yaml` (los perfiles con read-set dinamico — `leader_full`, `audit_global`, `adapter_portability` — se reportan `dynamic`, no se inventan file-sets), la documentacion operativa (`AGENTS.md` + `method/` + `prompts/` segun manifest) y el arbol completo declarado en `orquestador/harness-manifest.txt`. Markers parseables: `kernel_tokens=`, `docs_tree_tokens=`, `savings_docs_pct=`, `full_tree_tokens=`, `savings_pct=` (enteros) y una linea `profile_<name>_tokens=` por perfil. Read-only (`writes=false`).
 - Tool MCP `session_usage` (`mcp/server.mjs`): parsea los transcripts JSONL de Claude Code del proyecto (`~/.claude/projects/<proyecto>/*.jsonl`) y reporta para la sesion mas reciente (o un `session_id` dado) tokens in/out/cache totales y por modelo (con desglose cache 5m/1h), turnos y costo estimado en USD. Precios por modelo en `mcp/model-pricing.yaml` (tabla editable, nada hardcodeado). Sin transcripts falla con error claro (`transcripts_dir_not_found` / `transcript_not_found`), no inventa datos. Probada contra una sesion real de esta fase.

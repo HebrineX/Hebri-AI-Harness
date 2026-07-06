@@ -37,13 +37,25 @@ $ErrorActionPreference = 'Stop'
 
 Import-Module (Join-Path $PSScriptRoot 'lib/hebri-common.psm1') -Force -DisableNameChecking -Prefix 'Hebri' -Scope Local
 
+$Root = [IO.Path]::GetFullPath($Root)
+
 function Resolve-HarnessPath([string]$RelativePath) {
-  Join-Path $Root $RelativePath
+  if ([IO.Path]::IsPathRooted($RelativePath)) { return [IO.Path]::GetFullPath($RelativePath) }
+  return [IO.Path]::GetFullPath((Join-Path $Root $RelativePath))
+}
+
+function Test-HarnessLeaf([string]$Path) {
+  return [IO.File]::Exists($Path)
+}
+
+function Get-HarnessFileLength([string]$Path) {
+  if (-not (Test-HarnessLeaf $Path)) { return $null }
+  return ([IO.FileInfo]::new($Path)).Length
 }
 
 function Read-HarnessText([string]$RelativePath) {
   $path = Resolve-HarnessPath $RelativePath
-  if (-not (Test-Path -LiteralPath $path -PathType Leaf)) {
+  if (-not (Test-HarnessLeaf $path)) {
     throw "missing file: $RelativePath"
   }
   return [IO.File]::ReadAllText($path)
@@ -88,9 +100,8 @@ function Estimate-Tokens([string[]]$RelativePaths) {
   $chars = 0
   foreach ($rel in $RelativePaths) {
     $path = Resolve-HarnessPath $rel
-    if (Test-Path -LiteralPath $path -PathType Leaf) {
-      $chars += (Get-Item -LiteralPath $path).Length
-    }
+    $length = Get-HarnessFileLength $path
+    if ($null -ne $length) { $chars += $length }
   }
   return [math]::Ceiling($chars / 4)
 }
@@ -143,8 +154,9 @@ function Get-ManifestTreeTokens() {
   foreach ($entry in (Get-HarnessManifestEntries)) {
     if ($entry.Kind -ne 'file') { continue }
     $path = Resolve-HarnessPath $entry.RelativePath
-    if (Test-Path -LiteralPath $path -PathType Leaf) {
-      $chars += (Get-Item -LiteralPath $path).Length
+    $length = Get-HarnessFileLength $path
+    if ($null -ne $length) {
+      $chars += $length
       $files++
     }
   }
@@ -162,8 +174,9 @@ function Get-DocsTreeTokens() {
     $norm = ($entry.RelativePath -replace '\\', '/')
     if ($norm -ne 'AGENTS.md' -and $norm -notmatch '^orquestador/method/' -and $norm -notmatch '^prompts/') { continue }
     $path = Resolve-HarnessPath $entry.RelativePath
-    if (Test-Path -LiteralPath $path -PathType Leaf) {
-      $chars += (Get-Item -LiteralPath $path).Length
+    $length = Get-HarnessFileLength $path
+    if ($null -ne $length) {
+      $chars += $length
       $files++
     }
   }
