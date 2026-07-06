@@ -17,12 +17,22 @@ function Add-Warning([string]$Message) {
 }
 
 function Resolve-HarnessPath([string]$RelativePath) {
-  Join-Path $Root $RelativePath
+  if ([IO.Path]::IsPathRooted($RelativePath)) { return [IO.Path]::GetFullPath($RelativePath) }
+  return [IO.Path]::GetFullPath((Join-Path $Root $RelativePath))
+}
+
+function Test-HarnessLeaf([string]$Path) {
+  return [IO.File]::Exists($Path)
+}
+
+function Get-HarnessFileLength([string]$Path) {
+  if (-not (Test-HarnessLeaf $Path)) { return $null }
+  return ([IO.FileInfo]::new($Path)).Length
 }
 
 function Read-HarnessText([string]$RelativePath) {
   $path = Resolve-HarnessPath $RelativePath
-  if (-not (Test-Path -LiteralPath $path)) {
+  if (-not (Test-HarnessLeaf $path)) {
     Add-Failure "missing file: $RelativePath"
     return ''
   }
@@ -85,7 +95,8 @@ function Estimate-Tokens([string[]]$RelativePaths) {
   $chars = 0
   foreach ($rel in $RelativePaths) {
     $path = Resolve-HarnessPath $rel
-    if (Test-Path -LiteralPath $path) { $chars += (Get-Item -LiteralPath $path).Length }
+    $length = Get-HarnessFileLength $path
+    if ($null -ne $length) { $chars += $length }
   }
   return [math]::Ceiling($chars / 4)
 }
@@ -228,9 +239,9 @@ foreach ($line in ($manifestText -split "`n")) {
   $path = Resolve-HarnessPath $rel
   if ($kind -eq 'dir' -and -not (Test-Path -LiteralPath $path -PathType Container)) { Add-Failure "manifest missing dir: $rel" }
   if ($kind -eq 'file') {
-    $item = Get-Item -LiteralPath $path -ErrorAction SilentlyContinue
-    if ($null -eq $item -or $item.PSIsContainer) { Add-Failure "manifest missing file: $rel" }
-    elseif ($item.Length -eq 0) { Add-Failure "manifest empty file: $rel" }
+    $length = Get-HarnessFileLength $path
+    if ($null -eq $length) { Add-Failure "manifest missing file: $rel" }
+    elseif ($length -eq 0) { Add-Failure "manifest empty file: $rel" }
   }
 }
 
