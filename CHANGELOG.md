@@ -21,7 +21,7 @@
 
 ### Fixed
 - `hebrinex usage` ahora resuelve `Root` a path absoluto y mide archivos del manifest con `System.IO`, evitando fallas de provider en GitHub Actions/Linux al recomputar `savings_docs_pct` cuando el manifest incluye `.gitattributes`.
-- `validate-harness.ps1` ahora valida archivos del manifest con `System.IO`, evitando falsos faltantes de dotfiles (`.gitattributes`, `.gitignore`, `.mcp.json`) en bound harnesses generados por bootstrap bajo GitHub Actions/Linux.
+- `validate-harness.ps1` y las rutas CLI de bootstrap/update-bound/backups/restore ahora validan archivos del manifest con `System.IO`, evitando falsos faltantes de dotfiles (`.gitattributes`, `.gitignore`, `.mcp.json`) en bound harnesses bajo GitHub Actions/Linux.
 
 ### Added
 - `hebrinex usage` (CLI, contrato publico sube a `0.4`): mide en tokens estimados (chars/4, mismo metodo que `budget`) el kernel minimo (binding + session-pin + memory-registry + memory-routing + context-budget + entrypoint first-message), cada perfil de `context-budget.yaml` (los perfiles con read-set dinamico — `leader_full`, `audit_global`, `adapter_portability` — se reportan `dynamic`, no se inventan file-sets), la documentacion operativa (`AGENTS.md` + `method/` + `prompts/` segun manifest) y el arbol completo declarado en `orquestador/harness-manifest.txt`. Markers parseables: `kernel_tokens=`, `docs_tree_tokens=`, `savings_docs_pct=`, `full_tree_tokens=`, `savings_pct=` (enteros) y una linea `profile_<name>_tokens=` por perfil. Read-only (`writes=false`).

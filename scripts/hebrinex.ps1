@@ -317,7 +317,7 @@ function Copy-HarnessManifestToBoundRoot([string]$BoundRoot) {
       $dirCount++
     }
     elseif ($kind -eq 'file') {
-      if (-not (Test-Path -LiteralPath $source -PathType Leaf)) { throw "manifest source file missing during bootstrap: $rel" }
+      if (-not (Test-HarnessLeaf $source)) { throw "manifest source file missing during bootstrap: $rel" }
       Ensure-Directory (Split-Path -Parent $destination)
       Copy-Item -LiteralPath $source -Destination $destination -Force
       $fileCount++
@@ -581,7 +581,7 @@ function Add-BoundBackupCandidate([System.Collections.Generic.HashSet[string]]$C
   if ([string]::IsNullOrWhiteSpace($norm)) { return }
   if (Test-BootstrapExcludedPath $norm) { return }
   $path = Join-Path $BoundRoot ($norm -replace '/', [IO.Path]::DirectorySeparatorChar)
-  if (Test-Path -LiteralPath $path -PathType Leaf) { [void]$Candidates.Add($norm) }
+  if (Test-HarnessLeaf $path) { [void]$Candidates.Add($norm) }
 }
 
 function Add-BoundBackupTree([System.Collections.Generic.HashSet[string]]$Candidates, [string]$BoundRoot, [string]$RelativeDir) {
@@ -621,11 +621,11 @@ function Create-BoundUpdateBackupRecord([string]$BoundRoot, [string]$UpdateId) {
   $manifest = New-Object System.Collections.Generic.List[string]
   foreach ($rel in ($candidates | Sort-Object)) {
     $source = Join-Path $BoundRoot ($rel -replace '/', [IO.Path]::DirectorySeparatorChar)
-    if (-not (Test-Path -LiteralPath $source -PathType Leaf)) { continue }
+    if (-not (Test-HarnessLeaf $source)) { continue }
     $destination = Join-Path $filesRoot ($rel -replace '/', [IO.Path]::DirectorySeparatorChar)
     Ensure-Directory (Split-Path -Parent $destination)
     Copy-Item -LiteralPath $source -Destination $destination -Force
-    $item = Get-Item -LiteralPath $source
+    $item = [IO.FileInfo]::new($source)
     $reason = Get-BoundUpdatePreserveReason $rel
     if ([string]::IsNullOrWhiteSpace($reason)) { $reason = 'overwrite_backup' }
     [void]$manifest.Add("$rel|$($item.Length)|$($item.LastWriteTimeUtc.ToString('o'))|$reason")
@@ -655,7 +655,7 @@ function Copy-HarnessManifestToExistingBoundRoot([string]$BoundRoot) {
       $dirCount++
     }
     elseif ($entry.Kind -eq 'file') {
-      if (-not (Test-Path -LiteralPath $source -PathType Leaf)) { throw "manifest source file missing during bound update: $rel" }
+      if (-not (Test-HarnessLeaf $source)) { throw "manifest source file missing during bound update: $rel" }
       Ensure-Directory (Split-Path -Parent $destination)
       Copy-Item -LiteralPath $source -Destination $destination -Force
       $fileCount++
@@ -945,7 +945,7 @@ function Get-BoundBackupInventoryItem([string]$BoundRoot, [object]$BackupDirecto
           [void]$reasons.Add("source_outside_files_root:$rel")
           continue
         }
-        if (-not (Test-Path -LiteralPath $source -PathType Leaf)) {
+        if (-not (Test-HarnessLeaf $source)) {
           [void]$reasons.Add("missing_source_file:$rel")
           continue
         }
@@ -1037,7 +1037,7 @@ function Restore-BoundBackupFiles([string]$BoundRoot, [object]$Backup) {
     if ($line -match '^(no_existing_bound_files|no_preexisting_project_files)$') { continue }
     $rel = Get-SafeRestoreRelativePath (($line -split '[|]')[0])
     $source = Join-Path $Backup.FilesRoot ($rel -replace '/', [IO.Path]::DirectorySeparatorChar)
-    if (-not (Test-Path -LiteralPath $source -PathType Leaf)) { throw "backup source file missing: $rel" }
+    if (-not (Test-HarnessLeaf $source)) { throw "backup source file missing: $rel" }
     $destination = Join-Path $BoundRoot ($rel -replace '/', [IO.Path]::DirectorySeparatorChar)
     $destinationFull = [IO.Path]::GetFullPath($destination)
     if (-not ($destinationFull.StartsWith(($boundFull + [IO.Path]::DirectorySeparatorChar), [StringComparison]::OrdinalIgnoreCase) -or

@@ -192,7 +192,7 @@ function Test-BoundCopySimulation() {
     $src = Resolve-HarnessPath $rel
     $dst = Join-Path $boundRoot $rel
     if ($kind -eq 'dir') { New-Item -ItemType Directory -Force -Path $dst | Out-Null }
-    if ($kind -eq 'file' -and (Test-Path -LiteralPath $src)) {
+    if ($kind -eq 'file' -and (Test-HarnessLeaf $src)) {
       New-Item -ItemType Directory -Force -Path (Split-Path -Parent $dst) | Out-Null
       Copy-Item -LiteralPath $src -Destination $dst -Force
     }
