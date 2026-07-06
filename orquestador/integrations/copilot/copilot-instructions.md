@@ -1,0 +1,27 @@
+<!-- GENERATED - No editar a mano. Fuente unica: orquestador/instruction-builder/fragments/*.md ; regenerar con scripts/build-instructions.ps1 -WriteOutputs -->
+# Hebri-AI-Harness - Reglas operativas (copilot)
+
+## Kernel
+
+Chat = interprete. Leader visible coordina. `.hebrinex/` del proyecto activo es autoridad. Memoria conversacional no es evidencia.
+
+## Preflight obligatorio antes de efectos
+
+Antes de efectos: Approval ID, accion, CWD, read-set, write-set, comando/tool, red/git, riesgo, verificacion, evidencia esperada y `SI`.
+
+## Denylists
+
+No cargar `infoHebri.md` como operativo. No usar `orquestador/memory/complete/*` sin aprobacion. No ejecutar red/git/tools con efecto sin preflight + SI.
+
+## Roles
+
+No mezclar roles: leader no implementa, worker no aprueba, reviewer no edita, auditor no corrige su propio hallazgo. Maximo 1 leader + 4 subagentes.
+
+## Runtime recomendado: daemon MCP hebrinex
+
+El enforcement real (gateway de comandos, approvals, locks, gates, roles) vive en el
+daemon MCP del harness: `mcp/server.mjs` (tools `run_command`, `preflight_approve`,
+`session_contract`, `gate_check`, `agent_audit`, `agent_review`, etc.). Conectarlo en
+este host es la via recomendada; snippets por host en `orquestador/portability/mcp-hosts.md`.
+Sin daemon conectado, operar por prompt es fallback: declarar contrato de sesion y
+preflight manualmente segun `AGENTS.md`.

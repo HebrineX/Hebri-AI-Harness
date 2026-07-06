@@ -1,6 +1,6 @@
 schema: hebrinex.adapter
 version: "0.1"
-harness_version: "0.15.0"
+harness_version: "0.16.0"
 adapter_id: gemini
 host: "Gemini"
 instruction_surfaces:
@@ -8,9 +8,14 @@ instruction_surfaces:
 hook_surfaces:
   - limited
 context_entry_file: AGENTS.md
-persistent_instruction_file: "AGENTS.md"
+persistent_instruction_file: "GEMINI.md_or_AGENTS.md"
 supports_real_subagents: false
 supports_hooks: limited
+maturity: experimental
+role_agents: via_mcp_daemon
+mcp_config_file: ".gemini/settings.json (mcpServers) o ~/.gemini/settings.json"
+investigated_at: "2026-07-05"
+investigation: orquestador/sdd/specs/adapter-investigation-2026-07.md
 supports_filesystem_tools: guarded
 supports_network_tools: guarded
 memory_reliability: untrusted_for_evidence

@@ -1,6 +1,6 @@
 schema: hebrinex.adapter
 version: "0.1"
-harness_version: "0.15.0"
+harness_version: "0.16.0"
 adapter_id: claude-code
 host: "Claude Code"
 instruction_surfaces:
@@ -9,8 +9,15 @@ hook_surfaces:
   - session_start,user_prompt_submit,pre_tool_use,pre_compact,stop
 context_entry_file: AGENTS.md
 persistent_instruction_file: "CLAUDE.md"
-supports_real_subagents: false
+supports_real_subagents: true
+subagent_roles: [auditor, reviewer]
 supports_hooks: session_start,user_prompt_submit,pre_tool_use,pre_compact,stop
+maturity: production
+role_agents: native_subagents_or_mcp_daemon
+mcp_config_file: ".mcp.json"
+install_mechanism: "scripts/install-host-integrations.ps1 -HostName claude (subagentes) + scripts/install-claude-hooks.ps1 (hooks)"
+investigated_at: "2026-07-05"
+investigation: orquestador/sdd/specs/adapter-investigation-2026-07.md
 supports_filesystem_tools: guarded
 supports_network_tools: guarded
 memory_reliability: untrusted_for_evidence

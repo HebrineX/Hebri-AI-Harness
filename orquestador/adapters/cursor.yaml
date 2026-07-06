@@ -1,16 +1,22 @@
 schema: hebrinex.adapter
 version: "0.1"
-harness_version: "0.15.0"
+harness_version: "0.16.0"
 adapter_id: cursor
 host: "Cursor"
 instruction_surfaces:
-  - .cursor/rules
+  - .cursor/rules/hebrinex.mdc
 hook_surfaces:
-  - limited
+  - before_shell_execution,before_mcp_execution,before_read_file,after_file_edit,stop
 context_entry_file: AGENTS.md
-persistent_instruction_file: ".cursor/rules"
+persistent_instruction_file: ".cursor/rules/hebrinex.mdc"
 supports_real_subagents: false
-supports_hooks: limited
+supports_hooks: yes
+maturity: experimental
+role_agents: via_mcp_daemon
+mcp_config_file: ".cursor/mcp.json"
+install_mechanism: "scripts/install-host-integrations.ps1 -HostName cursor"
+investigated_at: "2026-07-05"
+investigation: orquestador/sdd/specs/adapter-investigation-2026-07.md
 supports_filesystem_tools: guarded
 supports_network_tools: guarded
 memory_reliability: untrusted_for_evidence

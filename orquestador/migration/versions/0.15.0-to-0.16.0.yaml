@@ -1,0 +1,80 @@
+schema: hebrinex.migration_route
+version: "0.1"
+id: "0.15.0-to-0.16.0"
+source_version: "0.15.0"
+target_version: "0.16.0"
+status: active
+mode_support:
+  check_only: true
+  apply: true
+  rollback: planned
+preconditions:
+  - HARNESS_VERSION equals 0.15.0
+  - PROJECT_BINDING.yaml exists
+  - binding_mode is bound or source_template
+  - current root contains orquestador/
+  - MCP daemon from 0.13.0 is present
+changed_paths:
+  - mcp/server.mjs
+  - mcp/smoke.mjs
+  - mcp/agent-backends.mjs
+  - mcp/agents-backend.yaml
+  - mcp/README.md
+  - agents/detractor-senior.md
+  - agents/reviewer.md
+  - orquestador/instruction-builder/instruction-registry.yaml
+  - scripts/build-instructions.ps1
+  - scripts/install-host-integrations.ps1
+  - scripts/check-adapter-drift.ps1
+  - scripts/validate-mcp.ps1
+  - scripts/validate-fixtures.ps1
+  - orquestador/integrations/claude/agents/auditor-detractor.md
+  - orquestador/integrations/claude/agents/reviewer.md
+  - orquestador/integrations/cursor/rules/hebrinex.mdc
+  - orquestador/integrations/copilot/copilot-instructions.md
+  - orquestador/portability/mcp-hosts.md
+  - orquestador/portability/adapter-matrix.yaml
+  - orquestador/adapters/
+  - orquestador/policies/schemas/adapter.schema.yaml
+  - orquestador/method/minimal-implementation-policy.md
+  - orquestador/sdd/specs/adapter-investigation-2026-07.md
+  - orquestador/testing/fixtures/negative/claude-agent-write-tool.md
+  - orquestador/migration/versions/0.15.0-to-0.16.0.yaml
+never_overwrite:
+  - PROJECT_BINDING.yaml
+  - HARNESS_VERSION
+  - orquestador/sdd/progress/state.yaml
+  - orquestador/sdd/progress/registry.yaml
+  - orquestador/sdd/progress/cycles/
+  - orquestador/sdd/progress/locks/
+  - orquestador/sdd/progress/approvals/
+  - orquestador/runtime/gateway-rate.json
+  - mcp/agents-backend.local.yaml
+  - orquestador/memory/local/
+  - orquestador/memory/project/
+preserve_state:
+  state_yaml: true
+  registry_yaml: true
+  cycles: true
+  locks: true
+  approvals: true
+  local_memory: true
+  project_memory: true
+  evidence: true
+check_only_output:
+  - detected_version
+  - route_id
+  - binding_mode
+  - validators_required
+  - expected_post_migration_contract
+apply_success_requires:
+  - backup_verified
+  - agent_audit_tool_available
+  - agent_review_tool_available
+  - agents_backend_config_present
+  - host_integrations_installer_available
+  - native_agent_templates_generated
+  - no_adapter_hook_support_unknown
+notes:
+  - "0.16.0 agrega los agentes de rol multiplataforma: tools MCP agent_audit/agent_review con backend read-only configurable (mcp/agents-backend.yaml: claude-cli | codex-cli | none), proyeccion nativa opcional de subagentes Claude Code (.claude/agents via install-host-integrations), adapters generados para Cursor/Copilot, mcp-hosts.md y la investigacion de adapters que elimina hook_support: unknown."
+  - "mcp/agents-backend.local.yaml es override por maquina (git-ignored): nunca se sobreescribe ni se migra."

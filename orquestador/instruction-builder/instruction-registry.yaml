@@ -1,6 +1,6 @@
 schema: hebrinex.instruction_registry
 version: "0.1"
-harness_version: "0.15.0"
+harness_version: "0.16.0"
 fragments:
   - kernel
   - preflight
@@ -26,3 +26,17 @@ role_sources:
   spec-author: {source: agents/spec_author.md, contract: orquestador/agents/role-contracts/spec-author.yaml, prompt: prompts/roles/spec-author.prompt.md}
   worker: {source: agents/worker.md, contract: orquestador/agents/role-contracts/worker.yaml, prompt: prompts/roles/worker.prompt.md}
 role_defaults_target: orquestador/agents/capability-registry.yaml
+# Proyecciones nativas de agentes de rol (subagentes reales de Claude Code).
+# Fuente unica: bloque <!-- hebrinex:generate claude-agent --> en agents/<rol>.md.
+# La via principal y agnostica sigue siendo el daemon MCP (tools agent_audit /
+# agent_review); estos templates son la proyeccion opcional premium y se
+# instalan en proyectos con scripts/install-host-integrations.ps1 -HostName claude.
+native_agents:
+  auditor-detractor: {source: agents/detractor-senior.md, target: orquestador/integrations/claude/agents/auditor-detractor.md}
+  reviewer: {source: agents/reviewer.md, target: orquestador/integrations/claude/agents/reviewer.md}
+# Instrucciones persistentes por host generadas desde los MISMOS fragments que
+# AGENTS.md (kernel + preflight + denylists + roles + puntero al daemon MCP).
+# Instalacion: scripts/install-host-integrations.ps1 -HostName cursor|copilot.
+host_instructions:
+  cursor: {target: orquestador/integrations/cursor/rules/hebrinex.mdc}
+  copilot: {target: orquestador/integrations/copilot/copilot-instructions.md}

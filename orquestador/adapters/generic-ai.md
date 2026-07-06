@@ -1,5 +1,5 @@
 # Generic Ai Adapter
 
-Contrato base compartido: leer `orquestador/adapters/_shared-core.md` (entrada minima 0.15.0, presupuesto en `orquestador/context-budget.yaml`, preflight + `SI` antes de efectos).
+Contrato base compartido: leer `orquestador/adapters/_shared-core.md` (entrada minima 0.16.0, presupuesto en `orquestador/context-budget.yaml`, preflight + `SI` antes de efectos).
 
-Notas especificas: fallback sin hooks; instrucciones via `AGENTS.md` o prompt manual.
+Notas especificas: fallback universal sin hooks (not_applicable); instrucciones via `AGENTS.md` o prompt manual; agentes de rol por simulacion trazable. Maturity: production (siempre funciona). Investigado 2026-07-05.

@@ -1,6 +1,6 @@
 schema: hebrinex.adapter
 version: "0.1"
-harness_version: "0.15.0"
+harness_version: "0.16.0"
 adapter_id: generic-ai
 host: "Generic AI"
 instruction_surfaces:
@@ -10,7 +10,12 @@ hook_surfaces:
 context_entry_file: AGENTS.md
 persistent_instruction_file: "AGENTS.md_or_manual_prompt"
 supports_real_subagents: false
-supports_hooks: none
+supports_hooks: not_applicable
+maturity: production
+role_agents: prompt_simulation
+mcp_config_file: "n/a"
+investigated_at: "2026-07-05"
+investigation: orquestador/sdd/specs/adapter-investigation-2026-07.md
 supports_filesystem_tools: guarded
 supports_network_tools: guarded
 memory_reliability: untrusted_for_evidence

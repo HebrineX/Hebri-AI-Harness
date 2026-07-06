@@ -44,6 +44,8 @@ file agents/worker.md
 file CHANGELOG.md
 file HARNESS_VERSION
 file init.sh
+file mcp/agent-backends.mjs
+file mcp/agents-backend.yaml
 file mcp/model-pricing.yaml
 file mcp/package-lock.json
 file mcp/package.json
@@ -397,11 +399,23 @@ file orquestador/sdd/progress/templates/runtime-audit-report.json
 
 dir orquestador/integrations
 dir orquestador/integrations/claude
+dir orquestador/integrations/claude/agents
+dir orquestador/integrations/cursor
+dir orquestador/integrations/cursor/rules
+dir orquestador/integrations/copilot
 file orquestador/integrations/claude/README.md
 file orquestador/integrations/claude/hooks-policy.md
 file orquestador/integrations/claude/settings.template.json
 file orquestador/integrations/claude/CLAUDE.template.md
 file orquestador/integrations/claude/reentry-brief.template.md
+file orquestador/integrations/claude/agents/auditor-detractor.md
+file orquestador/integrations/claude/agents/reviewer.md
+file orquestador/integrations/cursor/rules/hebrinex.mdc
+file orquestador/integrations/copilot/copilot-instructions.md
+file scripts/install-host-integrations.ps1
+file orquestador/portability/mcp-hosts.md
+file orquestador/sdd/specs/adapter-investigation-2026-07.md
+file orquestador/testing/fixtures/negative/claude-agent-write-tool.md
 file orquestador/sdd/progress/templates/claude-reentry-state.yaml
 file scripts/claude-reentry.ps1
 file scripts/claude-pretooluse-hook.ps1
@@ -439,6 +453,7 @@ file orquestador/migration/versions/0.12.0-to-0.13.0.yaml
 file orquestador/migration/versions/0.13.0-to-0.13.1.yaml
 file orquestador/migration/versions/0.13.0-to-0.14.0.yaml
 file orquestador/migration/versions/0.14.0-to-0.15.0.yaml
+file orquestador/migration/versions/0.15.0-to-0.16.0.yaml
 file orquestador/runtime/schemas/state-machine-decision.schema.json
 file orquestador/runtime/schemas/agent-runtime-decision.schema.json
 file orquestador/runtime/templates/state-machine-decision.template.json

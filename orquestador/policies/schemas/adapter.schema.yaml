@@ -16,8 +16,15 @@ required_top_keys:
   - entrypoint_mapping
   - preflight_enforcement
   - evidence_policy
+  - maturity
+  - role_agents
+  - investigated_at
+allowed_values:
+  maturity: [production, experimental]
+  role_agents: [native_subagents_or_mcp_daemon, via_mcp_daemon, prompt_simulation]
+  # supports_hooks (adapter) / hook_support (matrix): prohibido "unknown".
 required_values:
   schema: hebrinex.adapter
-  harness_version: "0.15.0"
+  harness_version: "0.16.0"
   memory_reliability: untrusted_for_evidence
   preflight_enforcement: required_before_effects

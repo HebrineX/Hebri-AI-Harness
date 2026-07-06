@@ -57,8 +57,8 @@ if ($mcpJsonText -notmatch 'mcp/server\.mjs') {
   Add-Failure '.mcp.json does not point to mcp/server.mjs'
 }
 
-# Las 11 tools comprometidas deben estar registradas en el server.
-foreach ($tool in @('run_command','preflight_approve','approval_check','session_contract','gate_check','memory_route','close_cycle_check','session_usage','role_assume','lock_acquire','lock_release')) {
+# Las 13 tools comprometidas deben estar registradas en el server.
+foreach ($tool in @('run_command','preflight_approve','approval_check','session_contract','gate_check','memory_route','close_cycle_check','session_usage','role_assume','lock_acquire','lock_release','agent_audit','agent_review')) {
   if ($serverText -notmatch ("registerTool\('" + [regex]::Escape($tool) + "'")) {
     Add-Failure "mcp/server.mjs does not register tool: $tool"
   }
@@ -94,6 +94,38 @@ if ($serverText -match 'child_process.*exec\(|\bexecSync\b|\bexec\(') {
 Assert-Contains 'orquestador/harness-manifest.txt' '(?m)^file mcp/server\.mjs$' 'harness-manifest.txt does not include mcp/server.mjs'
 Assert-Contains 'orquestador/harness-manifest.txt' '(?m)^file scripts/validate-mcp\.ps1$' 'harness-manifest.txt does not include validate-mcp.ps1'
 Assert-Contains 'orquestador/harness-manifest.txt' '(?m)^file mcp/model-pricing\.yaml$' 'harness-manifest.txt does not include mcp/model-pricing.yaml'
+
+# Agentes de rol: backend configurable fuera del codigo, prompt desde la
+# fuente unica agents/<rol>.md, error claro sin backend, y read-only real
+# (allowedTools / sandbox restringidos en los comandos fijos de la config).
+$agentsBackendText = Read-HarnessText 'mcp/agents-backend.yaml'
+$agentBackendsModule = Read-HarnessText 'mcp/agent-backends.mjs'
+if ($agentsBackendText -notmatch 'schema:\s*hebrinex\.agents_backend') {
+  Add-Failure 'mcp/agents-backend.yaml must declare schema hebrinex.agents_backend'
+}
+if ($agentsBackendText -notmatch '(?m)^backend:\s*(claude-cli|codex-cli|none)\s*$') {
+  Add-Failure 'mcp/agents-backend.yaml must declare backend: claude-cli|codex-cli|none'
+}
+if ($agentsBackendText -notmatch '--allowedTools "Read,Grep,Glob"') {
+  Add-Failure 'agents-backend.yaml claude-cli command must restrict --allowedTools to Read,Grep,Glob'
+}
+if ($agentsBackendText -notmatch '--sandbox read-only') {
+  Add-Failure 'agents-backend.yaml codex-cli command must use --sandbox read-only'
+}
+if ($serverText -notmatch 'agents_backend_not_configured') {
+  Add-Failure 'agent tools must fail with agents_backend_not_configured when no backend is set'
+}
+if ($serverText -notmatch 'agents/detractor-senior\.md') {
+  Add-Failure 'agent_audit must build its prompt from agents/detractor-senior.md (single source)'
+}
+if ($serverText -notmatch 'agents/reviewer\.md') {
+  Add-Failure 'agent_review must build its prompt from agents/reviewer.md (single source)'
+}
+if ($agentBackendsModule -notmatch 'stdin') {
+  Add-Failure 'mcp/agent-backends.mjs must pass the prompt via stdin (never argv interpolation)'
+}
+Assert-Contains 'orquestador/harness-manifest.txt' '(?m)^file mcp/agent-backends\.mjs$' 'harness-manifest.txt does not include mcp/agent-backends.mjs'
+Assert-Contains 'orquestador/harness-manifest.txt' '(?m)^file mcp/agents-backend\.yaml$' 'harness-manifest.txt does not include mcp/agents-backend.yaml'
 
 # session_usage: precios editables fuera del codigo + sin datos inventados.
 $pricingText = Read-HarnessText 'mcp/model-pricing.yaml'

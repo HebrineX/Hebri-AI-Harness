@@ -11,7 +11,7 @@ Autoridad real:
 `active-session` puede ayudar al re-entry, status y presupuesto, pero no puede declarar `done`, aprobar acciones ni reemplazar evidencia.
 Si contradice estado/registry, gana estado/registry y se reconstruye runtime.
 
-## Enforcement 0.15.0
+## Enforcement 0.16.0
 
 0.12.0 agrega decisiones ejecutables read-only:
 

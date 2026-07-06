@@ -44,20 +44,28 @@ function Get-GeneratedBlock([string]$Text, [string]$Kind, [string]$SourceRel) {
 }
 
 $registryText = Read-Lf $registryPath
-$roleSources = New-Object System.Collections.Generic.List[object]
-$insideSources = $false
-foreach ($line in ($registryText -split "`n")) {
-  if ($line -match '^role_sources:\s*$') { $insideSources = $true; continue }
-  if ($insideSources -and $line -match '^[A-Za-z0-9_.-]+:') { $insideSources = $false }
-  if ($insideSources -and $line -match '^\s{2}([a-z0-9-]+):\s*\{(.*)\}\s*$') {
-    $entry = @{ Id = $Matches[1]; Source = ''; Contract = ''; Prompt = '' }
-    $body = $Matches[2]
-    if ($body -match 'source:\s*([^,}]+)') { $entry.Source = $Matches[1].Trim() }
-    if ($body -match 'contract:\s*([^,}]+)') { $entry.Contract = $Matches[1].Trim() }
-    if ($body -match 'prompt:\s*([^,}]+)') { $entry.Prompt = $Matches[1].Trim() }
-    [void]$roleSources.Add($entry)
+
+# Parser generico de secciones "clave: {mapa inline}" del instruction registry.
+function Get-RegistrySectionEntries([string]$Text, [string]$Section, [string[]]$Keys) {
+  $entries = New-Object System.Collections.Generic.List[object]
+  $inside = $false
+  foreach ($line in ($Text -split "`n")) {
+    if ($line -match ('^' + [regex]::Escape($Section) + ':\s*$')) { $inside = $true; continue }
+    if ($inside -and $line -match '^[A-Za-z0-9_.-]+:') { $inside = $false }
+    if ($inside -and $line -match '^\s{2}([a-z0-9-]+):\s*\{(.*)\}\s*$') {
+      $entry = @{ Id = $Matches[1] }
+      $body = $Matches[2]
+      foreach ($key in $Keys) {
+        $entry[$key] = ''
+        if ($body -match ($key.ToLowerInvariant() + ':\s*([^,}]+)')) { $entry[$key] = $Matches[1].Trim() }
+      }
+      [void]$entries.Add($entry)
+    }
   }
+  return ,$entries
 }
+
+$roleSources = Get-RegistrySectionEntries $registryText 'role_sources' @('Source','Contract','Prompt')
 if ($roleSources.Count -eq 0) { Write-Error "instruction registry declares no role_sources" }
 $defaultsTarget = ''
 if ($registryText -match '(?m)^role_defaults_target:\s*(\S+)\s*$') { $defaultsTarget = $Matches[1] }
@@ -65,6 +73,29 @@ if ([string]::IsNullOrWhiteSpace($defaultsTarget)) { Write-Error "instruction re
 
 $expectedOutputs = New-Object System.Collections.Generic.List[object]
 $defaultsBlocks = New-Object System.Collections.Generic.List[string]
+
+# Inserta el aviso GENERATED despues del frontmatter YAML (si existe) para no
+# romper el parseo de frontmatter del host; sin frontmatter va al inicio.
+function Add-GeneratedNotice([string]$Block, [string]$Notice, [string]$SourceRel) {
+  $lines = $Block.TrimEnd("`n") -split "`n"
+  $output = New-Object System.Collections.Generic.List[string]
+  if ($lines.Count -gt 0 -and $lines[0] -eq '---') {
+    $closed = $false
+    for ($i = 0; $i -lt $lines.Count; $i++) {
+      [void]$output.Add($lines[$i])
+      if ($i -gt 0 -and -not $closed -and $lines[$i] -eq '---') {
+        [void]$output.Add($Notice)
+        $closed = $true
+      }
+    }
+    if (-not $closed) { Write-Error "block in $SourceRel has unterminated frontmatter" }
+  }
+  else {
+    [void]$output.Add($Notice)
+    foreach ($line in $lines) { [void]$output.Add($line) }
+  }
+  return (($output -join "`n") + "`n")
+}
 
 foreach ($entry in $roleSources) {
   $sourcePath = Join-Path $Root $entry.Source
@@ -81,24 +112,63 @@ foreach ($entry in $roleSources) {
   if (-not [string]::IsNullOrWhiteSpace($entry.Prompt)) {
     $promptBlock = Get-GeneratedBlock $sourceText 'prompt' $entry.Source
     $notice = "<!-- GENERATED - No editar a mano. Fuente unica: $($entry.Source) ; regenerar con scripts/build-instructions.ps1 -WriteOutputs -->"
-    $promptLines = $promptBlock.TrimEnd("`n") -split "`n"
-    $outputLines = New-Object System.Collections.Generic.List[string]
-    if ($promptLines.Count -gt 0 -and $promptLines[0] -eq '---') {
-      $closed = $false
-      for ($i = 0; $i -lt $promptLines.Count; $i++) {
-        [void]$outputLines.Add($promptLines[$i])
-        if ($i -gt 0 -and -not $closed -and $promptLines[$i] -eq '---') {
-          [void]$outputLines.Add($notice)
-          $closed = $true
-        }
-      }
-      if (-not $closed) { Write-Error "prompt block in $($entry.Source) has unterminated frontmatter" }
+    [void]$expectedOutputs.Add(@{ Path = $entry.Prompt; Content = (Add-GeneratedNotice $promptBlock $notice $entry.Source) })
+  }
+}
+
+# --- Proyeccion nativa de agentes de rol (subagentes Claude Code) ---------------
+# Fuente unica: bloque claude-agent en agents/<rol>.md. La via agnostica es el
+# daemon MCP (agent_audit/agent_review); estos templates son opcionales y los
+# instala install-host-integrations.ps1 en <proyecto>/.claude/agents/.
+
+$nativeAgents = Get-RegistrySectionEntries $registryText 'native_agents' @('Source','Target')
+foreach ($entry in $nativeAgents) {
+  $sourcePath = Join-Path $Root $entry.Source
+  if (-not (Test-Path -LiteralPath $sourcePath -PathType Leaf)) { Write-Error "missing native agent source: $($entry.Source)" }
+  $sourceText = Read-Lf $sourcePath
+  $agentBlock = Get-GeneratedBlock $sourceText 'claude-agent' $entry.Source
+  $notice = "<!-- GENERATED - No editar a mano. Fuente unica: $($entry.Source) ; regenerar con scripts/build-instructions.ps1 -WriteOutputs -->"
+  [void]$expectedOutputs.Add(@{ Path = $entry.Target; Content = (Add-GeneratedNotice $agentBlock.Trim("`n") $notice $entry.Source) })
+}
+
+# --- Instrucciones persistentes por host (Cursor / Copilot) ---------------------
+# Derivadas de los MISMOS fragments que AGENTS.md: kernel + preflight +
+# denylists + roles + puntero al daemon MCP como runtime recomendado.
+
+function Get-FragmentBody([string]$Name) {
+  $text = Read-Lf (Join-Path $Root "orquestador/instruction-builder/fragments/$Name.md")
+  # Quita el titulo "# Fragment: ..." y deja el cuerpo.
+  return ($text -replace '(?s)^# Fragment: [^\n]*\n+', '').TrimEnd("`n")
+}
+
+$hostInstructions = Get-RegistrySectionEntries $registryText 'host_instructions' @('Target')
+if ($hostInstructions.Count -gt 0) {
+  $mcpPointer = @(
+    '## Runtime recomendado: daemon MCP hebrinex',
+    '',
+    'El enforcement real (gateway de comandos, approvals, locks, gates, roles) vive en el',
+    'daemon MCP del harness: `mcp/server.mjs` (tools `run_command`, `preflight_approve`,',
+    '`session_contract`, `gate_check`, `agent_audit`, `agent_review`, etc.). Conectarlo en',
+    'este host es la via recomendada; snippets por host en `orquestador/portability/mcp-hosts.md`.',
+    'Sin daemon conectado, operar por prompt es fallback: declarar contrato de sesion y',
+    'preflight manualmente segun `AGENTS.md`.'
+  ) -join "`n"
+  $coreBody = @(
+    '## Kernel', '', (Get-FragmentBody 'kernel'), '',
+    '## Preflight obligatorio antes de efectos', '', (Get-FragmentBody 'preflight'), '',
+    '## Denylists', '', (Get-FragmentBody 'denylists'), '',
+    '## Roles', '', (Get-FragmentBody 'roles'), '',
+    $mcpPointer
+  ) -join "`n"
+  foreach ($entry in $hostInstructions) {
+    $notice = "<!-- GENERATED - No editar a mano. Fuente unica: orquestador/instruction-builder/fragments/*.md ; regenerar con scripts/build-instructions.ps1 -WriteOutputs -->"
+    $header = ''
+    if ($entry.Id -eq 'cursor') {
+      $header = @('---', 'description: Hebri-AI-Harness - kernel operativo (generado)', 'alwaysApply: true', '---', '') -join "`n"
     }
-    else {
-      [void]$outputLines.Add($notice)
-      foreach ($promptLine in $promptLines) { [void]$outputLines.Add($promptLine) }
-    }
-    [void]$expectedOutputs.Add(@{ Path = $entry.Prompt; Content = (($outputLines -join "`n") + "`n") })
+    $title = "# Hebri-AI-Harness - Reglas operativas ($($entry.Id))"
+    $content = $header + $notice + "`n" + $title + "`n`n" + $coreBody + "`n"
+    [void]$expectedOutputs.Add(@{ Path = $entry.Target; Content = $content })
   }
 }
 

@@ -24,9 +24,9 @@ approvals:
   required_for: [edit_files, run_commands, spawn_write_agents, network, git_remote, change_sdd_state, full_context_load]
   active_approval_id: ""
 verification:
-  command: ""
-  status: not_defined
-  evidence_ref: ""
+  command: "./init.sh"
+  status: passed
+  evidence_ref: "orquestador/sdd/progress/evidence/mcp-dogfood-fase8.md"
 open_locks: []
 open_agents: []
-last_final_report: ""
+last_final_report: "orquestador/sdd/progress/evidence/mcp-dogfood-fase8.md"

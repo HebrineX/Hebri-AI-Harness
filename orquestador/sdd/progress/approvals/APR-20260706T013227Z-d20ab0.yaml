@@ -1,0 +1,15 @@
+schema: hebrinex.approval_envelope
+version: "0.1"
+approval_id: APR-20260706T013227Z-d20ab0
+status: approved
+human_decision: approved
+approved_text: "SI"
+action_type: run_command
+exact_action: "probar backend codex-cli read-only para agent_audit/agent_review (codex exec --sandbox read-only via C:\Users\Hebri-Pc\AppData\Local\OpenAI\Codex\bin\ea1c60319a1dcb19\codex.exe)"
+command: "probar backend codex-cli read-only para agent_audit/agent_review (codex exec --sandbox read-only via C:\Users\Hebri-Pc\AppData\Local\OpenAI\Codex\bin\ea1c60319a1dcb19\codex.exe)"
+command_sha256: 4e021edb5659463470e41d2e78c06700f0ebab79572555eddab44f286538e99a
+purpose: "Fase 8 DoD punto 2: demo real de agent_audit/agent_review via daemon MCP con backend read-only"
+risk: low
+created_at: 2026-07-06T01:32:27.7986843Z
+expires_at: 2026-07-06T05:32:27.7986843Z
+harness_version: "0.16.0"

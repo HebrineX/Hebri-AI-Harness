@@ -1,6 +1,6 @@
 # Daemon MCP "hebrinex"
 
-harness_version: "0.15.0"
+harness_version: "0.16.0"
 
 Servidor MCP local (stdio, Node >= 18, SDK oficial `@modelcontextprotocol/sdk`)
 que expone el enforcement del Hebri-AI-Harness como tools. Es la pieza
@@ -20,6 +20,26 @@ reimplementa politica; envuelve los scripts PowerShell existentes:
 | `role_assume` | Valida `role_id` contra el agent-registry y lo fija como rol de la sesion en el estado del proceso del daemon. | lectura directa + estado del daemon |
 | `lock_acquire` | Adquiere un lock exclusivo (`L-*.lock.md`, owner/paths/TTL); solapamiento con un lock activo -> `lock_conflict`. Con rol asumido exige `edit_approved_write_set`. | `scripts/hebrinex.ps1 lock -Acquire` |
 | `lock_release` | Libera un lock (`status: released`). Con rol asumido exige `edit_approved_write_set`. | `scripts/hebrinex.ps1 lock -Release` |
+| `agent_audit` | Corre el rol auditor detractor-senior (fuente unica `agents/detractor-senior.md`) sobre un plan/diff y devuelve el veredicto (`aceptar \| simplificar \| bloquear \| pedir evidencia`). Via agnostica del gate G3A. | backend read-only de `mcp/agents-backend.yaml` |
+| `agent_review` | Corre el rol reviewer (fuente unica `agents/reviewer.md`) sobre un diff + acceptance criteria y devuelve la decision (`aprobado \| bloqueado`). | backend read-only de `mcp/agents-backend.yaml` |
+
+## Backends de agentes de rol (agent_audit / agent_review)
+
+Config en `mcp/agents-backend.yaml` (`backend: claude-cli | codex-cli | none`).
+Cada backend es un comando FIJO que corre read-only y recibe el prompt del rol
+por stdin (nunca por argv):
+
+- `claude-cli`: `claude -p --output-format json --allowedTools "Read,Grep,Glob"`
+- `codex-cli`: `codex exec --sandbox read-only -`
+- `none`: las tools fallan con instrucciones de configuracion (el gate G3A se
+  satisface entonces por subagente nativo o simulacion manual trazable; ver
+  `orquestador/method/minimal-implementation-policy.md`).
+
+Override por maquina (git-ignored): `mcp/agents-backend.local.yaml` pisa
+`backend`, `timeout_seconds` y `backends.<id>.command` (util para rutas
+absolutas de CLIs fuera de PATH). Para enchufar un backend nuevo (ej. `ollama`):
+entrada en la config + entrada en `BACKENDS` de `mcp/agent-backends.mjs`
+(`run({prompt,...}) -> {status, raw}`); las tools no se tocan.
 
 ## Instalacion
 
@@ -77,10 +97,11 @@ command = "node"
 args = ["C:\\ruta\\al\\harness\\mcp\\server.mjs"]
 ```
 
-### Otros clientes MCP (Gemini CLI, Copilot, etc.)
+### Otros clientes MCP (Gemini CLI, Qwen Code, Copilot/VS Code, etc.)
 
 Cualquier cliente con soporte MCP stdio: comando `node`, argumento
-`<harness>/mcp/server.mjs`. No expone red; todo es local.
+`<harness>/mcp/server.mjs`. No expone red; todo es local. Snippets verificados
+por host (con fuentes) en `orquestador/portability/mcp-hosts.md`.
 
 ## Contrato operativo
 

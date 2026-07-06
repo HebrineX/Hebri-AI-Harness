@@ -84,7 +84,8 @@ $fixtures = @(
   'orquestador/testing/fixtures/negative/command-secret-bearing.txt',
   'orquestador/testing/fixtures/negative/command-risk-mismatch.txt',
   'orquestador/testing/fixtures/negative/runtime-reviewer-write.yaml',
-  'orquestador/testing/fixtures/negative/state-active-to-closed.yaml'
+  'orquestador/testing/fixtures/negative/state-active-to-closed.yaml',
+  'orquestador/testing/fixtures/negative/claude-agent-write-tool.md'
 )
 foreach ($rel in $fixtures) { Assert-File $rel }
 
@@ -107,6 +108,7 @@ Assert-FixtureRejected 'orquestador/testing/fixtures/negative/command-secret-bea
 Assert-FixtureRejected 'orquestador/testing/fixtures/negative/command-risk-mismatch.txt' 'Get-Content' 'declared risk mismatch fixture must start from safe command'
 Assert-FixtureRejected 'orquestador/testing/fixtures/negative/runtime-reviewer-write.yaml' 'role_id:\s*reviewer[\s\S]*capability:\s*edit_approved_write_set[\s\S]*expected_decision:\s*block' 'reviewer runtime write must reject'
 Assert-FixtureRejected 'orquestador/testing/fixtures/negative/state-active-to-closed.yaml' 'from_state:\s*active[\s\S]*to_state:\s*closed[\s\S]*expected_decision:\s*block' 'active to closed transition must reject'
+Assert-FixtureRejected 'orquestador/testing/fixtures/negative/claude-agent-write-tool.md' '(?m)^tools:[^\r\n]*\b(Write|Edit|Bash|NotebookEdit)\b' 'native subagent with write tool must reject'
 
 if ($RunNegativeTests) {
   $bad = 'id: reviewer capabilities: { allow: [edit_approved_write_set] }'

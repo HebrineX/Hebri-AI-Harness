@@ -14,6 +14,7 @@ import { fileURLToPath } from 'node:url';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { z } from 'zod';
+import { runRoleAgent, listKnownBackends } from './agent-backends.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(process.env.HEBRINEX_ROOT || join(HERE, '..'));
@@ -236,7 +237,7 @@ function fail(payload) {
 
 const server = new McpServer({
   name: 'hebrinex',
-  version: '0.15.0',
+  version: '0.16.0',
 });
 
 // ---------------------------------------------------------------------------
@@ -1035,6 +1036,155 @@ server.registerTool('lock_release', {
     previous_status: parsed.previous_status || '',
     assumed_role: assumedRole || null,
     role_enforced: roleCheck.enforced,
+  });
+});
+
+// ---------------------------------------------------------------------------
+// 10. Agentes de rol multiplataforma (agent_audit / agent_review).
+//
+// La via AGNOSTICA del gate G3A y del review: el daemon arma el prompt del rol
+// desde la fuente unica agents/<rol>.md y lo ejecuta con el backend read-only
+// configurado en mcp/agents-backend.yaml (claude-cli | codex-cli | none).
+// La proyeccion nativa de Claude Code (.claude/agents/) es opcional y deriva
+// de la MISMA fuente; nada de esto depende del host de IA.
+// ---------------------------------------------------------------------------
+
+// Corta las capas derivadas (bloques hebrinex:generate) para que el prompt del
+// rol lleve solo la definicion operativa.
+function readRoleSource(relativePath) {
+  const text = readText(relativePath);
+  if (!text) return null;
+  const cutIndex = text.indexOf('## Capas derivadas');
+  return cutIndex > 0 ? text.slice(0, cutIndex).trimEnd() : text.trimEnd();
+}
+
+function buildRolePrompt({ roleLabel, roleSource, roleText, sections }) {
+  const lines = [
+    `Actuas como el rol "${roleLabel}" del Hebri-AI-Harness.`,
+    'Sos READ-ONLY: no editas archivos, no ejecutas comandos con efecto, no usas red.',
+    'Aplicas estrictamente la definicion de rol de abajo y respondes UNICAMENTE',
+    'con el bloque de salida obligatoria definido en el rol (texto plano, sin preambulo).',
+    '',
+    `=== DEFINICION DEL ROL (fuente unica: ${roleSource}) ===`,
+    roleText,
+  ];
+  for (const [title, body] of sections) {
+    lines.push('', `=== ${title} ===`, body);
+  }
+  return lines.join('\n');
+}
+
+function parseVerdict(raw, keys) {
+  if (!raw) return null;
+  for (const key of keys) {
+    const match = raw.match(new RegExp(`${key}:\\s*([^\\n]+)`, 'i'));
+    if (match) return match[1].trim();
+  }
+  return null;
+}
+
+function agentRunFailure(toolName, run) {
+  const reasonByStatus = {
+    not_configured: 'agents_backend_not_configured',
+    unknown_backend: 'agents_backend_unknown',
+    unavailable: 'agents_backend_unavailable',
+    timeout: 'agents_backend_timeout',
+    failed: 'agents_backend_failed',
+  };
+  return fail({
+    status: 'error',
+    tool: toolName,
+    reason: reasonByStatus[run.status] || 'agents_backend_error',
+    backend: run.backend,
+    known_backends: run.known_backends || listKnownBackends(),
+    config_path: run.config_path || 'mcp/agents-backend.yaml',
+    how_to_configure: run.how_to_configure,
+    exit_code: run.exitCode,
+    stderr: (run.stderr || '').slice(0, 2000),
+    raw: (run.raw || '').slice(0, 2000),
+  });
+}
+
+async function runRoleAgentTool({ toolName, roleLabel, roleSourcePath, sections, verdictKeys, backendOverride, timeoutSecondsOverride }) {
+  const roleText = readRoleSource(roleSourcePath);
+  if (!roleText) {
+    return fail({ status: 'error', tool: toolName, reason: 'role_source_missing', role_source: roleSourcePath });
+  }
+  const prompt = buildRolePrompt({ roleLabel, roleSource: roleSourcePath, roleText, sections });
+  const run = await runRoleAgent({ root: ROOT, prompt, backendOverride, timeoutSecondsOverride });
+  if (run.status !== 'ok') return agentRunFailure(toolName, run);
+  const verdict = parseVerdict(run.raw, verdictKeys);
+  return ok({
+    status: 'ok',
+    tool: toolName,
+    backend: run.backend,
+    command: run.command,
+    role_source: roleSourcePath,
+    verdict: verdict || null,
+    verdict_parsed: Boolean(verdict),
+    raw: (run.raw || '').slice(0, 8000),
+    duration_ms: run.duration_ms,
+    backend_meta: run.meta || {},
+  });
+}
+
+server.registerTool('agent_audit', {
+  title: 'Hebrinex agent audit (detractor senior, read-only)',
+  description: [
+    'Corre el rol auditor detractor-senior (fuente unica agents/detractor-senior.md)',
+    'sobre un plan o diff, usando el backend read-only configurado en',
+    'mcp/agents-backend.yaml (claude-cli | codex-cli). Satisface el gate G3A por',
+    'la via agnostica del daemon. Devuelve el veredicto del rol',
+    '(aceptar | simplificar | bloquear | pedir evidencia) + salida completa.',
+    'Con backend none falla con instrucciones de configuracion.',
+  ].join(' '),
+  inputSchema: {
+    plan_or_diff: z.string().min(1).describe('Plan propuesto o diff a auditar (texto literal).'),
+    context: z.string().optional().describe('Contexto adicional (objetivo, scope, write-set propuesto).'),
+    backend: z.string().optional().describe('Override del backend configurado (claude-cli | codex-cli | none).'),
+    timeout_seconds: z.number().int().min(30).max(600).optional().describe('Timeout de la corrida del agente (default: timeout_seconds de agents-backend.yaml).'),
+  },
+}, async ({ plan_or_diff, context, backend, timeout_seconds }) => {
+  const sections = [['PLAN O DIFF A AUDITAR', plan_or_diff]];
+  if (context) sections.push(['CONTEXTO ADICIONAL', context]);
+  return runRoleAgentTool({
+    toolName: 'agent_audit',
+    roleLabel: 'auditor detractor senior (gate G3A)',
+    roleSourcePath: 'agents/detractor-senior.md',
+    sections,
+    verdictKeys: ['Veredicto'],
+    backendOverride: backend,
+    timeoutSecondsOverride: timeout_seconds,
+  });
+});
+
+server.registerTool('agent_review', {
+  title: 'Hebrinex agent review (reviewer, read-only)',
+  description: [
+    'Corre el rol reviewer (fuente unica agents/reviewer.md) sobre un diff,',
+    'contrastandolo con los acceptance criteria dados, usando el backend',
+    'read-only configurado en mcp/agents-backend.yaml (claude-cli | codex-cli).',
+    'Devuelve la decision binaria del rol (aprobado | bloqueado) + salida',
+    'completa. Con backend none falla con instrucciones de configuracion.',
+  ].join(' '),
+  inputSchema: {
+    diff: z.string().min(1).describe('Diff a revisar (texto literal).'),
+    acceptance_criteria: z.string().optional().describe('Requirements/acceptance criteria trazables contra los que revisar.'),
+    backend: z.string().optional().describe('Override del backend configurado (claude-cli | codex-cli | none).'),
+    timeout_seconds: z.number().int().min(30).max(600).optional().describe('Timeout de la corrida del agente (default: timeout_seconds de agents-backend.yaml).'),
+  },
+}, async ({ diff, acceptance_criteria, backend, timeout_seconds }) => {
+  const sections = [['DIFF A REVISAR', diff]];
+  if (acceptance_criteria) sections.push(['ACCEPTANCE CRITERIA', acceptance_criteria]);
+  else sections.push(['ACCEPTANCE CRITERIA', '(no provistos: evaluar consistencia interna del diff y reportarlo como limite en Hallazgos)']);
+  return runRoleAgentTool({
+    toolName: 'agent_review',
+    roleLabel: 'reviewer',
+    roleSourcePath: 'agents/reviewer.md',
+    sections,
+    verdictKeys: ['Resultado', 'Decision'],
+    backendOverride: backend,
+    timeoutSecondsOverride: timeout_seconds,
   });
 });
 

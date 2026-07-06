@@ -1,6 +1,6 @@
 schema: hebrinex.context_budget
 version: "0.2"
-harness_version: "0.15.0"
+harness_version: "0.16.0"
 objective: "ahorro medido: 90% (hebrinex usage) frente a la documentacion operativa completa."
 
 measurement:

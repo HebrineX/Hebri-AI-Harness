@@ -1,9 +1,10 @@
 #!/usr/bin/env node
 // Smoke test del daemon MCP hebrinex. Levanta server.mjs por stdio como un
-// cliente MCP real, valida que las 11 tools esten registradas y ejercita las
+// cliente MCP real, valida que las 13 tools esten registradas y ejercita las
 // tools read-only, run_command (allow + block), el ciclo de locks
-// (acquire -> conflicto -> release) y la identidad de rol (role_assume +
-// capability block). Exit 0 = OK, exit 1 = fallo (con detalle por stderr).
+// (acquire -> conflicto -> release), la identidad de rol (role_assume +
+// capability block) y los errores claros de agent_audit/agent_review sin
+// backend. Exit 0 = OK, exit 1 = fallo (con detalle por stderr).
 
 import { rmSync } from 'node:fs';
 import { dirname, join } from 'node:path';
@@ -36,7 +37,7 @@ const transport = new StdioClientTransport({
   args: [join(HERE, 'server.mjs')],
   stderr: 'ignore',
 });
-const client = new Client({ name: 'hebrinex-smoke', version: '0.15.0' });
+const client = new Client({ name: 'hebrinex-smoke', version: '0.16.0' });
 
 try {
   await client.connect(transport);
@@ -44,6 +45,8 @@ try {
   const { tools } = await client.listTools();
   const names = tools.map((tool) => tool.name).sort();
   const expected = [
+    'agent_audit',
+    'agent_review',
     'approval_check',
     'close_cycle_check',
     'gate_check',
@@ -162,6 +165,27 @@ try {
   if (implementerLockPayload?.lock_id) {
     await client.callTool({ name: 'lock_release', arguments: { lock_id: implementerLockPayload.lock_id } });
   }
+
+  // Agentes de rol: sin backend la tool debe fallar con instrucciones claras
+  // (nunca inventar un veredicto); backend desconocido tambien falla claro.
+  // No se corre un backend real en el smoke (costo/latencia no deterministas).
+  const auditNoBackend = await client.callTool({ name: 'agent_audit', arguments: { plan_or_diff: 'plan de prueba smoke', backend: 'none' } });
+  const auditNoBackendPayload = parsePayload(auditNoBackend);
+  check(
+    auditNoBackend.isError === true
+      && auditNoBackendPayload?.reason === 'agents_backend_not_configured'
+      && typeof auditNoBackendPayload?.how_to_configure === 'string',
+    'agent_audit con backend none falla con instrucciones de configuracion',
+  );
+
+  const reviewUnknownBackend = await client.callTool({ name: 'agent_review', arguments: { diff: 'diff de prueba smoke', backend: 'backend-inventado' } });
+  const reviewUnknownBackendPayload = parsePayload(reviewUnknownBackend);
+  check(
+    reviewUnknownBackend.isError === true
+      && reviewUnknownBackendPayload?.reason === 'agents_backend_unknown'
+      && Array.isArray(reviewUnknownBackendPayload?.known_backends),
+    'agent_review con backend desconocido falla listando los backends conocidos',
+  );
 
   const roleGuardedRun = await client.callTool({ name: 'run_command', arguments: { command_text: 'git status --short' } });
   const roleGuardedRunPayload = parsePayload(roleGuardedRun);

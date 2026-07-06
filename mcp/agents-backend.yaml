@@ -1,0 +1,32 @@
+schema: hebrinex.agents_backend
+version: "0.1"
+harness_version: "0.16.0"
+# Backend por defecto de las tools agent_audit / agent_review del daemon MCP.
+# Valores validos: claude-cli | codex-cli | none
+# - claude-cli: requiere Claude Code CLI en PATH (`claude`).
+# - codex-cli: requiere OpenAI Codex CLI en PATH (`codex`).
+# - none: las tools fallan con instrucciones de configuracion (fallback limpio).
+# El caller puede pedir otro backend declarado aca via el parametro `backend`.
+backend: claude-cli
+# Timeout por corrida del agente (segundos). Override por tool: timeout_seconds.
+timeout_seconds: 240
+# Cada backend es un comando FIJO (string completo, ejecutado con shell). El
+# prompt del rol viaja SIEMPRE por stdin, nunca por argv: no hay interpolacion
+# de texto del caller en el comando. Restriccion read-only:
+# - claude-cli: --allowedTools limitado a Read,Grep,Glob (verificado 2026-07-05,
+#   https://code.claude.com/docs/en/headless).
+# - codex-cli: --sandbox read-only, ademas default de `codex exec` (verificado
+#   2026-07-05, https://developers.openai.com/codex/noninteractive y
+#   https://developers.openai.com/codex/cli/reference).
+# Para enchufar un backend nuevo (ej. ollama): agregar la entrada aca y su
+# parser en mcp/agent-backends.mjs (BACKENDS: run({prompt,input}) -> {verdict,raw}).
+# Override por maquina (git-ignored): mcp/agents-backend.local.yaml con las
+# mismas claves pisa backend/timeout_seconds/backends.<id>.command (util para
+# rutas absolutas de CLIs fuera de PATH o para elegir el backend disponible).
+backends:
+  claude-cli:
+    command: claude -p --output-format json --allowedTools "Read,Grep,Glob"
+    output: claude_json
+  codex-cli:
+    command: codex exec --sandbox read-only -
+    output: text

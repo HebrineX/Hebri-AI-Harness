@@ -1,16 +1,21 @@
 schema: hebrinex.adapter
 version: "0.1"
-harness_version: "0.15.0"
+harness_version: "0.16.0"
 adapter_id: codex
 host: "Codex"
 instruction_surfaces:
   - AGENTS.md
 hook_surfaces:
-  - app_or_plugin_dependent
+  - session_start,user_prompt_submit,pre_tool_use,post_tool_use,permission_request,pre_compact,post_compact,subagent_start,subagent_stop,stop
 context_entry_file: AGENTS.md
 persistent_instruction_file: "AGENTS.md"
 supports_real_subagents: false
-supports_hooks: app_or_plugin_dependent
+supports_hooks: yes
+maturity: production
+role_agents: via_mcp_daemon
+mcp_config_file: "~/.codex/config.toml [mcp_servers] (o .codex/config.toml del proyecto trusted)"
+investigated_at: "2026-07-05"
+investigation: orquestador/sdd/specs/adapter-investigation-2026-07.md
 supports_filesystem_tools: guarded
 supports_network_tools: guarded
 memory_reliability: untrusted_for_evidence

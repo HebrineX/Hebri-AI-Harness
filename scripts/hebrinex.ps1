@@ -9,7 +9,7 @@ param(
   [switch]$Acquire,
   [switch]$Release,
   [switch]$List,
-  [string]$TargetVersion = '0.15.0',
+  [string]$TargetVersion = '0.16.0',
   [string]$ProjectRoot = '',
   [string]$BackupId = '',
   [string]$ApprovalId = '',
@@ -1276,7 +1276,7 @@ function Show-Help() {
   Write-Host '  hebrinex.ps1 approve -CheckOnly|-Apply -CommandText <command> [-Purpose <text>] [-TtlMinutes <1-1440>]'
   Write-Host '  hebrinex.ps1 validate [-RunNegativeTests]'
   Write-Host '  hebrinex.ps1 audit [-RunNegativeTests]'
-  Write-Host '  hebrinex.ps1 migrate -CheckOnly|-Apply [-TargetVersion 0.15.0]'
+  Write-Host '  hebrinex.ps1 migrate -CheckOnly|-Apply [-TargetVersion 0.16.0]'
   Write-Host '  hebrinex.ps1 bootstrap -CheckOnly|-Apply -ProjectRoot <path>'
   Write-Host '  hebrinex.ps1 update-bound -CheckOnly|-Apply -ProjectRoot <path>'
   Write-Host '  hebrinex.ps1 list-bound-backups -CheckOnly -ProjectRoot <path>'

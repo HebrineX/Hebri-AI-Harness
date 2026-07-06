@@ -1,6 +1,6 @@
 # Hebri-AI-Harness
 
-Referencia operativa actual: **0.15.0**.
+Referencia operativa actual: **0.16.0**.
 
 Sistema operativo para agentes IA basado en [Hebri-AI-Structure](https://github.com/HebrineX/Hebri-AI-Structure). Objetivo: contrato, trazabilidad y aprobaciones con el minimo contexto — ahorro medido: 90% (hebrinex usage) frente a leer la documentacion operativa completa (`AGENTS.md` + `method/` + `prompts/`).
 
@@ -34,6 +34,11 @@ Si un proyecto no tiene `.hebrinex`, no se opera con un harness externo. Se copi
 
 ## Novedades Actuales
 
+- Agentes de rol multiplataforma via daemon MCP: tools `agent_audit(plan_or_diff)` (detractor-senior, gate G3A) y `agent_review(diff, acceptance_criteria)` (reviewer) arman el prompt desde la fuente unica `agents/<rol>.md` y lo corren con un backend read-only configurable (`mcp/agents-backend.yaml`: `claude-cli` | `codex-cli` | `none`; override por maquina git-ignored `agents-backend.local.yaml`; interfaz abierta para `ollama`). La MISMA capacidad de auditoria en cualquier host con MCP.
+- Subagentes nativos reales en Claude Code (proyeccion opcional de la misma fuente unica): `auditor-detractor` y `reviewer` con tools read-only enforceadas por el host, generados por el instruction-builder e instalables con `scripts/install-host-integrations.ps1 -HostName claude -Apply`.
+- Adapters nativos generados para Cursor (`.cursor/rules/hebrinex.mdc`) y Copilot (`.github/copilot-instructions.md`) desde los mismos fragments que `AGENTS.md`; instalador `install-host-integrations.ps1 -HostName cursor|copilot`.
+- Conexion MCP por host documentada y verificada (fuentes citadas): `orquestador/portability/mcp-hosts.md` (Claude Code, Cursor, Codex CLI, VS Code/Copilot, Gemini CLI, Qwen Code).
+- Vaporware muerto: investigacion real de adapters (`orquestador/sdd/specs/adapter-investigation-2026-07.md`). Codex CLI tiene hooks estables y MCP; Qwen Code tiene `QWEN.md`+hooks+MCP; el CLI oficial de DeepSeek no documenta hooks/MCP. Ningun adapter queda en `hook_support: unknown`; todos declaran `maturity` y via recomendada (ver tabla en "Adapter portability").
 - Locks ejecutables: `hebrinex lock -Acquire/-Release/-List` crea, libera e inventaria locks exclusivos `L-*.lock.md` en `orquestador/sdd/progress/locks/` con owner, paths y TTL; adquirir un path ya lockeado por un lock activo no vencido falla con `lock_conflict`. Tools MCP `lock_acquire`/`lock_release` envuelven el comando. Contrato CLI sube a `0.5`.
 - Writeguard de ediciones: hook `PreToolUse` para `Edit|Write|NotebookEdit` (`scripts/claude-writeguard-hook.ps1`) que degrada a `permissionDecision=ask` las escrituras sobre rutas protegidas del write-scope-registry (`PROJECT_BINDING.yaml`, `HARNESS_VERSION`, `approvals/`, `locks/`) y sobre paths cubiertos por locks activos (con el `lock_id` en el motivo). Fail-open ante errores del propio hook.
 - Hooks `Stop` y `PreCompact`: al terminar cada turno el harness avisa (sin bloquear) si quedan locks, approvals vigentes, ciclo sin cerrar o `HANDOFF-*` pendientes; antes de compactar emite el resumen del memory-closure-checklist para persistir estado antes de perder memoria.
@@ -53,7 +58,7 @@ Si un proyecto no tiene `.hebrinex`, no se opera con un harness externo. Se copi
   fixtures de migracion, fixtures negativos de seguridad, CLI estable e `init.sh`.
 - Agent Contract System: los agentes existen por contratos YAML gobernados por el harness, no por prompts ni autoasignacion de IA.
 - Seguridad AppSec verificable: permisos, write-scope, comandos, red, secretos, escalacion, logging y supply-chain se validan por registries.
-- Servicio de migracion: rutas 0.8.10/0.9.0 -> 0.10.0, 0.10.11 -> 0.11.0, 0.11.0 -> 0.12.0, 0.12.0 -> 0.13.0, 0.13.0 -> 0.14.0 y 0.14.0 -> 0.15.0 con CheckOnly, Apply con backup, reporte y contrato post-migracion aplicado.
+- Servicio de migracion: rutas 0.8.10/0.9.0 -> 0.10.0, 0.10.11 -> 0.11.0, 0.11.0 -> 0.12.0, 0.12.0 -> 0.13.0, 0.13.0 -> 0.14.0, 0.14.0 -> 0.15.0 y 0.15.0 -> 0.16.0 con CheckOnly, Apply con backup, reporte y contrato post-migracion aplicado.
 - Schemas y fixtures de validacion cubren contratos de agentes, seguridad y
   migracion con casos negativos.
 - Command Gateway seguro: `hebrinex command -CheckOnly` clasifica comandos y
@@ -151,6 +156,11 @@ Tools expuestas:
 | `gate_check` | Clasifica que gates G5B..G5I aplican al scope tocado segun `git status/diff` (read-only). |
 | `memory_route` | Decide el entrypoint (`first_message` \| `reentry_light` \| `debug_log_intake` \| `compactation_recovery`) segun estado real. |
 | `close_cycle_check` | Verifica el `memory-closure-checklist` (evidencia, locks/agentes/handoffs abiertos) antes de permitir `done`. |
+| `session_usage` | Reporta tokens/turnos/costo estimado de la sesion desde los transcripts de Claude Code (precios en `mcp/model-pricing.yaml`). |
+| `role_assume` | Fija el rol de la sesion en el estado del daemon; las tools con efecto consultan `agent-runtime.ps1` con ese rol. |
+| `lock_acquire` / `lock_release` | Envuelven `hebrinex lock` (locks exclusivos con owner/TTL; conflicto -> `lock_conflict`). |
+| `agent_audit` | Rol detractor-senior (gate G3A) sobre un plan/diff con backend read-only configurable; veredicto `aceptar \| simplificar \| bloquear \| pedir evidencia`. |
+| `agent_review` | Rol reviewer sobre un diff + acceptance criteria; decision `aprobado \| bloqueado`. |
 
 Instalacion y smoke:
 
@@ -167,6 +177,21 @@ smoke solo si hay `node` y dependencias, skip limpio si no), integrado en
 
 Antes de implementar, el leader debe pasar por auditor(profile: detractor_senior) o registrar bypass aprobado. El objetivo es llegar al mismo resultado con menos codigo, menos dependencias y menos abstracciones, sin sacrificar seguridad, datos, accesibilidad, contrato ni evidencia.
 
+Tres vias validas para el gate G3A (ver `orquestador/method/minimal-implementation-policy.md`): tool MCP `agent_audit` (recomendada, agnostica del host), subagente nativo `auditor-detractor` (Claude Code) o simulacion manual trazable (fallback universal).
+
 ## Adapter portability
 
-El contrato portable vive en orquestador/portability/core-skills.yaml y la cobertura por IA en orquestador/portability/adapter-matrix.yaml. Los adapters .yaml son declarativos y se verifican con scripts/check-adapter-drift.ps1.
+El contrato portable vive en orquestador/portability/core-skills.yaml y la cobertura por IA en orquestador/portability/adapter-matrix.yaml. Los adapters .yaml son declarativos y se verifican con scripts/check-adapter-drift.ps1 (que ademas prohibe `hook_support: unknown` y exige tools read-only en los subagentes nativos).
+
+Estado por host (investigado 2026-07-05; fuentes en `orquestador/sdd/specs/adapter-investigation-2026-07.md`). La via recomendada de agentes de rol es el daemon MCP en todo host que soporte MCP — un solo runtime agnostico, no 8 prompts distintos:
+
+| Adapter | Maturity | Hooks | MCP | Agentes de rol (via recomendada) |
+|---|---|---|---|---|
+| claude-code | production | si (5 eventos, instalados) | `.mcp.json` | subagentes nativos + daemon MCP |
+| codex | production | si (engine estable v0.124.0) | `~/.codex/config.toml` | daemon MCP |
+| cursor | experimental | si (Cursor 1.7, no integrados) | `.cursor/mcp.json` | daemon MCP |
+| copilot | experimental | no documentados | `.vscode/mcp.json` | daemon MCP |
+| gemini | experimental | limited | `.gemini/settings.json` | daemon MCP |
+| qwen | experimental | si (Qwen Code) | `.qwen/settings.json` | daemon MCP |
+| deepseek | experimental | no (CLI oficial) | no documentado | simulacion por prompt |
+| generic-ai | production | n/a | n/a | simulacion por prompt |

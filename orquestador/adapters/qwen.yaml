@@ -1,16 +1,21 @@
 schema: hebrinex.adapter
 version: "0.1"
-harness_version: "0.15.0"
+harness_version: "0.16.0"
 adapter_id: qwen
 host: "Qwen"
 instruction_surfaces:
-  - host_prompt_or_agents
+  - QWEN.md
 hook_surfaces:
-  - unknown
+  - qwen_code_hooks
 context_entry_file: AGENTS.md
-persistent_instruction_file: "host_prompt_or_agents"
+persistent_instruction_file: "QWEN.md"
 supports_real_subagents: false
-supports_hooks: unknown
+supports_hooks: yes
+maturity: experimental
+role_agents: via_mcp_daemon
+mcp_config_file: ".qwen/settings.json (mcpServers) o ~/.qwen/settings.json"
+investigated_at: "2026-07-05"
+investigation: orquestador/sdd/specs/adapter-investigation-2026-07.md
 supports_filesystem_tools: guarded
 supports_network_tools: guarded
 memory_reliability: untrusted_for_evidence
