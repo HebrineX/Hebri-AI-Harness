@@ -12,7 +12,7 @@ required_top_keys:
   - limits
 required_values:
   schema: hebrinex.agent_registry
-  harness_version: "0.16.0"
+  harness_version: "0.17.0"
   agent_definition_authority: harness_only
   ai_may_define_agents: false
 required_roles:

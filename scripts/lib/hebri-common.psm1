@@ -3,11 +3,45 @@
 
 Set-StrictMode -Version 2.0
 
+function Get-HebriInstanceRelativePath {
+  param([Parameter(Mandatory = $true)][string]$RelativePath)
+  $norm = ($RelativePath -replace '\\', '/').TrimStart('./')
+  if ($norm -eq 'PROJECT_BINDING.yaml') { return 'instance/PROJECT_BINDING.yaml' }
+  if ($norm -eq 'PROGRESS.md') { return 'instance/PROGRESS.md' }
+  if ($norm -eq 'orquestador/context') { return 'instance/context' }
+  if ($norm -match '^orquestador/context/(.+)$') { return 'instance/context/' + $Matches[1] }
+  if ($norm -eq 'orquestador/memory/memory-registry.yaml') { return 'instance/memory/memory-registry.yaml' }
+  if ($norm -match '^orquestador/memory/(local|project|cycle|daily|complete)$') { return 'instance/memory/' + $Matches[1] }
+  if ($norm -match '^orquestador/memory/(local|project|cycle|daily|complete)(/.*)?$') { return 'instance/memory/' + $Matches[1] + $Matches[2] }
+  if ($norm -eq 'orquestador/sdd/progress') { return 'instance/sdd/progress' }
+  if ($norm -match '^orquestador/sdd/progress/(schemas|templates)(/.*)?$' -or $norm -eq 'orquestador/sdd/progress/_README.md') { return $norm }
+  if ($norm -match '^orquestador/sdd/progress/(.+)$') { return 'instance/sdd/progress/' + $Matches[1] }
+  if ($norm -eq 'orquestador/sdd/specs') { return 'instance/sdd/specs' }
+  if ($norm -match '^orquestador/sdd/specs/_template(/.*)?$') { return $norm }
+  if ($norm -match '^orquestador/sdd/specs/(.+)$') { return 'instance/sdd/specs/' + $Matches[1] }
+  if ($norm -eq 'orquestador/migration/backups') { return 'instance/migration/backups' }
+  if ($norm -match '^orquestador/migration/backups(/.*)?$') { return 'instance/migration/backups' + $Matches[1] }
+  if ($norm -eq 'orquestador/migration/contracts/post-migration-contract.yaml') { return 'instance/migration/contracts/post-migration-contract.yaml' }
+  if ($norm -eq 'orquestador/migration/reports/migration-report.template.yaml') { return $norm }
+  if ($norm -eq 'orquestador/migration/reports') { return 'instance/migration/reports' }
+  if ($norm -match '^orquestador/migration/reports/(.+)$') { return 'instance/migration/reports/' + $Matches[1] }
+  if ($norm -eq 'orquestador/runtime/gateway-rate.json') { return 'instance/runtime/gateway-rate.json' }
+  if ($norm -eq 'orquestador/runtime/claude') { return 'instance/runtime/claude' }
+  if ($norm -match '^orquestador/runtime/claude(/.*)?$') { return 'instance/runtime/claude' + $Matches[1] }
+  if ($norm -eq 'mcp/agents-backend.local.yaml') { return 'instance/mcp/agents-backend.local.yaml' }
+  return $norm
+}
+
 function Resolve-HarnessPath {
   param(
     [Parameter(Mandatory = $true)][string]$Root,
     [Parameter(Mandatory = $true)][string]$RelativePath
   )
+  $mapped = Get-HebriInstanceRelativePath -RelativePath $RelativePath
+  $mappedPath = Join-Path $Root $mapped
+  if ($mapped -ne (($RelativePath -replace '\\', '/').TrimStart('./')) -and (Test-Path -LiteralPath $mappedPath)) {
+    return $mappedPath
+  }
   return (Join-Path $Root $RelativePath)
 }
 
@@ -141,7 +175,8 @@ function Get-ApprovalPath {
   if ($ApprovalId -notmatch '^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$') {
     throw 'approval_id_invalid_format'
   }
-  return (Join-Path (Join-Path $Root $script:ApprovalsRelativeDir) ($ApprovalId + '.yaml'))
+  $dir = Resolve-HarnessPath -Root $Root -RelativePath $script:ApprovalsRelativeDir
+  return (Join-Path $dir ($ApprovalId + '.yaml'))
 }
 
 function New-ApprovalEnvelope {
@@ -271,7 +306,7 @@ function Test-LockPathOverlap {
 
 function Get-LockInventory {
   param([Parameter(Mandatory = $true)][string]$Root)
-  $locksDir = Join-Path $Root $script:LocksRelativeDir
+  $locksDir = Resolve-HarnessPath -Root $Root -RelativePath $script:LocksRelativeDir
   $active = New-Object System.Collections.Generic.List[object]
   $expired = New-Object System.Collections.Generic.List[object]
   if (-not (Test-Path -LiteralPath $locksDir -PathType Container)) {
@@ -363,7 +398,7 @@ function New-HarnessLock {
   [void]$lines.Add("reason: $safeReason")
   [void]$lines.Add('status: active')
 
-  $lockPathFull = Join-Path (Join-Path $Root $script:LocksRelativeDir) ($lockId + '.lock.md')
+  $lockPathFull = Join-Path (Resolve-HarnessPath -Root $Root -RelativePath $script:LocksRelativeDir) ($lockId + '.lock.md')
   Write-Utf8Text -Path $lockPathFull -Text (($lines -join "`n") + "`n")
   return @{
     Id = $lockId
@@ -380,7 +415,7 @@ function Set-HarnessLockReleased {
     [Parameter(Mandatory = $true)][string]$LockId
   )
   if ($LockId -notmatch '^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$') { throw 'lock_id_invalid_format' }
-  $locksDir = Join-Path $Root $script:LocksRelativeDir
+  $locksDir = Resolve-HarnessPath -Root $Root -RelativePath $script:LocksRelativeDir
   if (-not (Test-Path -LiteralPath $locksDir -PathType Container)) { throw 'lock_not_found' }
   foreach ($file in (Get-ChildItem -LiteralPath $locksDir -File -Filter '*.lock.md' -ErrorAction SilentlyContinue)) {
     $text = [IO.File]::ReadAllText($file.FullName)
@@ -400,6 +435,7 @@ function Set-HarnessLockReleased {
 
 Export-ModuleMember -Function @(
   'Resolve-HarnessPath',
+  'Get-HebriInstanceRelativePath',
   'Read-HarnessText',
   'Get-Scalar',
   'Get-SectionScalar',

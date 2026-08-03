@@ -262,7 +262,8 @@ function Invoke-ApplyPlan([hashtable]$Plan) {
 
 # --- Rate limiting (sliding window over allowed Apply executions) -------------
 # CheckOnly is pure classification and is never limited; blocked Apply calls do
-# not consume budget. State lives in orquestador/runtime/gateway-rate.json,
+# not consume budget. State lives in instance/runtime/gateway-rate.json
+# (legacy fallback: orquestador/runtime/gateway-rate.json),
 # which is generated at runtime and intentionally NOT part of the manifest:
 # its absence simply resets the window.
 
@@ -278,7 +279,7 @@ function Get-RateLimitConfig([string]$RegistryText) {
 }
 
 function Test-AndRecordApplyRate([int]$MaxPerWindow, [int]$WindowSeconds) {
-  $ratePath = Join-Path $Root 'orquestador/runtime/gateway-rate.json'
+  $ratePath = Resolve-HarnessPath -Root $Root -RelativePath 'orquestador/runtime/gateway-rate.json'
   $now = (Get-Date).ToUniversalTime()
   $entries = New-Object System.Collections.Generic.List[datetime]
   if (Test-Path -LiteralPath $ratePath -PathType Leaf) {

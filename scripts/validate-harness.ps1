@@ -16,8 +16,42 @@ function Add-Warning([string]$Message) {
   $script:Warnings.Add($Message) | Out-Null
 }
 
+function Get-ValidationInstanceRelativePath([string]$RelativePath) {
+  $norm = ($RelativePath -replace '\\','/').TrimStart('./')
+  if ($norm -eq 'PROJECT_BINDING.yaml') { return 'instance/PROJECT_BINDING.yaml' }
+  if ($norm -eq 'PROGRESS.md') { return 'instance/PROGRESS.md' }
+  if ($norm -eq 'orquestador/context') { return 'instance/context' }
+  if ($norm -match '^orquestador/context/(.+)$') { return 'instance/context/' + $Matches[1] }
+  if ($norm -eq 'orquestador/memory/memory-registry.yaml') { return 'instance/memory/memory-registry.yaml' }
+  if ($norm -match '^orquestador/memory/(local|project|cycle|daily|complete)$') { return 'instance/memory/' + $Matches[1] }
+  if ($norm -match '^orquestador/memory/(local|project|cycle|daily|complete)(/.*)?$') { return 'instance/memory/' + $Matches[1] + $Matches[2] }
+  if ($norm -eq 'orquestador/sdd/progress') { return 'instance/sdd/progress' }
+  if ($norm -match '^orquestador/sdd/progress/(schemas|templates)(/.*)?$' -or $norm -eq 'orquestador/sdd/progress/_README.md') { return $norm }
+  if ($norm -match '^orquestador/sdd/progress/(.+)$') { return 'instance/sdd/progress/' + $Matches[1] }
+  if ($norm -eq 'orquestador/sdd/specs') { return 'instance/sdd/specs' }
+  if ($norm -match '^orquestador/sdd/specs/_template(/.*)?$') { return $norm }
+  if ($norm -match '^orquestador/sdd/specs/(.+)$') { return 'instance/sdd/specs/' + $Matches[1] }
+  if ($norm -eq 'orquestador/migration/backups') { return 'instance/migration/backups' }
+  if ($norm -match '^orquestador/migration/backups(/.*)?$') { return 'instance/migration/backups' + $Matches[1] }
+  if ($norm -eq 'orquestador/migration/contracts/post-migration-contract.yaml') { return 'instance/migration/contracts/post-migration-contract.yaml' }
+  if ($norm -eq 'orquestador/migration/reports/migration-report.template.yaml') { return $norm }
+  if ($norm -eq 'orquestador/migration/reports') { return 'instance/migration/reports' }
+  if ($norm -match '^orquestador/migration/reports/(.+)$') { return 'instance/migration/reports/' + $Matches[1] }
+  if ($norm -eq 'orquestador/runtime/gateway-rate.json') { return 'instance/runtime/gateway-rate.json' }
+  if ($norm -eq 'orquestador/runtime/claude') { return 'instance/runtime/claude' }
+  if ($norm -match '^orquestador/runtime/claude(/.*)?$') { return 'instance/runtime/claude' + $Matches[1] }
+  if ($norm -eq 'mcp/agents-backend.local.yaml') { return 'instance/mcp/agents-backend.local.yaml' }
+  return $norm
+}
+
 function Resolve-HarnessPath([string]$RelativePath) {
   if ([IO.Path]::IsPathRooted($RelativePath)) { return [IO.Path]::GetFullPath($RelativePath) }
+  $mapped = Get-ValidationInstanceRelativePath $RelativePath
+  $mappedPath = Join-Path $Root $mapped
+  $norm = ($RelativePath -replace '\\','/').TrimStart('./')
+  if ($mapped -ne $norm -and (Test-Path -LiteralPath $mappedPath)) {
+    return [IO.Path]::GetFullPath($mappedPath)
+  }
   return [IO.Path]::GetFullPath((Join-Path $Root $RelativePath))
 }
 
@@ -247,6 +281,7 @@ foreach ($line in ($manifestText -split "`n")) {
 
 $yamlFiles = @(
   'PROJECT_BINDING.yaml',
+  'SHARED_MANIFEST.yaml',
   'orquestador/context-budget.yaml',
   'orquestador/memory/memory-registry.yaml',
   'orquestador/registry-index.yaml',
@@ -273,6 +308,7 @@ $yamlFiles = @(
   'orquestador/migration/versions/0.9.0-to-0.10.0.yaml',
   'orquestador/migration/versions/0.8.10-to-0.10.0.yaml',
   'orquestador/migration/versions/0.10.11-to-0.11.0.yaml',
+  'orquestador/migration/versions/0.16.0-to-0.17.0.yaml',
   'orquestador/migration/contracts/post-migration-contract.yaml',
   'orquestador/migration/reports/migration-report.template.yaml',
   'orquestador/policies/schemas/agent-registry.schema.yaml',
@@ -435,6 +471,8 @@ Assert-Contains 'orquestador/harness-manifest.txt' 'scripts/state-machine.ps1' '
 Assert-Contains 'orquestador/harness-manifest.txt' 'scripts/agent-runtime.ps1' 'agent-runtime.ps1 must be in manifest'
 Assert-Contains 'orquestador/harness-manifest.txt' 'scripts/validate-state-machine.ps1' 'validate-state-machine.ps1 must be in manifest'
 Assert-Contains 'orquestador/harness-manifest.txt' 'scripts/validate-agent-runtime.ps1' 'validate-agent-runtime.ps1 must be in manifest'
+Assert-Contains 'orquestador/harness-manifest.txt' 'SHARED_MANIFEST.yaml' 'shared manifest must be in manifest'
+Assert-Contains 'orquestador/harness-manifest.txt' 'orquestador/migration/versions/0.16.0-to-0.17.0.yaml' '0.17.0 migration route must be in manifest'
 Assert-Contains 'orquestador/harness-manifest.txt' 'scripts/claude-writeguard-hook.ps1' 'claude-writeguard-hook.ps1 must be in manifest'
 Assert-Contains 'orquestador/harness-manifest.txt' 'scripts/claude-stop-hook.ps1' 'claude-stop-hook.ps1 must be in manifest'
 Assert-Contains 'orquestador/harness-manifest.txt' 'scripts/claude-precompact-hook.ps1' 'claude-precompact-hook.ps1 must be in manifest'
@@ -470,6 +508,13 @@ Assert-Contains 'orquestador/security/threat-model.yaml' 'path_traversal' 'threa
 Assert-Contains 'orquestador/security/secrets-policy.yaml' 'default' 'secrets policy must define a default posture'
 Assert-Contains 'orquestador/migration/migration-registry.yaml' 'check_only_writes:\s*false' 'migration registry must keep CheckOnly no-write'
 Assert-Contains 'orquestador/migration/migration-registry.yaml' 'apply_requires_backup:\s*true' 'migration registry must require backup for Apply'
+Assert-Contains 'SHARED_MANIFEST.yaml' 'schema:\s*hebrinex[.]shared_manifest' 'shared manifest must exist'
+Assert-Contains 'SHARED_MANIFEST.yaml' 'harness_version:\s*"0[.]17[.]0"' 'shared manifest must match 0.17.0'
+Assert-Contains 'SHARED_MANIFEST.yaml' '(?m)^\s+- scripts\s*$' 'shared manifest must include scripts as shared'
+Assert-Contains 'SHARED_MANIFEST.yaml' '(?m)^\s+- agents\s*$' 'shared manifest must include agents as shared'
+Assert-Contains 'SHARED_MANIFEST.yaml' '(?m)^\s+- prompts\s*$' 'shared manifest must include prompts as shared'
+Assert-Contains 'SHARED_MANIFEST.yaml' '(?m)^\s+- instance\s*$' 'shared manifest must declare instance as instance dir'
+Assert-Contains 'orquestador/method/harness-resolution.md' 'SHARED_MANIFEST[.]yaml' 'harness resolution must document shared manifest'
 if ((Get-ScalarValue 'PROJECT_BINDING.yaml' 'binding_mode') -eq 'source_template') { Assert-Contains 'orquestador/migration/contracts/post-migration-contract.yaml' 'migration_status:\s*not_applied' 'source template post-migration contract must remain not_applied' } else { Assert-Contains 'orquestador/migration/contracts/post-migration-contract.yaml' 'migration_status:\s*applied' 'bound post-migration contract must be applied' }
 
 Assert-PresetNotHeavyByDefault 'prompts/adapters/preset-codex.prompt.md'

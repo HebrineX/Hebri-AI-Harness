@@ -3,7 +3,7 @@
 Contrato base comun a todos los adapters. Cada `<host>.md` solo agrega sus notas
 especificas; este archivo es la unica fuente del cuerpo compartido.
 
-## Entrada minima 0.16.0
+## Entrada minima 0.17.0
 
 Antes de actuar, leer solo:
 1. `PROJECT_BINDING.yaml`

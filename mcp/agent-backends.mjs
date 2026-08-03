@@ -74,7 +74,7 @@ export function loadAgentsBackendConfig(root) {
     timeoutSeconds: Number(getScalar(text, 'timeout_seconds')) || DEFAULT_TIMEOUT_SECONDS,
     backends: parseBackendEntries(text),
   };
-  const localText = readTextFile(join(root, 'mcp/agents-backend.local.yaml'));
+  const localText = readTextFile(join(root, 'instance/mcp/agents-backend.local.yaml')) || readTextFile(join(root, 'mcp/agents-backend.local.yaml'));
   if (localText) {
     const localBackend = getScalar(localText, 'backend');
     if (localBackend) config.defaultBackend = localBackend;
@@ -84,7 +84,7 @@ export function loadAgentsBackendConfig(root) {
     for (const [id, entry] of Object.entries(localEntries)) {
       config.backends[id] = { ...config.backends[id], ...entry };
     }
-    config.localOverride = 'mcp/agents-backend.local.yaml';
+    config.localOverride = 'instance/mcp/agents-backend.local.yaml';
   }
   return config;
 }

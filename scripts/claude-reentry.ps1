@@ -4,9 +4,9 @@ $ErrorActionPreference = "Stop"
 $Root = Split-Path -Parent $PSScriptRoot
 Import-Module (Join-Path $PSScriptRoot 'lib/hebri-common.psm1') -Force -DisableNameChecking -Scope Local
 
-$briefDir = Join-Path $Root "orquestador/runtime/claude"
-$brief = Join-Path $briefDir "reentry-brief.md"
-$binding = Join-Path $Root "PROJECT_BINDING.yaml"
+$brief = Resolve-HarnessPath -Root $Root -RelativePath "orquestador/runtime/claude/reentry-brief.md"
+$briefDir = Split-Path -Parent $brief
+$binding = Resolve-HarnessPath -Root $Root -RelativePath "PROJECT_BINDING.yaml"
 if (-not (Test-Path -LiteralPath $binding)) { Write-Error "PROJECT_BINDING.yaml missing" }
 Ensure-Directory $briefDir
 if ($CheckOnly -and -not (Test-Path -LiteralPath $brief)) { Write-Error "Claude reentry brief missing" }
@@ -14,7 +14,7 @@ if ($CheckOnly -and -not (Test-Path -LiteralPath $brief)) { Write-Error "Claude 
 if (-not $CheckOnly) {
   $version = (Get-Content -LiteralPath (Join-Path $Root "HARNESS_VERSION") -TotalCount 1)
   $bindingText = [IO.File]::ReadAllText($binding)
-  $statePath = Join-Path $Root "orquestador/sdd/progress/state.yaml"
+  $statePath = Resolve-HarnessPath -Root $Root -RelativePath "orquestador/sdd/progress/state.yaml"
   $stateText = if (Test-Path -LiteralPath $statePath) { [IO.File]::ReadAllText($statePath) } else { '' }
   $locks = Get-LockInventory -Root $Root
 

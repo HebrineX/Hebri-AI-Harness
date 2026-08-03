@@ -10,7 +10,7 @@ Reglas:
 
 El builder corre en modo check-only salvo que el operador apruebe escritura.
 
-Capas generadas (0.16.0):
+Capas generadas (0.17.0):
 - Roles (`role_sources`): contratos YAML, prompts de rol y `role_defaults` de
   `capability-registry.yaml` desde los bloques marcados de `agents/<rol>.md`.
 - Subagentes nativos Claude Code (`native_agents`): bloques `claude-agent` de

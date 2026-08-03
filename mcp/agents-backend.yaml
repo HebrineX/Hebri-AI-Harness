@@ -1,6 +1,6 @@
 schema: hebrinex.agents_backend
 version: "0.1"
-harness_version: "0.16.0"
+harness_version: "0.17.0"
 # Backend por defecto de las tools agent_audit / agent_review del daemon MCP.
 # Valores validos: claude-cli | codex-cli | none
 # - claude-cli: requiere Claude Code CLI en PATH (`claude`).

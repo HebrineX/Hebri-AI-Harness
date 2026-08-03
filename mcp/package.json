@@ -1,6 +1,6 @@
 {
   "name": "hebrinex-mcp",
-  "version": "0.16.0",
+  "version": "0.17.0",
   "description": "Hebri-AI-Harness MCP daemon: expone el enforcement del harness (gateway, approvals, contrato, gates, memoria, cierre) como tools MCP stdio.",
   "type": "module",
   "private": true,

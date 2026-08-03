@@ -1,6 +1,6 @@
 # Context Profiles
 
-Version: 0.16.0
+Version: 0.17.0
 
 Objetivo: cargar el minimo contexto posible. Ahorro medido del kernel: 90% frente a la documentacion operativa completa (`AGENTS.md + method/* + prompts/**`) y 99% frente al arbol completo del manifest (`hebrinex usage`; baseline en `orquestador/sdd/progress/evidence/usage-baseline-0.15.0.yaml`).
 
@@ -105,7 +105,7 @@ Leer output de auditor/reviewer/leader, audiencia objetivo, `agents/reporter.md`
 
 Si un agente necesita superar presupuesto, debe detenerse, explicar read-set y pedir autorizacion.
 
-## Runtime 0.16.0
+## Runtime 0.17.0
 
 - `runtime_status`: `PROJECT_BINDING.yaml`, `session-pin.md`, `context-budget.yaml` y `active-session` si existe. Maximo: 1000 tokens.
 - `runtime_reentry`: runtime status + `state.yaml`/`registry.yaml` solo si entra en budget. Maximo: 1600 tokens.

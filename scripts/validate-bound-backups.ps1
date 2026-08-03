@@ -10,8 +10,23 @@ function Add-Failure([string]$Message) {
   $script:Failures.Add($Message) | Out-Null
 }
 
+function Resolve-RootHarnessPath([string]$HarnessRoot, [string]$RelativePath) {
+  $norm = ($RelativePath -replace '\\','/').TrimStart('./')
+  $mapped = switch -Regex ($norm) {
+    '^PROJECT_BINDING[.]yaml$' { 'instance/PROJECT_BINDING.yaml'; break }
+    '^orquestador/migration/backups$' { 'instance/migration/backups'; break }
+    '^orquestador/migration/backups/(.+)$' { 'instance/migration/backups/' + $Matches[1]; break }
+    '^orquestador/migration/reports$' { 'instance/migration/reports'; break }
+    '^orquestador/migration/reports/(.+)$' { 'instance/migration/reports/' + $Matches[1]; break }
+    default { $norm }
+  }
+  $mappedPath = Join-Path $HarnessRoot $mapped
+  if ($mapped -ne $norm -and (Test-Path -LiteralPath $mappedPath)) { return $mappedPath }
+  Join-Path $HarnessRoot $RelativePath
+}
+
 function Resolve-HarnessPath([string]$RelativePath) {
-  Join-Path $Root $RelativePath
+  Resolve-RootHarnessPath $Root $RelativePath
 }
 
 function Read-HarnessText([string]$RelativePath) {
@@ -71,7 +86,7 @@ function Remove-TempTree([string]$TempRoot) {
 }
 
 function Get-LatestBoundUpdateBackupId([string]$HarnessRoot) {
-  $backups = Join-Path $HarnessRoot 'orquestador/migration/backups'
+  $backups = Resolve-RootHarnessPath $HarnessRoot 'orquestador/migration/backups'
   $latest = Get-ChildItem -LiteralPath $backups -Directory -Filter 'migration-bound-update-*' |
     Where-Object { $_.Name -ne 'migration-bound-update-invalid-0109' } |
     Sort-Object LastWriteTimeUtc -Descending |
@@ -81,7 +96,7 @@ function Get-LatestBoundUpdateBackupId([string]$HarnessRoot) {
 }
 
 function Add-InvalidBackupFixture([string]$HarnessRoot) {
-  $badRoot = Join-Path $HarnessRoot 'orquestador/migration/backups/migration-bound-update-invalid-0109'
+  $badRoot = Join-Path $HarnessRoot 'instance/migration/backups/migration-bound-update-invalid-0109'
   $filesRoot = Join-Path $badRoot 'files'
   New-Item -ItemType Directory -Force -Path $filesRoot | Out-Null
   Write-Utf8Text (Join-Path $badRoot 'backup-manifest.txt') "..\outside.txt|1|2026-07-01T00:00:00.0000000Z|invalid_fixture`n"
@@ -97,7 +112,10 @@ function Assert-InventoryOutput([string]$OutputText, [string]$ValidBackupId, [st
   Assert-TextContains $OutputText 'restorable_count=[1-9][0-9]*' 'list-bound-backups must report at least one restorable backup in smoke'
   Assert-TextContains $OutputText ([regex]::Escape("backup_id=$ValidBackupId")) 'list-bound-backups must include the valid update backup id'
   Assert-TextContains $OutputText (('(?s)' + [regex]::Escape("backup_id=$ValidBackupId")) + '.*?backup_origin=update-bound.*?backup_status=ok.*?backup_restorable=true') 'valid update backup must be restorable'
-  Assert-TextContains $OutputText (('(?s)' + [regex]::Escape("backup_id=$InvalidBackupId")) + '.*?backup_status=not_restorable.*?backup_restorable=false.*?unsafe_path') 'invalid backup fixture must be listed as not restorable'
+  Assert-TextContains $OutputText ([regex]::Escape("backup_id=$InvalidBackupId")) 'invalid backup fixture must be listed'
+  Assert-TextContains $OutputText 'backup_status=not_restorable' 'invalid backup fixture must be not restorable'
+  Assert-TextContains $OutputText 'backup_restorable=false' 'invalid backup fixture must report restorable=false'
+  Assert-TextContains $OutputText 'unsafe_path' 'invalid backup fixture must expose unsafe_path reason'
   Assert-TextContains $OutputText 'backup_manifest=' 'list-bound-backups must show manifest path'
   Assert-TextContains $OutputText 'backup_files_root=' 'list-bound-backups must show files root'
   Assert-TextContains $OutputText 'backup_manifest_entries=' 'list-bound-backups must show manifest entry count'

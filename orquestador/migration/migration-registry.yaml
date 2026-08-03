@@ -1,6 +1,6 @@
 schema: hebrinex.migration_registry
 version: "0.1"
-harness_version: "0.16.0"
+harness_version: "0.17.0"
 status: active
 authority:
   migration_definition: harness_only
@@ -18,8 +18,14 @@ supported_targets:
   - "0.14.0"
   - "0.15.0"
   - "0.16.0"
+  - "0.17.0"
   - "0.12.x"
 routes:
+  - id: "0.16.0-to-0.17.0"
+    source_version: "0.16.0"
+    target_version: "0.17.0"
+    route_file: orquestador/migration/versions/0.16.0-to-0.17.0.yaml
+    supported_binding_modes: [bound, source_template]
   - id: "0.15.0-to-0.16.0"
     source_version: "0.15.0"
     target_version: "0.16.0"
@@ -111,6 +117,16 @@ required_validators:
   - scripts/audit-harness.ps1
 preserve_by_default:
   - PROJECT_BINDING.yaml
+  - instance/PROJECT_BINDING.yaml
+  - instance/PROGRESS.md
+  - instance/context/
+  - instance/memory/
+  - instance/sdd/progress/
+  - instance/sdd/specs/
+  - instance/migration/backups/
+  - instance/migration/reports/
+  - instance/runtime/
+  - instance/mcp/agents-backend.local.yaml
   - HARNESS_VERSION
   - orquestador/sdd/progress/state.yaml
   - orquestador/sdd/progress/registry.yaml

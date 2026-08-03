@@ -1,10 +1,10 @@
 # Claude Code Adapter
 
-Contrato base compartido: leer `orquestador/adapters/_shared-core.md` (entrada minima 0.16.0, presupuesto en `orquestador/context-budget.yaml`, preflight + `SI` antes de efectos).
+Contrato base compartido: leer `orquestador/adapters/_shared-core.md` (entrada minima 0.17.0, presupuesto en `orquestador/context-budget.yaml`, preflight + `SI` antes de efectos).
 
 Notas especificas: archivo de instrucciones persistente `CLAUDE.md`; hooks reales soportados; subagentes de rol REALES (`.claude/agents/`: auditor-detractor, reviewer; instalables con `scripts/install-host-integrations.ps1 -HostName claude`); MCP via `.mcp.json`. Maturity: production. Investigado 2026-07-05 (ver `orquestador/sdd/specs/adapter-investigation-2026-07.md`).
 
-## Claude Integration 0.16.0
+## Claude Integration 0.17.0
 
 - Usar `orquestador/integrations/claude/CLAUDE.template.md` como entrada.
 - Hooks reales: `SessionStart` genera e inyecta `orquestador/runtime/claude/reentry-brief.md`

@@ -9,7 +9,7 @@ param(
   [switch]$Acquire,
   [switch]$Release,
   [switch]$List,
-  [string]$TargetVersion = '0.16.0',
+  [string]$TargetVersion = '0.17.0',
   [string]$ProjectRoot = '',
   [string]$BackupId = '',
   [string]$ApprovalId = '',
@@ -41,7 +41,41 @@ $Root = [IO.Path]::GetFullPath($Root)
 
 function Resolve-HarnessPath([string]$RelativePath) {
   if ([IO.Path]::IsPathRooted($RelativePath)) { return [IO.Path]::GetFullPath($RelativePath) }
+  $mapped = Get-HebriHebriInstanceRelativePath -RelativePath $RelativePath
+  $mappedPath = Join-Path $Root $mapped
+  $norm = ($RelativePath -replace '\\','/').TrimStart('./')
+  if ($mapped -ne $norm -and (Test-Path -LiteralPath $mappedPath)) {
+    return [IO.Path]::GetFullPath($mappedPath)
+  }
   return [IO.Path]::GetFullPath((Join-Path $Root $RelativePath))
+}
+
+function Resolve-BoundHarnessPath([string]$BoundRoot, [string]$RelativePath) {
+  if ([IO.Path]::IsPathRooted($RelativePath)) { return [IO.Path]::GetFullPath($RelativePath) }
+  $mapped = Get-HebriHebriInstanceRelativePath -RelativePath $RelativePath
+  $mappedPath = Join-Path $BoundRoot $mapped
+  $norm = ($RelativePath -replace '\\','/').TrimStart('./')
+  if ($mapped -ne $norm -and (Test-Path -LiteralPath $mappedPath)) {
+    return [IO.Path]::GetFullPath($mappedPath)
+  }
+  $legacyPath = Join-Path $BoundRoot $RelativePath
+  if ($mapped -ne $norm -and (Test-Path -LiteralPath $legacyPath)) {
+    return [IO.Path]::GetFullPath($legacyPath)
+  }
+  if ($mapped -ne $norm) {
+    return [IO.Path]::GetFullPath($mappedPath)
+  }
+  return [IO.Path]::GetFullPath((Join-Path $BoundRoot $RelativePath))
+}
+
+function Resolve-BoundCanonicalPath([string]$BoundRoot, [string]$RelativePath) {
+  if ([IO.Path]::IsPathRooted($RelativePath)) { return [IO.Path]::GetFullPath($RelativePath) }
+  $mapped = Get-HebriHebriInstanceRelativePath -RelativePath $RelativePath
+  $norm = ($RelativePath -replace '\\','/').TrimStart('./')
+  if ($mapped -ne $norm) {
+    return [IO.Path]::GetFullPath((Join-Path $BoundRoot $mapped))
+  }
+  return [IO.Path]::GetFullPath((Join-Path $BoundRoot $RelativePath))
 }
 
 function Test-HarnessLeaf([string]$Path) {
@@ -363,7 +397,7 @@ notes:
   - "La memoria operativa se gobierna desde orquestador/memory/memory-registry.yaml."
   - "$Version es el release usable actual; bootstrap Apply deja contrato bound aplicado."
 "@
-  Write-Utf8Text (Join-Path $BoundRoot 'PROJECT_BINDING.yaml') ($binding + "`n")
+  Write-Utf8Text (Resolve-BoundCanonicalPath $BoundRoot 'PROJECT_BINDING.yaml') ($binding + "`n")
 }
 
 function Set-TopLevelScalar([string]$Text, [string]$Key, [string]$YamlValue) {
@@ -385,7 +419,8 @@ function Set-SectionScalar([string]$Text, [string]$Section, [string]$Key, [strin
 }
 
 function Update-BoundState([string]$BoundRoot, [string]$ProjectRootPath, [string]$BoundAt) {
-  $statePath = Join-Path $BoundRoot 'orquestador/sdd/progress/state.yaml'
+  $statePath = Resolve-BoundHarnessPath $BoundRoot 'orquestador/sdd/progress/state.yaml'
+  $writePath = Resolve-BoundCanonicalPath $BoundRoot 'orquestador/sdd/progress/state.yaml'
   $text = [IO.File]::ReadAllText($statePath)
   $text = Set-TopLevelScalar $text 'updated_at' (ConvertTo-YamlDouble $BoundAt)
   $text = Set-SectionScalar $text 'project_binding' 'status' 'bound'
@@ -394,19 +429,20 @@ function Update-BoundState([string]$BoundRoot, [string]$ProjectRootPath, [string
   $text = Set-SectionScalar $text 'session_contract' 'status' 'active'
   $text = Set-SectionScalar $text 'session_contract' 'leader_visible' 'true'
   $text = Set-SectionScalar $text 'approvals' 'active_approval_id' '"HAH-0106-BOOTSTRAP-APPLY"'
-  Write-Utf8Text $statePath ($text.TrimEnd("`r","`n") + "`n")
+  Write-Utf8Text $writePath ($text.TrimEnd("`r","`n") + "`n")
 }
 
 function Update-BoundMemoryRegistry([string]$BoundRoot, [string]$BoundAt) {
-  $path = Join-Path $BoundRoot 'orquestador/memory/memory-registry.yaml'
+  $path = Resolve-BoundHarnessPath $BoundRoot 'orquestador/memory/memory-registry.yaml'
+  $writePath = Resolve-BoundCanonicalPath $BoundRoot 'orquestador/memory/memory-registry.yaml'
   $text = [IO.File]::ReadAllText($path)
   $text = Set-TopLevelScalar $text 'updated_at' (ConvertTo-YamlDouble $BoundAt)
   $text = Set-TopLevelScalar $text 'binding_mode' 'bound'
-  Write-Utf8Text $path ($text.TrimEnd("`r","`n") + "`n")
+  Write-Utf8Text $writePath ($text.TrimEnd("`r","`n") + "`n")
 }
 
 function Update-BoundActiveContract([string]$BoundRoot, [string]$ProjectRootPath, [string]$Version) {
-  $path = Join-Path $BoundRoot 'orquestador/memory/local/active-contract.md'
+  $path = Resolve-BoundCanonicalPath $BoundRoot 'orquestador/memory/local/active-contract.md'
   $lines = @(
     '# Active Contract',
     '',
@@ -480,20 +516,20 @@ validators:
   validate_migration: $validateMigration
   validate_harness: $validateHarness
 post_migration_contract:
-  path: $(Format-YamlString (Join-Path $BoundRoot 'orquestador/migration/contracts/post-migration-contract.yaml'))
+  path: $(Format-YamlString (Resolve-BoundHarnessPath $BoundRoot 'orquestador/migration/contracts/post-migration-contract.yaml'))
   status: applied
 risks:
   - $(Format-YamlString 'bootstrap Apply writes only target .hebrinex and consumer .gitignore')
 next_steps:
   - $(Format-YamlString 'Use the bound .hebrinex as the consumer project authority')
 "@
-  $reportPath = Join-Path $BoundRoot "orquestador/migration/reports/$BootstrapId.yaml"
+  $reportPath = Resolve-BoundCanonicalPath $BoundRoot "orquestador/migration/reports/$BootstrapId.yaml"
   Write-Utf8Text $reportPath ($report + "`n")
   return $reportPath
 }
 
 function Create-BootstrapBackupRecord([string]$ProjectRootPath, [string]$BoundRoot, [string]$BootstrapId) {
-  $backupRoot = Join-Path $BoundRoot 'orquestador/migration/backups'
+  $backupRoot = Resolve-BoundCanonicalPath $BoundRoot 'orquestador/migration/backups'
   $backupPath = Join-Path $backupRoot $BootstrapId
   Ensure-Directory $backupPath
   $manifest = New-Object System.Collections.Generic.List[string]
@@ -542,7 +578,7 @@ required_evidence:
   - active_contract_ref
 success_rule: "migration_status can be applied only when all booleans above are true."
 "@
-  $contractPath = Join-Path $BoundRoot 'orquestador/migration/contracts/post-migration-contract.yaml'
+  $contractPath = Resolve-BoundCanonicalPath $BoundRoot 'orquestador/migration/contracts/post-migration-contract.yaml'
   Write-Utf8Text $contractPath ($contract + "`n")
   return $contractPath
 }
@@ -561,13 +597,20 @@ function Get-BoundUpdatePreserveReason([string]$RelativePath) {
   $norm = ($RelativePath -replace '\\','/').Trim('/')
   if ([string]::IsNullOrWhiteSpace($norm)) { return 'empty_path' }
   if ($norm -eq 'PROJECT_BINDING.yaml') { return 'project_binding' }
+  if ($norm -eq 'instance/PROJECT_BINDING.yaml') { return 'project_binding' }
+  if ($norm -match '^instance/') { return 'instance_state' }
+  if ($norm -match '^orquestador/context/') { return 'project_context' }
   if ($norm -in @('orquestador/sdd/progress/state.yaml','orquestador/sdd/progress/registry.yaml','orquestador/sdd/progress/registry.md','orquestador/sdd/progress/blocked.md','orquestador/sdd/progress/future-p1.md')) { return 'progress_state' }
   if ($norm -match '^orquestador/sdd/progress/(approvals|cycles|locks)/') { return 'progress_runtime' }
   if ($norm -match '^orquestador/sdd/progress/' -and $norm -notmatch '^orquestador/sdd/progress/(templates|schemas)/' -and $norm -ne 'orquestador/sdd/progress/_README.md') { return 'progress_runtime' }
+  if ($norm -match '^orquestador/sdd/specs/' -and $norm -notmatch '^orquestador/sdd/specs/_template/') { return 'project_specs' }
   if ($norm -eq 'orquestador/memory/memory-registry.yaml') { return 'memory_registry' }
   if ($norm -match '^orquestador/memory/(local|project|cycle|daily|complete)/') { return 'memory_layer' }
   if ($norm -match '^orquestador/migration/backups/') { return 'migration_backup' }
   if ($norm -match '^orquestador/migration/reports/' -and $norm -ne 'orquestador/migration/reports/migration-report.template.yaml') { return 'migration_report' }
+  if ($norm -eq 'orquestador/runtime/gateway-rate.json') { return 'runtime_state' }
+  if ($norm -match '^orquestador/runtime/claude/') { return 'runtime_state' }
+  if ($norm -eq 'mcp/agents-backend.local.yaml') { return 'mcp_local_override' }
   if ($norm -match '^orquestador/evidence/') { return 'evidence' }
   return ''
 }
@@ -580,12 +623,12 @@ function Add-BoundBackupCandidate([System.Collections.Generic.HashSet[string]]$C
   $norm = ($RelativePath -replace '\\','/').Trim('/')
   if ([string]::IsNullOrWhiteSpace($norm)) { return }
   if (Test-BootstrapExcludedPath $norm) { return }
-  $path = Join-Path $BoundRoot ($norm -replace '/', [IO.Path]::DirectorySeparatorChar)
+  $path = Resolve-BoundHarnessPath $BoundRoot $norm
   if (Test-HarnessLeaf $path) { [void]$Candidates.Add($norm) }
 }
 
 function Add-BoundBackupTree([System.Collections.Generic.HashSet[string]]$Candidates, [string]$BoundRoot, [string]$RelativeDir) {
-  $dir = Join-Path $BoundRoot ($RelativeDir -replace '/', [IO.Path]::DirectorySeparatorChar)
+  $dir = Resolve-BoundHarnessPath $BoundRoot $RelativeDir
   if (-not (Test-Path -LiteralPath $dir -PathType Container)) { return }
   $base = [IO.Path]::GetFullPath($BoundRoot).TrimEnd('\','/')
   foreach ($file in (Get-ChildItem -LiteralPath $dir -Recurse -File -Force | Sort-Object FullName)) {
@@ -596,7 +639,7 @@ function Add-BoundBackupTree([System.Collections.Generic.HashSet[string]]$Candid
 }
 
 function Create-BoundUpdateBackupRecord([string]$BoundRoot, [string]$UpdateId) {
-  $backupRoot = Join-Path $BoundRoot 'orquestador/migration/backups'
+  $backupRoot = Resolve-BoundCanonicalPath $BoundRoot 'orquestador/migration/backups'
   $backupPath = Join-Path $backupRoot $UpdateId
   $filesRoot = Join-Path $backupPath 'files'
   Ensure-Directory $filesRoot
@@ -606,13 +649,17 @@ function Create-BoundUpdateBackupRecord([string]$BoundRoot, [string]$UpdateId) {
     Add-BoundBackupCandidate $candidates $BoundRoot $entry.RelativePath
   }
   foreach ($relDir in @(
+    'instance',
+    'orquestador/context',
     'orquestador/sdd/progress',
+    'orquestador/sdd/specs',
     'orquestador/memory/local',
     'orquestador/memory/project',
     'orquestador/memory/cycle',
     'orquestador/memory/daily',
     'orquestador/memory/complete',
-    'orquestador/migration/reports'
+    'orquestador/migration/reports',
+    'orquestador/runtime/claude'
   )) {
     Add-BoundBackupTree $candidates $BoundRoot $relDir
   }
@@ -664,15 +711,66 @@ function Copy-HarnessManifestToExistingBoundRoot([string]$BoundRoot) {
   return [ordered]@{ directories = $dirCount; files = $fileCount; preserved = $preservedCount }
 }
 
+function Copy-BoundLegacyFileToCanonical([string]$BoundRoot, [string]$LegacyRelativePath, [string]$CanonicalRelativePath) {
+  $source = Join-Path $BoundRoot ($LegacyRelativePath -replace '/', [IO.Path]::DirectorySeparatorChar)
+  if (-not (Test-HarnessLeaf $source)) { return 0 }
+  $destination = Join-Path $BoundRoot ($CanonicalRelativePath -replace '/', [IO.Path]::DirectorySeparatorChar)
+  if ([IO.Path]::GetFullPath($source) -eq [IO.Path]::GetFullPath($destination)) { return 0 }
+  Ensure-Directory (Split-Path -Parent $destination)
+  Copy-Item -LiteralPath $source -Destination $destination -Force
+  return 1
+}
+
+function Copy-BoundLegacyTreeToCanonical([string]$BoundRoot, [string]$LegacyRelativeDir, [string]$CanonicalRelativeDir, [string[]]$ExcludeRegex = @()) {
+  $sourceDir = Join-Path $BoundRoot ($LegacyRelativeDir -replace '/', [IO.Path]::DirectorySeparatorChar)
+  if (-not (Test-Path -LiteralPath $sourceDir -PathType Container)) { return 0 }
+  $legacyBase = [IO.Path]::GetFullPath($sourceDir).TrimEnd('\','/')
+  $copied = 0
+  foreach ($file in (Get-ChildItem -LiteralPath $sourceDir -Recurse -File -Force | Sort-Object FullName)) {
+    $rel = Get-RelativePathFromBase $legacyBase $file.FullName
+    $relNorm = ($rel -replace '\\','/')
+    $excluded = $false
+    foreach ($pattern in $ExcludeRegex) {
+      if ($relNorm -match $pattern) { $excluded = $true; break }
+    }
+    if ($excluded) { continue }
+    $destination = Join-Path $BoundRoot (($CanonicalRelativeDir.TrimEnd('/') + '/' + $relNorm) -replace '/', [IO.Path]::DirectorySeparatorChar)
+    if ([IO.Path]::GetFullPath($file.FullName) -eq [IO.Path]::GetFullPath($destination)) { continue }
+    Ensure-Directory (Split-Path -Parent $destination)
+    Copy-Item -LiteralPath $file.FullName -Destination $destination -Force
+    $copied++
+  }
+  return $copied
+}
+
+function Copy-BoundLegacyInstanceStateToCanonical([string]$BoundRoot) {
+  $files = 0
+  $files += Copy-BoundLegacyFileToCanonical $BoundRoot 'PROGRESS.md' 'instance/PROGRESS.md'
+  $files += Copy-BoundLegacyFileToCanonical $BoundRoot 'orquestador/memory/memory-registry.yaml' 'instance/memory/memory-registry.yaml'
+  $files += Copy-BoundLegacyFileToCanonical $BoundRoot 'orquestador/runtime/gateway-rate.json' 'instance/runtime/gateway-rate.json'
+  $files += Copy-BoundLegacyFileToCanonical $BoundRoot 'mcp/agents-backend.local.yaml' 'instance/mcp/agents-backend.local.yaml'
+
+  $files += Copy-BoundLegacyTreeToCanonical $BoundRoot 'orquestador/context' 'instance/context'
+  foreach ($layer in @('local','project','cycle','daily','complete')) {
+    $files += Copy-BoundLegacyTreeToCanonical $BoundRoot "orquestador/memory/$layer" "instance/memory/$layer"
+  }
+  $files += Copy-BoundLegacyTreeToCanonical $BoundRoot 'orquestador/sdd/progress' 'instance/sdd/progress' @('^schemas/','^templates/','^_README[.]md$')
+  $files += Copy-BoundLegacyTreeToCanonical $BoundRoot 'orquestador/sdd/specs' 'instance/sdd/specs' @('^_template/')
+  $files += Copy-BoundLegacyTreeToCanonical $BoundRoot 'orquestador/migration/backups' 'instance/migration/backups'
+  $files += Copy-BoundLegacyTreeToCanonical $BoundRoot 'orquestador/migration/reports' 'instance/migration/reports' @('^migration-report[.]template[.]yaml$')
+  $files += Copy-BoundLegacyTreeToCanonical $BoundRoot 'orquestador/runtime/claude' 'instance/runtime/claude'
+  return [ordered]@{ files = $files }
+}
+
 function Update-BoundProjectBindingVersion([string]$BoundRoot, [string]$Version) {
-  $bindingPath = Join-Path $BoundRoot 'PROJECT_BINDING.yaml'
+  $bindingPath = Resolve-BoundHarnessPath $BoundRoot 'PROJECT_BINDING.yaml'
   if (-not (Test-Path -LiteralPath $bindingPath -PathType Leaf)) { throw 'bound harness missing PROJECT_BINDING.yaml' }
   $text = [IO.File]::ReadAllText($bindingPath)
   $oldVersion = Get-Scalar $text 'harness_version'
   $instanceId = Get-Scalar $text 'harness_instance_id'
   $projectRoot = Get-Scalar $text 'project_root'
   $text = Set-TopLevelScalar $text 'harness_version' (ConvertTo-YamlDouble $Version)
-  Write-Utf8Text $bindingPath ($text.TrimEnd("`r","`n") + "`n")
+  Write-Utf8Text (Resolve-BoundCanonicalPath $BoundRoot 'PROJECT_BINDING.yaml') ($text.TrimEnd("`r","`n") + "`n")
   return [ordered]@{ OldVersion = $oldVersion; InstanceId = $instanceId; ProjectRoot = $projectRoot }
 }
 
@@ -704,12 +802,12 @@ required_evidence:
   - preserved_state_registry_memory
 success_rule: "migration_status can be applied only when backup, preservation and validators are true."
 "@
-  $contractPath = Join-Path $BoundRoot 'orquestador/migration/contracts/post-migration-contract.yaml'
+  $contractPath = Resolve-BoundCanonicalPath $BoundRoot 'orquestador/migration/contracts/post-migration-contract.yaml'
   Write-Utf8Text $contractPath ($contract + "`n")
   return $contractPath
 }
 
-function Write-BoundUpdateMigrationReport([string]$BoundRoot, [string]$UpdateId, [string]$SourceVersion, [string]$TargetVersion, [string]$ProjectRootPath, [object]$Backup, [hashtable]$ValidatorResults, [object]$CopyResult, [string]$StartedAt, [string]$FinishedAt) {
+function Write-BoundUpdateMigrationReport([string]$BoundRoot, [string]$UpdateId, [string]$SourceVersion, [string]$TargetVersion, [string]$ProjectRootPath, [object]$Backup, [hashtable]$ValidatorResults, [object]$CopyResult, [object]$InstanceCopyResult, [string]$StartedAt, [string]$FinishedAt) {
   $validateAgent = if ($ValidatorResults.ContainsKey('validate_agent_contracts')) { $ValidatorResults['validate_agent_contracts'] } else { 'not_run' }
   $validateSecurity = if ($ValidatorResults.ContainsKey('validate_security_policy')) { $ValidatorResults['validate_security_policy'] } else { 'not_run' }
   $validateMigration = if ($ValidatorResults.ContainsKey('validate_migration')) { $ValidatorResults['validate_migration'] } else { 'not_run' }
@@ -748,6 +846,7 @@ apply:
   files_added_or_updated_from_manifest: $($CopyResult.files)
   directories_ensured: $($CopyResult.directories)
   manifest_files_preserved: $($CopyResult.preserved)
+  legacy_instance_files_copied_to_instance: $($InstanceCopyResult.files)
   files_preserved:
     - $(Format-YamlString 'PROJECT_BINDING.yaml identity and project root')
     - $(Format-YamlString 'state, registry, cycles, locks and approvals')
@@ -758,14 +857,14 @@ validators:
   validate_migration: $validateMigration
   validate_harness: $validateHarness
 post_migration_contract:
-  path: $(Format-YamlString (Join-Path $BoundRoot 'orquestador/migration/contracts/post-migration-contract.yaml'))
+  path: $(Format-YamlString (Resolve-BoundHarnessPath $BoundRoot 'orquestador/migration/contracts/post-migration-contract.yaml'))
   status: applied
 risks:
   - $(Format-YamlString 'update-bound overwrites only manifest-declared non-preserved harness files')
 next_steps:
   - $(Format-YamlString 'Continue using the existing bound .hebrinex authority')
 "@
-  $reportPath = Join-Path $BoundRoot "orquestador/migration/reports/$UpdateId.yaml"
+  $reportPath = Resolve-BoundCanonicalPath $BoundRoot "orquestador/migration/reports/$UpdateId.yaml"
   Write-Utf8Text $reportPath ($report + "`n")
   return $reportPath
 }
@@ -774,7 +873,7 @@ function Resolve-BoundUpdateTarget([string]$SourceRoot, [string]$ProjectRootValu
   $projectRootPath = Resolve-BootstrapProjectRoot $SourceRoot $ProjectRootValue
   $boundRoot = Join-Path $projectRootPath '.hebrinex'
   if (-not (Test-Path -LiteralPath $boundRoot -PathType Container)) { throw "target project does not have .hebrinex: $boundRoot" }
-  $bindingPath = Join-Path $boundRoot 'PROJECT_BINDING.yaml'
+  $bindingPath = Resolve-BoundHarnessPath $boundRoot 'PROJECT_BINDING.yaml'
   if (-not (Test-Path -LiteralPath $bindingPath -PathType Leaf)) { throw 'target .hebrinex missing PROJECT_BINDING.yaml' }
   $binding = [IO.File]::ReadAllText($bindingPath)
   if ((Get-Scalar $binding 'binding_mode') -ne 'bound') { throw 'target .hebrinex must have binding_mode bound' }
@@ -800,6 +899,7 @@ function Invoke-BoundUpdateApply([string]$ProjectRootValue) {
 
   $backup = Create-BoundUpdateBackupRecord $target.BoundRoot $updateId
   $copyResult = Copy-HarnessManifestToExistingBoundRoot $target.BoundRoot
+  $instanceCopyResult = Copy-BoundLegacyInstanceStateToCanonical $target.BoundRoot
   $gitignoreUpdated = Ensure-ConsumerGitIgnore $target.ProjectRoot
   $bindingInfo = Update-BoundProjectBindingVersion $target.BoundRoot $version
   [void](Set-BoundUpdatePostMigrationContractFile $target.BoundRoot $sourceVersion $version)
@@ -807,10 +907,10 @@ function Invoke-BoundUpdateApply([string]$ProjectRootValue) {
   $validatorResults = @{}
   $validatorResults['validate_agent_contracts'] = Invoke-BoundValidator $target.BoundRoot 'scripts/validate-agent-contracts.ps1'
   $validatorResults['validate_security_policy'] = Invoke-BoundValidator $target.BoundRoot 'scripts/validate-security-policy.ps1'
-  $reportPath = Write-BoundUpdateMigrationReport $target.BoundRoot $updateId $sourceVersion $version $target.ProjectRoot $backup $validatorResults $copyResult $startedAt (Get-Date).ToUniversalTime().ToString('o')
-  $validatorResults['validate_migration'] = Invoke-BoundValidator $target.BoundRoot 'scripts/validate-migration.ps1' @('-RequireApplied')
-  $validatorResults['validate_harness'] = Invoke-BoundValidator $target.BoundRoot 'scripts/validate-harness.ps1' @('-RunNegativeTests','-SkipNestedValidators')
-  $reportPath = Write-BoundUpdateMigrationReport $target.BoundRoot $updateId $sourceVersion $version $target.ProjectRoot $backup $validatorResults $copyResult $startedAt (Get-Date).ToUniversalTime().ToString('o')
+  $reportPath = Write-BoundUpdateMigrationReport $target.BoundRoot $updateId $sourceVersion $version $target.ProjectRoot $backup $validatorResults $copyResult $instanceCopyResult $startedAt (Get-Date).ToUniversalTime().ToString('o')
+  $validatorResults['validate_migration'] = Invoke-BoundValidator $target.BoundRoot 'scripts/validate-migration.ps1' -ExtraArgs @('-RequireApplied')
+  $validatorResults['validate_harness'] = Invoke-BoundValidator $target.BoundRoot 'scripts/validate-harness.ps1' -ExtraArgs @('-SkipNestedValidators')
+  $reportPath = Write-BoundUpdateMigrationReport $target.BoundRoot $updateId $sourceVersion $version $target.ProjectRoot $backup $validatorResults $copyResult $instanceCopyResult $startedAt (Get-Date).ToUniversalTime().ToString('o')
 
   return [ordered]@{
     ProjectRoot = $target.ProjectRoot
@@ -821,6 +921,7 @@ function Invoke-BoundUpdateApply([string]$ProjectRootValue) {
     CopiedFiles = $copyResult.files
     CopiedDirectories = $copyResult.directories
     PreservedManifestFiles = $copyResult.preserved
+    LegacyInstanceFilesCopied = $instanceCopyResult.files
     GitignoreUpdated = $gitignoreUpdated
     BackupPath = $backup.Path
     BackupManifest = $backup.ManifestPath
@@ -866,7 +967,7 @@ function Test-SafeBackupId([string]$Value) {
 
 function Resolve-BoundRestoreBackup([string]$BoundRoot, [string]$RequestedBackupId) {
   if (-not (Test-SafeBackupId $RequestedBackupId)) { throw 'restore-bound requires safe -BackupId' }
-  $backupRoot = Join-Path $BoundRoot 'orquestador/migration/backups'
+  $backupRoot = Resolve-BoundHarnessPath $BoundRoot 'orquestador/migration/backups'
   $backupPath = Join-Path $backupRoot $RequestedBackupId
   $backupFull = [IO.Path]::GetFullPath($backupPath).TrimEnd('\','/')
   $backupRootFull = [IO.Path]::GetFullPath($backupRoot).TrimEnd('\','/')
@@ -980,7 +1081,7 @@ function Get-BoundBackupInventoryItem([string]$BoundRoot, [object]$BackupDirecto
 }
 
 function Get-BoundBackupInventory([string]$BoundRoot) {
-  $backupRoot = Join-Path $BoundRoot 'orquestador/migration/backups'
+  $backupRoot = Resolve-BoundHarnessPath $BoundRoot 'orquestador/migration/backups'
   $items = New-Object System.Collections.Generic.List[object]
   if (-not (Test-Path -LiteralPath $backupRoot -PathType Container)) {
     return [ordered]@{ BackupRoot = $backupRoot; Items = $items }
@@ -1093,14 +1194,14 @@ validators:
   validate_migration: $validateMigration
   validate_harness: $validateHarness
 post_migration_contract:
-  path: $(Format-YamlString (Join-Path $BoundRoot 'orquestador/migration/contracts/post-migration-contract.yaml'))
+  path: $(Format-YamlString (Resolve-BoundHarnessPath $BoundRoot 'orquestador/migration/contracts/post-migration-contract.yaml'))
   status: applied
 risks:
   - $(Format-YamlString 'restore-bound overwrites only files present in the selected backup manifest')
 next_steps:
   - $(Format-YamlString 'Review restored harness state before the next update-bound operation')
 "@
-  $reportPath = Join-Path $BoundRoot "orquestador/migration/reports/$RestoreId.yaml"
+  $reportPath = Resolve-BoundCanonicalPath $BoundRoot "orquestador/migration/reports/$RestoreId.yaml"
   Write-Utf8Text $reportPath ($report + "`n")
   return $reportPath
 }
@@ -1124,8 +1225,8 @@ function Invoke-BoundRestoreApply([string]$ProjectRootValue, [string]$RequestedB
   $validatorResults['validate_agent_contracts'] = Invoke-BoundValidator $target.BoundRoot 'scripts/validate-agent-contracts.ps1'
   $validatorResults['validate_security_policy'] = Invoke-BoundValidator $target.BoundRoot 'scripts/validate-security-policy.ps1'
   $reportPath = Write-BoundRestoreMigrationReport $target.BoundRoot $restoreId $sourceVersion $targetVersion $target.ProjectRoot $restoreSource $preRestoreBackup $validatorResults $restoredFiles $startedAt (Get-Date).ToUniversalTime().ToString('o')
-  $validatorResults['validate_migration'] = Invoke-BoundValidator $target.BoundRoot 'scripts/validate-migration.ps1' @('-RequireApplied')
-  $validatorResults['validate_harness'] = Invoke-BoundValidator $target.BoundRoot 'scripts/validate-harness.ps1' @('-RunNegativeTests','-SkipNestedValidators')
+  $validatorResults['validate_migration'] = Invoke-BoundValidator $target.BoundRoot 'scripts/validate-migration.ps1' -ExtraArgs @('-RequireApplied')
+  $validatorResults['validate_harness'] = Invoke-BoundValidator $target.BoundRoot 'scripts/validate-harness.ps1' -ExtraArgs @('-SkipNestedValidators')
   $reportPath = Write-BoundRestoreMigrationReport $target.BoundRoot $restoreId $sourceVersion $targetVersion $target.ProjectRoot $restoreSource $preRestoreBackup $validatorResults $restoredFiles $startedAt (Get-Date).ToUniversalTime().ToString('o')
 
   return [ordered]@{
@@ -1185,7 +1286,26 @@ function Invoke-BoundValidator([string]$BoundRoot, [string]$RelativePath, [strin
   $scriptPath = Join-Path $BoundRoot $RelativePath
   if (-not (Test-Path -LiteralPath $scriptPath -PathType Leaf)) { throw "missing bound validator: $RelativePath" }
   $global:LASTEXITCODE = 0
-  $validatorOutput = & $scriptPath -Root $BoundRoot @ExtraArgs *>&1
+  try {
+    if ($ExtraArgs -contains '-RequireApplied') {
+      $validatorOutput = & $scriptPath -Root $BoundRoot -RequireApplied *>&1
+    }
+    elseif (($ExtraArgs -contains '-RunNegativeTests') -and ($ExtraArgs -contains '-SkipNestedValidators')) {
+      $validatorOutput = & $scriptPath -Root $BoundRoot -RunNegativeTests -SkipNestedValidators *>&1
+    }
+    elseif ($ExtraArgs -contains '-SkipNestedValidators') {
+      $validatorOutput = & $scriptPath -Root $BoundRoot -SkipNestedValidators *>&1
+    }
+    elseif ($ExtraArgs -contains '-RunNegativeTests') {
+      $validatorOutput = & $scriptPath -Root $BoundRoot -RunNegativeTests *>&1
+    }
+    else {
+      $validatorOutput = & $scriptPath -Root $BoundRoot *>&1
+    }
+  }
+  catch {
+    throw "bound validator failed: $RelativePath exception=$($_.Exception.Message)"
+  }
   if ($LASTEXITCODE -ne 0) {
     throw "bound validator failed: $RelativePath exit_code=$LASTEXITCODE output=$(Format-BoundValidatorOutput $validatorOutput)"
   }
@@ -1218,8 +1338,8 @@ function Invoke-BootstrapApply([string]$ProjectRootValue) {
   $validatorResults['validate_agent_contracts'] = Invoke-BoundValidator $boundRoot 'scripts/validate-agent-contracts.ps1'
   $validatorResults['validate_security_policy'] = Invoke-BoundValidator $boundRoot 'scripts/validate-security-policy.ps1'
   $reportPath = Write-BootstrapMigrationReport $boundRoot $bootstrapId $version $projectRootPath $backup $validatorResults $startedAt (Get-Date).ToUniversalTime().ToString('o')
-  $validatorResults['validate_migration'] = Invoke-BoundValidator $boundRoot 'scripts/validate-migration.ps1' @('-RequireApplied')
-  $validatorResults['validate_harness'] = Invoke-BoundValidator $boundRoot 'scripts/validate-harness.ps1' @('-RunNegativeTests','-SkipNestedValidators')
+  $validatorResults['validate_migration'] = Invoke-BoundValidator $boundRoot 'scripts/validate-migration.ps1' -ExtraArgs @('-RequireApplied')
+  $validatorResults['validate_harness'] = Invoke-BoundValidator $boundRoot 'scripts/validate-harness.ps1' -ExtraArgs @('-SkipNestedValidators')
   $reportPath = Write-BootstrapMigrationReport $boundRoot $bootstrapId $version $projectRootPath $backup $validatorResults $startedAt (Get-Date).ToUniversalTime().ToString('o')
 
   return [ordered]@{
@@ -1276,7 +1396,7 @@ function Show-Help() {
   Write-Host '  hebrinex.ps1 approve -CheckOnly|-Apply -CommandText <command> [-Purpose <text>] [-TtlMinutes <1-1440>]'
   Write-Host '  hebrinex.ps1 validate [-RunNegativeTests]'
   Write-Host '  hebrinex.ps1 audit [-RunNegativeTests]'
-  Write-Host '  hebrinex.ps1 migrate -CheckOnly|-Apply [-TargetVersion 0.16.0]'
+  Write-Host '  hebrinex.ps1 migrate -CheckOnly|-Apply [-TargetVersion 0.17.0]'
   Write-Host '  hebrinex.ps1 bootstrap -CheckOnly|-Apply -ProjectRoot <path>'
   Write-Host '  hebrinex.ps1 update-bound -CheckOnly|-Apply -ProjectRoot <path>'
   Write-Host '  hebrinex.ps1 list-bound-backups -CheckOnly -ProjectRoot <path>'

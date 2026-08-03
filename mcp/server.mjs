@@ -125,10 +125,49 @@ function runGit(args, { timeoutMs = 30_000 } = {}) {
 // ---------------------------------------------------------------------------
 
 function readText(relativePath) {
-  const path = join(ROOT, relativePath);
+  const path = resolveHarnessPath(relativePath);
   if (!existsSync(path)) return null;
   // Normaliza BOM y CRLF para que los helpers de escalares operen sobre LF.
   return readFileSync(path, 'utf8').replace(/^﻿/, '').replace(/\r\n/g, '\n');
+}
+
+function getInstanceRelativePath(relativePath) {
+  const norm = relativePath.replace(/\\/g, '/').replace(/^\.?\//, '');
+  if (norm === 'PROJECT_BINDING.yaml') return 'instance/PROJECT_BINDING.yaml';
+  if (norm === 'PROGRESS.md') return 'instance/PROGRESS.md';
+  if (norm === 'orquestador/context') return 'instance/context';
+  if (norm.startsWith('orquestador/context/')) return norm.replace(/^orquestador\/context\//, 'instance/context/');
+  if (norm === 'orquestador/memory/memory-registry.yaml') return 'instance/memory/memory-registry.yaml';
+  if (/^orquestador\/memory\/(local|project|cycle|daily|complete)$/.test(norm)) {
+    return norm.replace(/^orquestador\/memory\//, 'instance/memory/');
+  }
+  if (/^orquestador\/memory\/(local|project|cycle|daily|complete)(\/.*)?$/.test(norm)) {
+    return norm.replace(/^orquestador\/memory\//, 'instance/memory/');
+  }
+  if (norm === 'orquestador/sdd/progress') return 'instance/sdd/progress';
+  if (/^orquestador\/sdd\/progress\/(schemas|templates)(\/.*)?$/.test(norm) || norm === 'orquestador/sdd/progress/_README.md') return norm;
+  if (norm.startsWith('orquestador/sdd/progress/')) return norm.replace(/^orquestador\/sdd\/progress\//, 'instance/sdd/progress/');
+  if (norm === 'orquestador/sdd/specs') return 'instance/sdd/specs';
+  if (norm.startsWith('orquestador/sdd/specs/_template/')) return norm;
+  if (norm.startsWith('orquestador/sdd/specs/')) return norm.replace(/^orquestador\/sdd\/specs\//, 'instance/sdd/specs/');
+  if (norm === 'orquestador/migration/contracts/post-migration-contract.yaml') return 'instance/migration/contracts/post-migration-contract.yaml';
+  if (norm === 'orquestador/migration/reports/migration-report.template.yaml') return norm;
+  if (norm === 'orquestador/migration/backups') return 'instance/migration/backups';
+  if (norm.startsWith('orquestador/migration/backups/')) return norm.replace(/^orquestador\/migration\/backups/, 'instance/migration/backups');
+  if (norm === 'orquestador/migration/reports') return 'instance/migration/reports';
+  if (norm.startsWith('orquestador/migration/reports/')) return norm.replace(/^orquestador\/migration\/reports\//, 'instance/migration/reports/');
+  if (norm === 'orquestador/runtime/gateway-rate.json') return 'instance/runtime/gateway-rate.json';
+  if (norm === 'orquestador/runtime/claude') return 'instance/runtime/claude';
+  if (norm.startsWith('orquestador/runtime/claude/')) return norm.replace(/^orquestador\/runtime\/claude/, 'instance/runtime/claude');
+  if (norm === 'mcp/agents-backend.local.yaml') return 'instance/mcp/agents-backend.local.yaml';
+  return norm;
+}
+
+function resolveHarnessPath(relativePath) {
+  const mapped = getInstanceRelativePath(relativePath);
+  const mappedPath = join(ROOT, mapped);
+  if (mapped !== relativePath.replace(/\\/g, '/').replace(/^\.?\//, '') && existsSync(mappedPath)) return mappedPath;
+  return join(ROOT, relativePath);
 }
 
 function stripQuotes(value) {
@@ -237,7 +276,7 @@ function fail(payload) {
 
 const server = new McpServer({
   name: 'hebrinex',
-  version: '0.16.0',
+  version: '0.17.0',
 });
 
 // ---------------------------------------------------------------------------
@@ -636,7 +675,7 @@ server.registerTool('memory_route', {
   }
   const contractStatus = getSectionScalar(state, 'session_contract', 'status');
   const cycleStatus = getSectionScalar(state, 'active_cycle', 'status');
-  const progressDir = join(ROOT, 'orquestador/sdd/progress');
+  const progressDir = resolveHarnessPath('orquestador/sdd/progress');
   const handoffs = existsSync(progressDir)
     ? readdirSync(progressDir).filter((name) => /^HANDOFF-.*\.md$/i.test(name))
     : [];
@@ -721,7 +760,7 @@ server.registerTool('close_cycle_check', {
   }
 
   // Handoffs de continuidad abiertos bloquean el cierre (hard lock 5).
-  const progressDir = join(ROOT, 'orquestador/sdd/progress');
+  const progressDir = resolveHarnessPath('orquestador/sdd/progress');
   const handoffs = existsSync(progressDir)
     ? readdirSync(progressDir).filter((name) => /^HANDOFF-.*\.md$/i.test(name))
     : [];

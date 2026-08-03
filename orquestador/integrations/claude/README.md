@@ -10,7 +10,7 @@ Uso recomendado:
 
 Modo por defecto: `warn`. `enforce` solo para acciones con efecto.
 
-Subagentes de rol nativos (0.16.0): `agents/auditor-detractor.md` y
+Subagentes de rol nativos (0.17.0): `agents/auditor-detractor.md` y
 `agents/reviewer.md` (GENERADOS por `scripts/build-instructions.ps1` desde la
 fuente unica `agents/<rol>.md`; tools read-only). Se instalan en el
 `.claude/agents/` del proyecto con

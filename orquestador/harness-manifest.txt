@@ -2,6 +2,7 @@
 # Format:
 
 dir agents
+dir instance
 dir mcp
 dir orquestador
 dir orquestador/adapters
@@ -43,6 +44,8 @@ file agents/spec_author.md
 file agents/worker.md
 file CHANGELOG.md
 file HARNESS_VERSION
+file SHARED_MANIFEST.yaml
+file instance/README.md
 file init.sh
 file mcp/agent-backends.mjs
 file mcp/agents-backend.yaml
@@ -344,6 +347,7 @@ file scripts/validate-mcp.ps1
 file scripts/validate-migration.ps1
 file scripts/migrate-harness.ps1
 file scripts/hebrinex.ps1
+file scripts/hebrinex-screen.ps1
 file scripts/validate-cli.ps1
 file scripts/validate-fixtures.ps1
 file scripts/command-gateway.ps1
@@ -362,6 +366,7 @@ file scripts/validate-harness.ps1
 file agents/_schema.md
 file agents/detractor-senior.md
 file orquestador/method/minimal-implementation-policy.md
+file orquestador/method/provider-screen-contract.md
 file orquestador/sdd/progress/templates/detractor-senior-checklist.md
 file prompts/audit/detractor-senior.prompt.md
 dir orquestador/portability
@@ -454,6 +459,7 @@ file orquestador/migration/versions/0.13.0-to-0.13.1.yaml
 file orquestador/migration/versions/0.13.0-to-0.14.0.yaml
 file orquestador/migration/versions/0.14.0-to-0.15.0.yaml
 file orquestador/migration/versions/0.15.0-to-0.16.0.yaml
+file orquestador/migration/versions/0.16.0-to-0.17.0.yaml
 file orquestador/runtime/schemas/state-machine-decision.schema.json
 file orquestador/runtime/schemas/agent-runtime-decision.schema.json
 file orquestador/runtime/templates/state-machine-decision.template.json

@@ -1,9 +1,9 @@
 schema: hebrinex.post_migration_contract
 version: "0.1"
 template: true
-harness_version: "0.16.0"
+harness_version: "0.17.0"
 source_version: ""
-target_version: "0.16.0"
+target_version: "0.17.0"
 binding_mode: ""
 project_root_verified: false
 agent_authority: harness_only

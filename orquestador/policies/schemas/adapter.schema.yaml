@@ -25,6 +25,6 @@ allowed_values:
   # supports_hooks (adapter) / hook_support (matrix): prohibido "unknown".
 required_values:
   schema: hebrinex.adapter
-  harness_version: "0.16.0"
+  harness_version: "0.17.0"
   memory_reliability: untrusted_for_evidence
   preflight_enforcement: required_before_effects

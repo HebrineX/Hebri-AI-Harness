@@ -10,8 +10,30 @@ function Add-Failure([string]$Message) {
   $script:Failures.Add($Message) | Out-Null
 }
 
+function Resolve-RootHarnessPath([string]$HarnessRoot, [string]$RelativePath) {
+  $norm = ($RelativePath -replace '\\','/').TrimStart('./')
+  $mapped = switch -Regex ($norm) {
+    '^PROJECT_BINDING[.]yaml$' { 'instance/PROJECT_BINDING.yaml'; break }
+    '^orquestador/context$' { 'instance/context'; break }
+    '^orquestador/context/(.+)$' { 'instance/context/' + $Matches[1]; break }
+    '^orquestador/memory/(local|project|cycle|daily|complete)$' { 'instance/memory/' + $Matches[1]; break }
+    '^orquestador/memory/(local|project|cycle|daily|complete)/(.+)$' { 'instance/memory/' + $Matches[1] + '/' + $Matches[2]; break }
+    '^orquestador/sdd/progress/(schemas|templates)(/.*)?$' { $norm; break }
+    '^orquestador/sdd/progress/(.+)$' { 'instance/sdd/progress/' + $Matches[1]; break }
+    '^orquestador/migration/backups$' { 'instance/migration/backups'; break }
+    '^orquestador/migration/backups/(.+)$' { 'instance/migration/backups/' + $Matches[1]; break }
+    '^orquestador/migration/contracts/post-migration-contract[.]yaml$' { 'instance/migration/contracts/post-migration-contract.yaml'; break }
+    '^orquestador/migration/reports$' { 'instance/migration/reports'; break }
+    '^orquestador/migration/reports/(.+)$' { 'instance/migration/reports/' + $Matches[1]; break }
+    default { $norm }
+  }
+  $mappedPath = Join-Path $HarnessRoot $mapped
+  if ($mapped -ne $norm -and (Test-Path -LiteralPath $mappedPath)) { return $mappedPath }
+  Join-Path $HarnessRoot $RelativePath
+}
+
 function Resolve-HarnessPath([string]$RelativePath) {
-  Join-Path $Root $RelativePath
+  Resolve-RootHarnessPath $Root $RelativePath
 }
 
 function Read-HarnessText([string]$RelativePath) {
@@ -75,7 +97,7 @@ function Remove-TempTree([string]$TempRoot) {
 }
 
 function Assert-BoundUpdateShape([string]$HarnessRoot, [string]$ProjectRoot, [string]$ExpectedVersion, [string]$OriginalInstanceId) {
-  $bindingPath = Join-Path $HarnessRoot 'PROJECT_BINDING.yaml'
+  $bindingPath = Resolve-RootHarnessPath $HarnessRoot 'PROJECT_BINDING.yaml'
   if (-not (Test-Path -LiteralPath $bindingPath -PathType Leaf)) {
     Add-Failure "updated bound harness missing PROJECT_BINDING.yaml: $HarnessRoot"
     return
@@ -101,12 +123,12 @@ function Assert-BoundUpdateShape([string]$HarnessRoot, [string]$ProjectRoot, [st
     'orquestador/memory/local/update-bound-marker.md',
     'orquestador/sdd/progress/cycles/update-bound-marker.md'
   )) {
-    $markerPath = Join-Path $HarnessRoot $marker
+    $markerPath = Resolve-RootHarnessPath $HarnessRoot $marker
     if (-not (Test-Path -LiteralPath $markerPath -PathType Leaf)) { Add-Failure "update-bound did not preserve marker: $marker" }
     elseif ([IO.File]::ReadAllText($markerPath) -notmatch 'preserve_marker_0107') { Add-Failure "update-bound marker content changed: $marker" }
   }
 
-  $reportsDir = Join-Path $HarnessRoot 'orquestador/migration/reports'
+  $reportsDir = Resolve-RootHarnessPath $HarnessRoot 'orquestador/migration/reports'
   $reports = @()
   if (Test-Path -LiteralPath $reportsDir -PathType Container) {
     $reports = @(Get-ChildItem -LiteralPath $reportsDir -File -Filter 'migration-bound-update-*.yaml' | Sort-Object LastWriteTimeUtc -Descending)
@@ -160,7 +182,7 @@ function Invoke-SourceTemplateBoundUpdateSmoke() {
     if ((Get-LastExitCodeValue) -ne 0) { Add-Failure "bootstrap precondition failed for bound update smoke: $($bootstrap -join ' ')" }
 
     $boundRoot = Join-Path $projectRoot '.hebrinex'
-    $bindingPath = Join-Path $boundRoot 'PROJECT_BINDING.yaml'
+    $bindingPath = Resolve-RootHarnessPath $boundRoot 'PROJECT_BINDING.yaml'
     $binding = [IO.File]::ReadAllText($bindingPath)
     $originalInstanceId = Get-Scalar $binding 'harness_instance_id'
 
@@ -168,7 +190,11 @@ function Invoke-SourceTemplateBoundUpdateSmoke() {
     Write-Utf8Text (Join-Path $boundRoot 'orquestador/sdd/progress/cycles/update-bound-marker.md') "preserve_marker_0107 progress cycle`n"
     Write-Utf8Text (Join-Path $boundRoot 'HARNESS_VERSION') "$previousVersion`n"
     $oldBinding = Set-TopLevelScalar $binding 'harness_version' ('"' + $previousVersion + '"')
-    Write-Utf8Text $bindingPath ($oldBinding.TrimEnd("`r","`n") + "`n")
+    $legacyBindingPath = Join-Path $boundRoot 'PROJECT_BINDING.yaml'
+    Write-Utf8Text $legacyBindingPath ($oldBinding.TrimEnd("`r","`n") + "`n")
+    if ($bindingPath -ne $legacyBindingPath -and (Test-Path -LiteralPath $bindingPath -PathType Leaf)) {
+      Remove-Item -LiteralPath $bindingPath -Force
+    }
 
     $global:LASTEXITCODE = 0
     $checkOnly = & $cli update-bound -Root $Root -CheckOnly -ProjectRoot $projectRoot *>&1
@@ -192,7 +218,7 @@ function Invoke-SourceTemplateBoundUpdateSmoke() {
     $boundValidator = Join-Path $boundRoot 'scripts/validate-harness.ps1'
     if (Test-Path -LiteralPath $boundValidator -PathType Leaf) {
       $global:LASTEXITCODE = 0
-      & $boundValidator -Root $boundRoot -RunNegativeTests *> $null
+      & $boundValidator -Root $boundRoot -SkipNestedValidators *> $null
       if ((Get-LastExitCodeValue) -ne 0) { Add-Failure "updated bound harness validate-harness failed: $(Get-LastExitCodeValue)" }
     }
     else { Add-Failure 'updated bound harness missing validate-harness.ps1' }

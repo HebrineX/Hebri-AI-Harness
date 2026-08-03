@@ -2,6 +2,17 @@
 
 ## [Unreleased]
 
+## [0.17.0] - 2026-08-03
+
+### Added
+- `SHARED_MANIFEST.yaml` como contrato versionado para consumidores: `shared_dirs` reemplaza listas hardcodeadas de cache compartida, `instance_dirs` declara copia real por proyecto e `instance_path_map` documenta la migracion desde rutas legacy 0.16.x.
+- Carpeta canonica `instance/` para estado por proyecto, con README operativo y ruta de migracion `orquestador/migration/versions/0.16.0-to-0.17.0.yaml`.
+
+### Changed
+- `harness-resolution.md` ahora exige que las CLIs consumidoras lean `SHARED_MANIFEST.yaml` antes de decidir junction/symlink vs copia real.
+- `update-bound` preserva estado legacy y copia binding, progreso, memoria, specs reales, backups/reportes, runtime generado y overrides MCP locales hacia `instance/` sin romper `binding_mode: bound`.
+- Runtime, MCP y validadores resuelven rutas con compatibilidad: prefieren `instance/` si existe y caen a la estructura 0.16.x durante migracion.
+
 ## [0.16.0] - 2026-07-05
 
 ### Added

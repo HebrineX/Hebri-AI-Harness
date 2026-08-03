@@ -251,8 +251,8 @@ function Write-MigrationReport(
   $preserveYaml = ConvertTo-YamlList $Preserve '    '
   $modifiedYaml = ConvertTo-YamlList @('orquestador/migration/contracts/post-migration-contract.yaml') '    '
   $filesAddedYaml = ConvertTo-YamlList @() '    '
-  $risksYaml = ConvertTo-YamlList @('HARNESS_VERSION is preserved in this slice; final version bump remains a separate release gate.') '  '
-  $nextStepsYaml = ConvertTo-YamlList @('Integrate migration validation into audit-harness, validate-harness and init.sh.', 'Run final auditors before changing HARNESS_VERSION.') '  '
+  $risksYaml = ConvertTo-YamlList @('0.17.0 changes the shared-cache contract; consumers must read SHARED_MANIFEST.yaml before sharing directories.') '  '
+  $nextStepsYaml = ConvertTo-YamlList @('Update consumers to read SHARED_MANIFEST.yaml.', 'Run final validators before publishing 0.17.0.') '  '
 
   $validateAgent = $ValidatorResults['validate_agent_contracts']
   $validateSecurity = $ValidatorResults['validate_security_policy']

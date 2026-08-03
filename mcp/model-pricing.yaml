@@ -1,6 +1,6 @@
 schema: hebrinex.model_pricing
 version: "0.1"
-harness_version: "0.16.0"
+harness_version: "0.17.0"
 updated_at: "2026-07-05"
 currency: USD
 unit: per_million_tokens

@@ -1,5 +1,5 @@
 schema: hebrinex.schema.instruction_registry
 version: "0.1"
-harness_version: "0.16.0"
+harness_version: "0.17.0"
 required_top_keys: [schema, version, harness_version, fragments, targets]
 required_targets: [claude-code, codex, gemini, generic-ai]

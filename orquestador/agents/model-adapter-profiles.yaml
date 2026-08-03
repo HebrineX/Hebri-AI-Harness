@@ -1,6 +1,6 @@
 schema: hebrinex.model_adapter_profiles
 version: "0.1"
-harness_version: "0.16.0"
+harness_version: "0.17.0"
 authority:
   may_grant_new_capabilities: false
   may_override_role_contract: false

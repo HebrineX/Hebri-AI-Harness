@@ -1,6 +1,6 @@
 # Hebri-AI-Harness
 
-Referencia operativa actual: **0.16.0**.
+Referencia operativa actual: **0.17.0**.
 
 Sistema operativo para agentes IA basado en [Hebri-AI-Structure](https://github.com/HebrineX/Hebri-AI-Structure). Objetivo: contrato, trazabilidad y aprobaciones con el minimo contexto — ahorro medido: 90% (hebrinex usage) frente a leer la documentacion operativa completa (`AGENTS.md` + `method/` + `prompts/`).
 
@@ -34,6 +34,7 @@ Si un proyecto no tiene `.hebrinex`, no se opera con un harness externo. Se copi
 
 ## Novedades Actuales
 
+- Cache compartida declarativa: `SHARED_MANIFEST.yaml` versiona qué directorios son compartibles (`shared_dirs`) y qué estado debe ser copia real por proyecto (`instance_dirs` + `instance_path_map`). La ruta 0.16.0 -> 0.17.0 conserva binding, progreso, memoria, backups/reportes, runtime y overrides locales bajo `instance/`, sin convertir un harness externo en autoridad operativa.
 - Agentes de rol multiplataforma via daemon MCP: tools `agent_audit(plan_or_diff)` (detractor-senior, gate G3A) y `agent_review(diff, acceptance_criteria)` (reviewer) arman el prompt desde la fuente unica `agents/<rol>.md` y lo corren con un backend read-only configurable (`mcp/agents-backend.yaml`: `claude-cli` | `codex-cli` | `none`; override por maquina git-ignored `agents-backend.local.yaml`; interfaz abierta para `ollama`). La MISMA capacidad de auditoria en cualquier host con MCP.
 - Subagentes nativos reales en Claude Code (proyeccion opcional de la misma fuente unica): `auditor-detractor` y `reviewer` con tools read-only enforceadas por el host, generados por el instruction-builder e instalables con `scripts/install-host-integrations.ps1 -HostName claude -Apply`.
 - Adapters nativos generados para Cursor (`.cursor/rules/hebrinex.mdc`) y Copilot (`.github/copilot-instructions.md`) desde los mismos fragments que `AGENTS.md`; instalador `install-host-integrations.ps1 -HostName cursor|copilot`.
@@ -58,7 +59,7 @@ Si un proyecto no tiene `.hebrinex`, no se opera con un harness externo. Se copi
   fixtures de migracion, fixtures negativos de seguridad, CLI estable e `init.sh`.
 - Agent Contract System: los agentes existen por contratos YAML gobernados por el harness, no por prompts ni autoasignacion de IA.
 - Seguridad AppSec verificable: permisos, write-scope, comandos, red, secretos, escalacion, logging y supply-chain se validan por registries.
-- Servicio de migracion: rutas 0.8.10/0.9.0 -> 0.10.0, 0.10.11 -> 0.11.0, 0.11.0 -> 0.12.0, 0.12.0 -> 0.13.0, 0.13.0 -> 0.14.0, 0.14.0 -> 0.15.0 y 0.15.0 -> 0.16.0 con CheckOnly, Apply con backup, reporte y contrato post-migracion aplicado.
+- Servicio de migracion: rutas 0.8.10/0.9.0 -> 0.10.0, 0.10.11 -> 0.11.0, 0.11.0 -> 0.12.0, 0.12.0 -> 0.13.0, 0.13.0 -> 0.14.0, 0.14.0 -> 0.15.0, 0.15.0 -> 0.16.0 y 0.16.0 -> 0.17.0 con CheckOnly, Apply con backup, reporte y contrato post-migracion aplicado.
 - Schemas y fixtures de validacion cubren contratos de agentes, seguridad y
   migracion con casos negativos.
 - Command Gateway seguro: `hebrinex command -CheckOnly` clasifica comandos y

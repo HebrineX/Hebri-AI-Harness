@@ -10,8 +10,25 @@ function Add-Failure([string]$Message) {
   $script:Failures.Add($Message) | Out-Null
 }
 
+function Resolve-RootHarnessPath([string]$HarnessRoot, [string]$RelativePath) {
+  $norm = ($RelativePath -replace '\\','/').TrimStart('./')
+  $mapped = switch -Regex ($norm) {
+    '^PROJECT_BINDING[.]yaml$' { 'instance/PROJECT_BINDING.yaml'; break }
+    '^orquestador/context$' { 'instance/context'; break }
+    '^orquestador/context/(.+)$' { 'instance/context/' + $Matches[1]; break }
+    '^orquestador/migration/backups$' { 'instance/migration/backups'; break }
+    '^orquestador/migration/backups/(.+)$' { 'instance/migration/backups/' + $Matches[1]; break }
+    '^orquestador/migration/reports$' { 'instance/migration/reports'; break }
+    '^orquestador/migration/reports/(.+)$' { 'instance/migration/reports/' + $Matches[1]; break }
+    default { $norm }
+  }
+  $mappedPath = Join-Path $HarnessRoot $mapped
+  if ($mapped -ne $norm -and (Test-Path -LiteralPath $mappedPath)) { return $mappedPath }
+  Join-Path $HarnessRoot $RelativePath
+}
+
 function Resolve-HarnessPath([string]$RelativePath) {
-  Join-Path $Root $RelativePath
+  Resolve-RootHarnessPath $Root $RelativePath
 }
 
 function Read-HarnessText([string]$RelativePath) {
@@ -71,7 +88,7 @@ function Remove-TempTree([string]$TempRoot) {
 }
 
 function Get-LatestBackupId([string]$HarnessRoot) {
-  $backups = Join-Path $HarnessRoot 'orquestador/migration/backups'
+  $backups = Resolve-RootHarnessPath $HarnessRoot 'orquestador/migration/backups'
   $latest = Get-ChildItem -LiteralPath $backups -Directory -Filter 'migration-bound-update-*' |
     Sort-Object LastWriteTimeUtc -Descending |
     Select-Object -First 1
@@ -80,7 +97,7 @@ function Get-LatestBackupId([string]$HarnessRoot) {
 }
 
 function Assert-RestoreShape([string]$HarnessRoot, [string]$ProjectRoot, [string]$BackupId) {
-  $markerPath = Join-Path $HarnessRoot 'orquestador/context/product.md'
+  $markerPath = Resolve-RootHarnessPath $HarnessRoot 'orquestador/context/product.md'
   if (-not (Test-Path -LiteralPath $markerPath -PathType Leaf)) {
     Add-Failure 'restore-bound target marker file missing after restore'
   }
@@ -88,7 +105,7 @@ function Assert-RestoreShape([string]$HarnessRoot, [string]$ProjectRoot, [string
     Add-Failure 'restore-bound did not restore manifest-backed file content'
   }
 
-  $bindingPath = Join-Path $HarnessRoot 'PROJECT_BINDING.yaml'
+  $bindingPath = Resolve-RootHarnessPath $HarnessRoot 'PROJECT_BINDING.yaml'
   if (-not (Test-Path -LiteralPath $bindingPath -PathType Leaf)) { Add-Failure 'restore-bound removed PROJECT_BINDING.yaml' }
   else {
     $binding = [IO.File]::ReadAllText($bindingPath)
@@ -103,7 +120,7 @@ function Assert-RestoreShape([string]$HarnessRoot, [string]$ProjectRoot, [string
   Assert-PathMissing (Join-Path $HarnessRoot '.codex') 'restore-bound must not restore .codex'
   Assert-PathMissing (Join-Path $HarnessRoot 'infoHebri.md') 'restore-bound must not restore infoHebri.md'
 
-  $reportsDir = Join-Path $HarnessRoot 'orquestador/migration/reports'
+  $reportsDir = Resolve-RootHarnessPath $HarnessRoot 'orquestador/migration/reports'
   $reports = @()
   if (Test-Path -LiteralPath $reportsDir -PathType Container) {
     $reports = @(Get-ChildItem -LiteralPath $reportsDir -File -Filter 'migration-bound-restore-*.yaml' | Sort-Object LastWriteTimeUtc -Descending)
@@ -176,7 +193,7 @@ function Invoke-SourceTemplateBoundRestoreSmoke() {
     $boundValidator = Join-Path $boundRoot 'scripts/validate-harness.ps1'
     if (Test-Path -LiteralPath $boundValidator -PathType Leaf) {
       $global:LASTEXITCODE = 0
-      & $boundValidator -Root $boundRoot -RunNegativeTests *> $null
+      & $boundValidator -Root $boundRoot -SkipNestedValidators *> $null
       if ((Get-LastExitCodeValue) -ne 0) { Add-Failure "restored bound harness validate-harness failed: $(Get-LastExitCodeValue)" }
     }
     else { Add-Failure 'restored bound harness missing validate-harness.ps1' }

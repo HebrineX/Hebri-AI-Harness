@@ -1,0 +1,72 @@
+schema: hebrinex.migration_route
+version: "0.1"
+id: "0.16.0-to-0.17.0"
+source_version: "0.16.0"
+target_version: "0.17.0"
+status: active
+mode_support:
+  check_only: true
+  apply: true
+  rollback: planned
+preconditions:
+  - HARNESS_VERSION equals 0.16.0
+  - PROJECT_BINDING.yaml exists
+  - binding_mode is bound or source_template
+  - current root contains orquestador/
+changed_paths:
+  - SHARED_MANIFEST.yaml
+  - instance/README.md
+  - HARNESS_VERSION
+  - PROJECT_BINDING.yaml
+  - orquestador/method/harness-resolution.md
+  - orquestador/migration/versions/0.16.0-to-0.17.0.yaml
+  - orquestador/migration/migration-registry.yaml
+  - scripts/hebrinex.ps1
+  - scripts/migrate-harness.ps1
+  - scripts/validate-harness.ps1
+  - scripts/validate-migration.ps1
+never_overwrite:
+  - PROJECT_BINDING.yaml
+  - instance/PROJECT_BINDING.yaml
+  - instance/PROGRESS.md
+  - instance/context/
+  - instance/memory/
+  - instance/sdd/progress/
+  - instance/sdd/specs/
+  - instance/migration/backups/
+  - instance/migration/reports/
+  - instance/runtime/
+  - instance/mcp/agents-backend.local.yaml
+  - orquestador/sdd/progress/state.yaml
+  - orquestador/sdd/progress/registry.yaml
+  - orquestador/sdd/progress/cycles/
+  - orquestador/sdd/progress/locks/
+  - orquestador/sdd/progress/approvals/
+  - orquestador/runtime/gateway-rate.json
+  - mcp/agents-backend.local.yaml
+preserve_state:
+  binding_identity: true
+  state_yaml: true
+  registry_yaml: true
+  cycles: true
+  locks: true
+  approvals: true
+  memory_layers: true
+  migration_backups: true
+  migration_reports: true
+  runtime_state: true
+  local_mcp_override: true
+check_only_output:
+  - detected_version
+  - route_id
+  - binding_mode
+  - shared_manifest
+  - validators_required
+apply_success_requires:
+  - backup_verified
+  - shared_manifest_present
+  - instance_paths_preserved
+  - validators_passed
+notes:
+  - "0.17.0 introduces SHARED_MANIFEST.yaml so consumers stop hardcoding shared dirs."
+  - "Migration must preserve bound identity and project-local state before any shared cache optimization."

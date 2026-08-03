@@ -69,6 +69,8 @@ check_operational_version_drift
 if grep -R --exclude-dir=backups "\.hebrinex/policies" "$ROOT/AGENTS.md" "$ROOT/orquestador" >/dev/null 2>&1; then echo "ERROR: Ruta obsoleta detectada: .hebrinex/policies"; exit 2; fi
 if grep -R --exclude-dir=backups "\.hebrinex/orquestador/sdd/\.hebrinex" "$ROOT/agents" "$ROOT/prompts" >/dev/null 2>&1; then echo "ERROR: Ruta canonica duplicada detectada"; exit 2; fi
 require_grep "$HARNESS_RELEASE_VERSION" "$ROOT/HARNESS_VERSION" "HARNESS_VERSION no declara $HARNESS_RELEASE_VERSION"
+require_grep "schema: hebrinex.shared_manifest" "$ROOT/SHARED_MANIFEST.yaml" "SHARED_MANIFEST.yaml no define schema"
+require_grep "$HARNESS_RELEASE_VERSION" "$ROOT/SHARED_MANIFEST.yaml" "SHARED_MANIFEST.yaml no declara $HARNESS_RELEASE_VERSION"
 require_grep "schema: hebrinex.context_budget" "$ROOT/orquestador/context-budget.yaml" "context-budget.yaml no define schema"
 require_grep "context_budget" "$ROOT/orquestador/memory/local/session-pin.md" "session-pin.md no declara context_budget"
 require_grep "memory-closure-checklist.md" "$ROOT/orquestador/method/memory-layer-policy.md" "memory-layer-policy.md no exige cierre de memoria"
@@ -82,6 +84,7 @@ require_grep "orquestador/agents/lifecycle-registry.yaml" "$ROOT/orquestador/har
 require_grep "orquestador/security/permission-registry.yaml" "$ROOT/orquestador/harness-manifest.txt" "permission-registry.yaml no esta en manifest"
 require_grep "orquestador/security/threat-model.yaml" "$ROOT/orquestador/harness-manifest.txt" "threat-model.yaml no esta en manifest"
 require_grep "orquestador/migration/migration-registry.yaml" "$ROOT/orquestador/harness-manifest.txt" "migration-registry.yaml no esta en manifest"
+require_grep "SHARED_MANIFEST.yaml" "$ROOT/orquestador/harness-manifest.txt" "SHARED_MANIFEST.yaml no esta en manifest"
 require_grep "orquestador/migration/contracts/post-migration-contract.yaml" "$ROOT/orquestador/harness-manifest.txt" "post-migration-contract.yaml no esta en manifest"
 require_grep "orquestador/agents/agent-registry.yaml" "$ROOT/orquestador/registry-index.yaml" "registry-index no incluye agent-registry"
 require_grep "orquestador/security/permission-registry.yaml" "$ROOT/orquestador/registry-index.yaml" "registry-index no incluye security permission registry"

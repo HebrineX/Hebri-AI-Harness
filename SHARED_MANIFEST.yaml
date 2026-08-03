@@ -1,0 +1,104 @@
+schema: hebrinex.shared_manifest
+schema_version: 1
+harness_version: "0.17.0"
+status: active
+contract:
+  authority: harness
+  consumer_rule: "Consumers must read this manifest instead of hardcoding shared directories."
+  path_base: ".hebrinex"
+shared_dirs:
+  - agents
+  - mcp
+  - prompts
+  - scripts
+  - orquestador/adapters
+  - orquestador/agents
+  - orquestador/entrypoints
+  - orquestador/instruction-builder
+  - orquestador/integrations
+  - orquestador/method
+  - orquestador/migration/contracts
+  - orquestador/migration/versions
+  - orquestador/policies
+  - orquestador/portability
+  - orquestador/runtime/schemas
+  - orquestador/runtime/templates
+  - orquestador/sdd/progress/schemas
+  - orquestador/sdd/progress/templates
+  - orquestador/sdd/specs/_template
+  - orquestador/security
+  - orquestador/testing
+instance_dirs:
+  - instance
+instance_path_map:
+  - legacy_path: PROJECT_BINDING.yaml
+    instance_path: instance/PROJECT_BINDING.yaml
+    reason: binding_identity
+  - legacy_path: PROGRESS.md
+    instance_path: instance/PROGRESS.md
+    reason: project_progress
+  - legacy_path: orquestador/context
+    instance_path: instance/context
+    reason: project_context
+  - legacy_path: orquestador/memory/memory-registry.yaml
+    instance_path: instance/memory/memory-registry.yaml
+    reason: binding_memory_registry
+  - legacy_path: orquestador/memory/local
+    instance_path: instance/memory/local
+    reason: session_memory
+  - legacy_path: orquestador/memory/project
+    instance_path: instance/memory/project
+    reason: project_memory
+  - legacy_path: orquestador/memory/cycle
+    instance_path: instance/memory/cycle
+    reason: cycle_memory
+  - legacy_path: orquestador/memory/daily
+    instance_path: instance/memory/daily
+    reason: daily_memory
+  - legacy_path: orquestador/memory/complete
+    instance_path: instance/memory/complete
+    reason: complete_memory
+  - legacy_path: orquestador/sdd/progress
+    instance_path: instance/sdd/progress
+    reason: runtime_progress
+    except:
+      - orquestador/sdd/progress/schemas
+      - orquestador/sdd/progress/templates
+      - orquestador/sdd/progress/_README.md
+  - legacy_path: orquestador/sdd/specs
+    instance_path: instance/sdd/specs
+    reason: project_specs
+    except:
+      - orquestador/sdd/specs/_template
+  - legacy_path: orquestador/migration/backups
+    instance_path: instance/migration/backups
+    reason: migration_backups
+  - legacy_path: orquestador/migration/contracts/post-migration-contract.yaml
+    instance_path: instance/migration/contracts/post-migration-contract.yaml
+    reason: applied_post_migration_contract
+  - legacy_path: orquestador/migration/reports
+    instance_path: instance/migration/reports
+    reason: migration_reports
+    except:
+      - orquestador/migration/reports/migration-report.template.yaml
+  - legacy_path: orquestador/runtime/gateway-rate.json
+    instance_path: instance/runtime/gateway-rate.json
+    reason: generated_runtime_state
+  - legacy_path: orquestador/runtime/claude
+    instance_path: instance/runtime/claude
+    reason: generated_host_runtime
+  - legacy_path: mcp/agents-backend.local.yaml
+    instance_path: instance/mcp/agents-backend.local.yaml
+    reason: machine_local_override
+excluded_from_sharing:
+  - .git
+  - .codex
+  - mcp/node_modules
+  - infoHebri.md
+  - infoHebriHarness.md
+  - .claude/settings.local.json
+rules:
+  - "A path listed in instance_path_map must never be junctioned or symlinked from a shared cache."
+  - "A path listed in shared_dirs may be junctioned or symlinked only when it is not matched by instance_path_map."
+  - "Legacy paths are read-compatible during 0.16.x to 0.17.0 migration, but new consumers should materialize instance_path."
+  - "Machine-local overrides and generated runtime files are instance even when git-ignored."

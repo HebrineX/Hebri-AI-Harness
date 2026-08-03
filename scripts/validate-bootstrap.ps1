@@ -11,6 +11,16 @@ function Add-Failure([string]$Message) {
 }
 
 function Resolve-HarnessPath([string]$RelativePath) {
+  $norm = ($RelativePath -replace '\\','/').TrimStart('./')
+  $mapped = switch -Regex ($norm) {
+    '^PROJECT_BINDING[.]yaml$' { 'instance/PROJECT_BINDING.yaml'; break }
+    '^orquestador/migration/contracts/post-migration-contract[.]yaml$' { 'instance/migration/contracts/post-migration-contract.yaml'; break }
+    '^orquestador/migration/reports$' { 'instance/migration/reports'; break }
+    '^orquestador/migration/reports/(.+)$' { 'instance/migration/reports/' + $Matches[1]; break }
+    default { $norm }
+  }
+  $mappedPath = Join-Path $Root $mapped
+  if ($mapped -ne $norm -and (Test-Path -LiteralPath $mappedPath)) { return $mappedPath }
   Join-Path $Root $RelativePath
 }
 
@@ -55,7 +65,10 @@ function Format-CommandOutput([object[]]$Output, [int]$MaxLines = 80) {
 }
 
 function Assert-BoundHarnessShape([string]$HarnessRoot, [string]$ProjectRoot) {
-  $bindingPath = Join-Path $HarnessRoot 'PROJECT_BINDING.yaml'
+  $oldRoot = $Root
+  $Root = $HarnessRoot
+  $bindingPath = Resolve-HarnessPath 'PROJECT_BINDING.yaml'
+  $Root = $oldRoot
   if (-not (Test-Path -LiteralPath $bindingPath -PathType Leaf)) {
     Add-Failure "bound harness missing PROJECT_BINDING.yaml: $HarnessRoot"
     return
@@ -80,7 +93,11 @@ function Assert-BoundHarnessShape([string]$HarnessRoot, [string]$ProjectRoot) {
     Add-Failure 'consumer .gitignore must exclude .hebrinex/'
   }
 
-  $contractPath = Join-Path $HarnessRoot 'orquestador/migration/contracts/post-migration-contract.yaml'
+  $oldRoot = $Root
+  $Root = $HarnessRoot
+  $contractPath = Resolve-HarnessPath 'orquestador/migration/contracts/post-migration-contract.yaml'
+  $reportsDir = Resolve-HarnessPath 'orquestador/migration/reports'
+  $Root = $oldRoot
   if (-not (Test-Path -LiteralPath $contractPath -PathType Leaf)) { Add-Failure 'bound harness missing post-migration contract' }
   else {
     $contract = [IO.File]::ReadAllText($contractPath)
@@ -89,7 +106,6 @@ function Assert-BoundHarnessShape([string]$HarnessRoot, [string]$ProjectRoot) {
     }
   }
 
-  $reportsDir = Join-Path $HarnessRoot 'orquestador/migration/reports'
   $reports = @()
   if (Test-Path -LiteralPath $reportsDir -PathType Container) {
     $reports = @(Get-ChildItem -LiteralPath $reportsDir -File -Filter 'migration-*.yaml' | Where-Object { $_.Name -ne 'migration-report.template.yaml' })
