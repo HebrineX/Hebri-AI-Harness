@@ -1,6 +1,6 @@
 schema: hebrinex.shared_manifest
 schema_version: 1
-harness_version: "0.17.0"
+harness_version: "0.17.1"
 status: active
 contract:
   authority: harness

@@ -7,7 +7,7 @@ param(
 
 # Instala en un proyecto consumidor las integraciones nativas GENERADAS por
 # scripts/build-instructions.ps1 (mismo patron que install-claude-hooks.ps1):
-# - claude: subagentes de rol read-only -> <project>/.claude/agents/
+# - claude: CLAUDE.md + subagentes de rol read-only -> <project>/.claude/agents/
 # - cursor: reglas persistentes -> <project>/.cursor/rules/hebrinex.mdc
 # - copilot: instrucciones persistentes -> <project>/.github/copilot-instructions.md
 # Los templates viven en orquestador/integrations/<host>/ y NUNCA se editan a
@@ -24,6 +24,7 @@ $harnessRoot = Split-Path -Parent $PSScriptRoot
 $plan = switch ($HostName) {
   'claude' {
     @(
+      @{ Source = 'orquestador/integrations/claude/CLAUDE.template.md'; Target = 'CLAUDE.md' },
       @{ Source = 'orquestador/integrations/claude/agents/auditor-detractor.md'; Target = '.claude/agents/auditor-detractor.md' },
       @{ Source = 'orquestador/integrations/claude/agents/reviewer.md'; Target = '.claude/agents/reviewer.md' }
     )

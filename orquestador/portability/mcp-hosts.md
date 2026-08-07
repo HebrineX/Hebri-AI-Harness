@@ -1,6 +1,6 @@
 # Conexion del daemon MCP hebrinex por host
 
-harness_version: "0.17.0"
+harness_version: "0.17.1"
 Investigado: 2026-07-05 (WebSearch + docs oficiales; fuente citada por host).
 
 El daemon MCP (`mcp/server.mjs`, stdio, Node >= 18) es la via AGNOSTICA del

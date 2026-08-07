@@ -237,6 +237,57 @@ function Test-BoundCopySimulation() {
   Remove-Item -LiteralPath $tempRoot -Recurse -Force
 }
 
+function Test-ClaudeInstallSimulation() {
+  $exe = Get-Command pwsh -ErrorAction SilentlyContinue
+  if ($null -eq $exe) { $exe = Get-Command powershell -ErrorAction SilentlyContinue }
+  if ($null -eq $exe) {
+    Add-Warning 'Claude install simulation skipped because no PowerShell executable was found'
+    return
+  }
+
+  $tempRoot = Join-Path ([IO.Path]::GetTempPath()) ('hebrinex-claude-install-' + [guid]::NewGuid().ToString('N'))
+  try {
+    $hooksProject = Join-Path $tempRoot 'hooks-project'
+    $markerDir = Join-Path $hooksProject '.hebrinex/scripts'
+    New-Item -ItemType Directory -Force -Path $markerDir | Out-Null
+    New-Item -ItemType File -Force -Path (Join-Path $markerDir 'claude-reentry.ps1') | Out-Null
+
+    $hooksScript = Resolve-HarnessPath 'scripts/install-claude-hooks.ps1'
+    $hooksOutput = @(& $exe.Source -NoProfile -ExecutionPolicy Bypass -File $hooksScript -ProjectRoot $hooksProject -Apply 2>&1)
+    if ($LASTEXITCODE -ne 0) {
+      Add-Failure "install-claude-hooks.ps1 simulation failed: $($hooksOutput -join ' ')"
+      return
+    }
+    $claudePath = Join-Path $hooksProject 'CLAUDE.md'
+    $settingsPath = Join-Path $hooksProject '.claude/settings.json'
+    if (-not (Test-Path -LiteralPath $claudePath -PathType Leaf)) { Add-Failure 'install-claude-hooks.ps1 did not install CLAUDE.md' }
+    if (-not (Test-Path -LiteralPath $settingsPath -PathType Leaf)) { Add-Failure 'install-claude-hooks.ps1 did not install .claude/settings.json' }
+    else {
+      $settingsText = [IO.File]::ReadAllText($settingsPath)
+      try { [void]($settingsText | ConvertFrom-Json) } catch { Add-Failure 'installed .claude/settings.json must be valid JSON' }
+      if ($settingsText -notmatch '\.hebrinex/scripts/claude-reentry[.]ps1') {
+        Add-Failure 'installed Claude settings must route hooks through the bound .hebrinex scripts path'
+      }
+    }
+
+    $hostProject = Join-Path $tempRoot 'host-project'
+    $hostScript = Resolve-HarnessPath 'scripts/install-host-integrations.ps1'
+    $hostOutput = @(& $exe.Source -NoProfile -ExecutionPolicy Bypass -File $hostScript -HostName claude -ProjectRoot $hostProject -Apply 2>&1)
+    if ($LASTEXITCODE -ne 0) {
+      Add-Failure "install-host-integrations.ps1 Claude simulation failed: $($hostOutput -join ' ')"
+      return
+    }
+    foreach ($rel in @('CLAUDE.md', '.claude/agents/auditor-detractor.md', '.claude/agents/reviewer.md')) {
+      if (-not (Test-Path -LiteralPath (Join-Path $hostProject $rel) -PathType Leaf)) {
+        Add-Failure "host integration installer did not install $rel"
+      }
+    }
+  }
+  finally {
+    Remove-Item -LiteralPath $tempRoot -Recurse -Force -ErrorAction SilentlyContinue
+  }
+}
+
 function Run-NegativeTests() {
   $tempRoot = Join-Path ([IO.Path]::GetTempPath()) ('hebrinex-negative-' + [guid]::NewGuid().ToString('N'))
   New-Item -ItemType Directory -Force -Path $tempRoot | Out-Null
@@ -435,6 +486,10 @@ if (-not [string]::IsNullOrWhiteSpace((Invoke-WriteguardHook 'README.md'))) {
 Assert-Contains 'orquestador/integrations/claude/CLAUDE.template.md' 'reentry-brief' 'CLAUDE template must point to reentry brief'
 Assert-Contains 'orquestador/sdd/progress/templates/claude-reentry-state.yaml' 'non_authoritative: true' 'Claude reentry state must be non-authoritative'
 Assert-Contains 'scripts/install-claude-hooks.ps1' 'install-claude-hooks requires exactly one mode' 'Claude hook installer must enforce exclusive CheckOnly/Apply mode'
+Assert-Contains 'scripts/install-claude-hooks.ps1' 'CLAUDE[.]template[.]md' 'Claude hook installer must install CLAUDE.md from the template'
+Assert-Contains 'scripts/install-claude-hooks.ps1' 'CLAUDE[.]md' 'Claude hook installer must materialize CLAUDE.md in the project root'
+Assert-Contains 'scripts/install-host-integrations.ps1' 'CLAUDE[.]template[.]md' 'host integration installer must include CLAUDE.md for Claude'
+Assert-Contains 'scripts/install-host-integrations.ps1' "Target = 'CLAUDE[.]md'" 'host integration installer must target project CLAUDE.md'
 Assert-Contains 'scripts/claude-pretooluse-hook.ps1' 'permissionDecision' 'Claude PreToolUse hook must emit permission decisions'
 Assert-Contains 'scripts/claude-reentry.ps1' 'Approvals expired' 'Claude reentry must expire approvals'
 Assert-Contains 'orquestador/instruction-builder/instruction-registry.yaml' ([regex]::Escape($currentHarnessVersion)) 'instruction registry must match harness version'
@@ -509,7 +564,7 @@ Assert-Contains 'orquestador/security/secrets-policy.yaml' 'default' 'secrets po
 Assert-Contains 'orquestador/migration/migration-registry.yaml' 'check_only_writes:\s*false' 'migration registry must keep CheckOnly no-write'
 Assert-Contains 'orquestador/migration/migration-registry.yaml' 'apply_requires_backup:\s*true' 'migration registry must require backup for Apply'
 Assert-Contains 'SHARED_MANIFEST.yaml' 'schema:\s*hebrinex[.]shared_manifest' 'shared manifest must exist'
-Assert-Contains 'SHARED_MANIFEST.yaml' 'harness_version:\s*"0[.]17[.]0"' 'shared manifest must match 0.17.0'
+Assert-Contains 'SHARED_MANIFEST.yaml' ('harness_version:\s*"' + [regex]::Escape($currentHarnessVersion) + '"') "shared manifest must match $currentHarnessVersion"
 Assert-Contains 'SHARED_MANIFEST.yaml' '(?m)^\s+- scripts\s*$' 'shared manifest must include scripts as shared'
 Assert-Contains 'SHARED_MANIFEST.yaml' '(?m)^\s+- agents\s*$' 'shared manifest must include agents as shared'
 Assert-Contains 'SHARED_MANIFEST.yaml' '(?m)^\s+- prompts\s*$' 'shared manifest must include prompts as shared'
@@ -561,10 +616,11 @@ else {
   Invoke-Validator 'validate-command-gateway' 'scripts/validate-command-gateway.ps1'
   Invoke-Validator 'validate-state-machine' 'scripts/validate-state-machine.ps1'
   Invoke-Validator 'validate-agent-runtime' 'scripts/validate-agent-runtime.ps1'
-  Invoke-Validator 'audit-harness' 'scripts/audit-harness.ps1'
+  Write-Host 'validator audit-harness skipped (aggregate wrapper; nested validators already ran above).'
 }
 
 Test-BoundCopySimulation
+Test-ClaudeInstallSimulation
 if ($RunNegativeTests) { Run-NegativeTests }
 
 if ($script:Warnings.Count -gt 0) {

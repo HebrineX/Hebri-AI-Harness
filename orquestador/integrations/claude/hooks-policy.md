@@ -36,7 +36,8 @@ El writeguard corre en cada edicion: tiene que mantenerse rapido y jamas romper 
 flujo si el harness esta a medias.
 
 Instalacion: `scripts/install-claude-hooks.ps1 -CheckOnly` muestra el plan;
-`-Apply` mergea los hooks en `<project_root>/.claude/settings.json`.
+`-Apply` instala/actualiza `<project_root>/CLAUDE.md` y mergea los hooks en
+`<project_root>/.claude/settings.json`.
 
 El `SI` del operador se materializa con `hebrinex approve -Apply -CommandText <accion>`,
 que crea un approval envelope con expiracion y hash exacto de la accion. El gateway

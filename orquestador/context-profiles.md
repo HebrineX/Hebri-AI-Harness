@@ -1,6 +1,6 @@
 # Context Profiles
 
-Version: 0.17.0
+Version: 0.17.1
 
 Objetivo: cargar el minimo contexto posible. Ahorro medido del kernel: 90% frente a la documentacion operativa completa (`AGENTS.md + method/* + prompts/**`) y 99% frente al arbol completo del manifest (`hebrinex usage`; baseline en `orquestador/sdd/progress/evidence/usage-baseline-0.15.0.yaml`).
 

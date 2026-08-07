@@ -6,9 +6,10 @@ Notas especificas: archivo de instrucciones persistente `CLAUDE.md`; hooks reale
 
 ## Claude Integration 0.17.0
 
-- Usar `orquestador/integrations/claude/CLAUDE.template.md` como entrada.
+- Usar `orquestador/integrations/claude/CLAUDE.template.md` como entrada y materializarlo como `CLAUDE.md` en la raiz del proyecto.
 - Hooks reales: `SessionStart` genera e inyecta `orquestador/runtime/claude/reentry-brief.md`
   (`scripts/claude-reentry.*`); `PreToolUse` clasifica comandos con el Command Gateway
   (`scripts/claude-pretooluse-hook.ps1`).
-- Instalar con `scripts/install-claude-hooks.ps1 -CheckOnly|-Apply`.
+- Instalar instrucciones persistentes/subagentes con `scripts/install-host-integrations.ps1 -HostName claude -CheckOnly|-Apply`.
+- Instalar instrucciones persistentes/hooks con `scripts/install-claude-hooks.ps1 -CheckOnly|-Apply`.
 - Politica completa en `orquestador/integrations/claude/hooks-policy.md`.

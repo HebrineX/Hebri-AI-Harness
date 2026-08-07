@@ -3,10 +3,16 @@
 Objetivo: rehidratar contrato desde archivos, no desde memoria de Claude.
 
 Uso recomendado:
-- `CLAUDE.md` del proyecto apunta al brief generado.
+- `CLAUDE.md` del proyecto contiene el bootstrap minimo y apunta al brief generado.
 - `SessionStart` genera `orquestador/runtime/claude/reentry-brief.md`.
 - `UserPromptSubmit` valida binding/version/brief fresco.
 - `PreToolUse` bloquea efectos sin preflight + `SI` cuando el host lo soporte.
+
+Instalacion:
+- `scripts/install-host-integrations.ps1 -HostName claude -CheckOnly|-Apply`
+  instala/actualiza `CLAUDE.md` y `.claude/agents/*`.
+- `scripts/install-claude-hooks.ps1 -CheckOnly|-Apply` instala/actualiza
+  `CLAUDE.md` y mergea `.claude/settings.json`.
 
 Modo por defecto: `warn`. `enforce` solo para acciones con efecto.
 

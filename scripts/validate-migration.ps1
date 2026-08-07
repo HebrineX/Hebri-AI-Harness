@@ -274,11 +274,11 @@ Assert-Contains 'orquestador/migration/versions/0.16.0-to-0.17.0.yaml' 'instance
 
 Assert-Contains 'orquestador/migration/reports/migration-report.template.yaml' 'wrote_files:\s*false' 'report template must represent CheckOnly no-write'
 Assert-Contains 'orquestador/migration/reports/migration-report.template.yaml' 'backup:' 'report template must include backup section'
-Assert-Contains 'SHARED_MANIFEST.yaml' 'harness_version:\s*"0[.]17[.]0"' 'shared manifest must target 0.17.0'
+Assert-Contains 'SHARED_MANIFEST.yaml' 'harness_version:\s*"0[.]17[.]1"' 'shared manifest must target 0.17.1'
 Assert-Contains 'SHARED_MANIFEST.yaml' 'shared_dirs:' 'shared manifest must declare shared_dirs'
 Assert-Contains 'SHARED_MANIFEST.yaml' 'instance_dirs:' 'shared manifest must declare instance_dirs'
 Assert-Contains 'SHARED_MANIFEST.yaml' 'instance_path_map:' 'shared manifest must declare instance path map'
-Assert-Contains 'orquestador/migration/contracts/post-migration-contract.yaml' 'target_version:\s*"0[.]16[.]0"|target_version:\s*"0[.]17[.]0"' 'post migration template must target a supported release'
+Assert-Contains 'orquestador/migration/contracts/post-migration-contract.yaml' 'target_version:\s*"0[.]16[.]0"|target_version:\s*"0[.]17[.]0"|target_version:\s*"0[.]17[.]1"' 'post migration template must target a supported release'
 $currentHarnessVersion = (Read-HarnessText 'HARNESS_VERSION').Trim()
 $bindingText = Read-HarnessText 'PROJECT_BINDING.yaml'
 $bindingMode = Get-Scalar $bindingText 'binding_mode'

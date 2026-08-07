@@ -1,6 +1,6 @@
 # Contrato de Sesion - Kernel
 
-Version: 0.17.0
+Version: 0.17.1
 
 Kernel obligatorio. Detalle ampliado: `session-contract-extended.md`.
 

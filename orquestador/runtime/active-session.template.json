@@ -1,7 +1,7 @@
 {
   "schema": "hebrinex.runtime.active_session",
   "version": "0.1",
-  "harness_version": "0.17.0",
+  "harness_version": "0.17.1",
   "generated_at": "",
   "project_root": "",
   "harness_path": "",

@@ -1,6 +1,6 @@
 schema: hebrinex.agent_lifecycle_registry
 version: "0.1"
-harness_version: "0.17.0"
+harness_version: "0.17.1"
 states:
   - requested
   - contract_resolved

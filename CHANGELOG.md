@@ -2,6 +2,14 @@
 
 ## [Unreleased]
 
+## [0.17.1] - 2026-08-07
+
+### Fixed
+- Claude Code ya no depende solo de hooks o memoria del host: `CLAUDE.template.md` incluye bootstrap persistente con resolucion de harness, kernel minimo y reglas no negociables.
+- `scripts/install-host-integrations.ps1 -HostName claude` instala `CLAUDE.md` ademas de los subagentes nativos.
+- `scripts/install-claude-hooks.ps1 -Apply` instala/actualiza `CLAUDE.md` y mergea `.claude/settings.json`, resolviendo rutas bound/source-template.
+- `scripts/validate-harness.ps1` valida funcionalmente la instalacion Claude y evita repetir `audit-harness.ps1` como agregador duplicado.
+
 ## [0.17.0] - 2026-08-03
 
 ### Added

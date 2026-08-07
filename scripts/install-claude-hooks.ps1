@@ -14,9 +14,19 @@ $harnessRoot = Split-Path -Parent $PSScriptRoot
 # In a bound project the harness lives under <project_root>/.hebrinex; in the
 # source template repo the scripts live directly under <root>/scripts.
 $isBound = (Split-Path -Leaf $harnessRoot) -eq '.hebrinex'
-$scriptPrefix = if ($isBound) { '.hebrinex/scripts' } else { 'scripts' }
+$projectHarnessScripts = Join-Path $ProjectRoot '.hebrinex/scripts/claude-reentry.ps1'
+$scriptPrefix = if (Test-Path -LiteralPath $projectHarnessScripts -PathType Leaf) {
+  '.hebrinex/scripts'
+}
+elseif ($isBound) {
+  '.hebrinex/scripts'
+}
+else {
+  'scripts'
+}
 
 foreach ($required in @(
+  (Join-Path $harnessRoot 'orquestador/integrations/claude/CLAUDE.template.md'),
   (Join-Path $harnessRoot 'scripts/claude-reentry.ps1'),
   (Join-Path $harnessRoot 'scripts/claude-pretooluse-hook.ps1'),
   (Join-Path $harnessRoot 'scripts/claude-writeguard-hook.ps1'),
@@ -30,6 +40,8 @@ foreach ($required in @(
 
 $settingsDir = Join-Path $ProjectRoot '.claude'
 $settingsPath = Join-Path $settingsDir 'settings.json'
+$claudeTemplatePath = Join-Path $harnessRoot 'orquestador/integrations/claude/CLAUDE.template.md'
+$claudePath = Join-Path $ProjectRoot 'CLAUDE.md'
 
 $sessionStartCommand = "pwsh -NoProfile -ExecutionPolicy Bypass -File $scriptPrefix/claude-reentry.ps1"
 $preToolUseCommand = "pwsh -NoProfile -ExecutionPolicy Bypass -File $scriptPrefix/claude-pretooluse-hook.ps1"
@@ -41,6 +53,7 @@ Write-Host 'Hebri-AI-Harness Claude hooks installer'
 Write-Host "project_root=$ProjectRoot"
 Write-Host "harness_root=$harnessRoot"
 Write-Host "settings_path=$settingsPath"
+Write-Host "claude_md_path=$claudePath"
 Write-Host "session_start_hook=$sessionStartCommand"
 Write-Host "pre_tool_use_hook=$preToolUseCommand"
 Write-Host "writeguard_hook=$writeguardCommand"
@@ -49,6 +62,7 @@ Write-Host "pre_compact_hook=$preCompactCommand"
 
 if ($CheckOnly) {
   Write-Host 'planned_steps:'
+  Write-Host ' - install/update CLAUDE.md from orquestador/integrations/claude/CLAUDE.template.md'
   Write-Host ' - merge SessionStart hook (reentry brief) into .claude/settings.json'
   Write-Host ' - merge PreToolUse hooks (command gateway + writeguard Edit|Write|NotebookEdit) into .claude/settings.json'
   Write-Host ' - merge Stop hook (open locks/approvals/gates warning) into .claude/settings.json'
@@ -57,6 +71,12 @@ if ($CheckOnly) {
   Write-Host 'apply_available=true'
   exit 0
 }
+
+if (-not (Test-Path -LiteralPath $ProjectRoot -PathType Container)) {
+  New-Item -ItemType Directory -Path $ProjectRoot -Force | Out-Null
+}
+$claudeContent = [IO.File]::ReadAllText($claudeTemplatePath) -replace "`r`n", "`n"
+[IO.File]::WriteAllText($claudePath, $claudeContent, [Text.UTF8Encoding]::new($false))
 
 $settings = [ordered]@{}
 if (Test-Path -LiteralPath $settingsPath -PathType Leaf) {

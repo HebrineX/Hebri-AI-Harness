@@ -1,6 +1,6 @@
 schema: hebrinex.adapter_registry
 version: "0.1"
-harness_version: "0.17.0"
+harness_version: "0.17.1"
 canonical_sources:
   adapter_contract:
     path: orquestador/method/adapter-contract.md

@@ -1,6 +1,6 @@
 schema: hebrinex.portability.adapter_matrix
 version: "0.1"
-harness_version: "0.17.0"
+harness_version: "0.17.1"
 # hook_support/maturity/role_agents investigados 2026-07-05 (fuentes en
 # orquestador/sdd/specs/adapter-investigation-2026-07.md). Prohibido "unknown":
 # check-adapter-drift.ps1 falla si reaparece.

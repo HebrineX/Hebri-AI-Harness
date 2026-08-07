@@ -1,6 +1,6 @@
 # Hebri-AI-Harness
 
-Referencia operativa actual: **0.17.0**.
+Referencia operativa actual: **0.17.1**.
 
 Sistema operativo para agentes IA basado en [Hebri-AI-Structure](https://github.com/HebrineX/Hebri-AI-Structure). Objetivo: contrato, trazabilidad y aprobaciones con el minimo contexto — ahorro medido: 90% (hebrinex usage) frente a leer la documentacion operativa completa (`AGENTS.md` + `method/` + `prompts/`).
 
@@ -36,6 +36,7 @@ Si un proyecto no tiene `.hebrinex`, no se opera con un harness externo. Se copi
 
 - Cache compartida declarativa: `SHARED_MANIFEST.yaml` versiona qué directorios son compartibles (`shared_dirs`) y qué estado debe ser copia real por proyecto (`instance_dirs` + `instance_path_map`). La ruta 0.16.0 -> 0.17.0 conserva binding, progreso, memoria, backups/reportes, runtime y overrides locales bajo `instance/`, sin convertir un harness externo en autoridad operativa.
 - Agentes de rol multiplataforma via daemon MCP: tools `agent_audit(plan_or_diff)` (detractor-senior, gate G3A) y `agent_review(diff, acceptance_criteria)` (reviewer) arman el prompt desde la fuente unica `agents/<rol>.md` y lo corren con un backend read-only configurable (`mcp/agents-backend.yaml`: `claude-cli` | `codex-cli` | `none`; override por maquina git-ignored `agents-backend.local.yaml`; interfaz abierta para `ollama`). La MISMA capacidad de auditoria en cualquier host con MCP.
+- Bootstrap robusto para Claude Code: `CLAUDE.md` ahora materializa el contrato minimo aun si los hooks no corrieron; `scripts/install-host-integrations.ps1 -HostName claude -Apply` instala `CLAUDE.md` y subagentes, y `scripts/install-claude-hooks.ps1 -Apply` instala `CLAUDE.md` y mergea hooks.
 - Subagentes nativos reales en Claude Code (proyeccion opcional de la misma fuente unica): `auditor-detractor` y `reviewer` con tools read-only enforceadas por el host, generados por el instruction-builder e instalables con `scripts/install-host-integrations.ps1 -HostName claude -Apply`.
 - Adapters nativos generados para Cursor (`.cursor/rules/hebrinex.mdc`) y Copilot (`.github/copilot-instructions.md`) desde los mismos fragments que `AGENTS.md`; instalador `install-host-integrations.ps1 -HostName cursor|copilot`.
 - Conexion MCP por host documentada y verificada (fuentes citadas): `orquestador/portability/mcp-hosts.md` (Claude Code, Cursor, Codex CLI, VS Code/Copilot, Gemini CLI, Qwen Code).
