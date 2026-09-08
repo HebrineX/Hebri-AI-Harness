@@ -1,0 +1,39 @@
+{
+  "schema": "hebrinex.migration_plan.registry",
+  "schema_version": 1,
+  "as_of_date": "2026-09-08",
+  "authority": "plan_documentation_only",
+  "agents": [
+    {"id": "/root", "role": "interpreter", "responsibility": "Collect intent, communicate the plan and verify final package scope", "delivery_status": "final_package_check_completed"},
+    {"id": "/root/leader", "role": "leader", "responsibility": "Define phase contracts, coordinate gates, review plan coherence and maintain tracking", "delivery_status": "documentary_delivery_closed", "runtime_implementation_performed": false},
+    {"id": "/root/autor_fases", "role": "implementer", "responsibility": "Author the ten phase specifications", "delivery_status": "interrupted_quota_after_delivery"},
+    {"id": "/root/validation_analyst", "role": "implementer", "responsibility": "Author core contracts and supporting documentation", "delivery_status": "completed_after_resume", "delivery_history": ["core_documents_delivered", "interrupted_quota_after_delivery", "resumed_and_finished_core_adjustments", "normal_delivery_closure_reported_by_root"], "independent_auditor": false},
+    {"id": "/root/auditor", "role": "auditor", "responsibility": "Independent technical review and detractor assessment", "delivery_status": "favorable_documentary_review_delivered", "provenance": "review_identity_and_verdict_confirmed_by_root"}
+  ],
+  "reviews": [
+    {"id": "DOC-LEADER-01", "reviewer_id": "/root/leader", "scope": "Plan executability, roles, phases and context criteria", "verdict": "favorable_after_documentary_corrections", "findings": ["DOC-F01", "DOC-F02", "DOC-F03"], "runtime_approval": false},
+    {"id": "DOC-AUDITOR-01", "reviewer_id": "/root/auditor", "scope": "Architecture, agents, validation and phase contracts", "verdict": "favorable_for_documentary_plan", "findings": ["DOC-F04", "DOC-F05"], "verdict_provenance": "reported_by_root", "runtime_approval": false}
+  ],
+  "deliverables": {
+    "core_markdown_files": 7,
+    "phase_markdown_files": 10,
+    "phases": 10,
+    "ordered_tasks": 80,
+    "local_validation_cases": 67,
+    "counts_verified_by": "/root/leader",
+    "count_method": "Read-only file inventory and regex count of Pxx-Tnn and Pxx-Vnn rows on 2026-09-08",
+    "tracking_files": ["README.md", "state.json", "registry.json", "gates.json"],
+    "test_execution_status": "not_run",
+    "final_package_files": 21,
+    "final_check_owner": "/root",
+    "final_check_result": "passed_documentary"
+  },
+  "closure": {
+    "scope": "documentary_team_deliveries_only",
+    "product_implementation_agents_dispatched": false,
+    "authors_runtime_status": "autor_fases_interrupted_after_delivery_validation_analyst_completed_after_resume",
+    "leader_remaining_action": null,
+    "root_remaining_action": "Deliver reviewed and checked documentary plan",
+    "product_completion_claimed": false
+  }
+}

@@ -276,7 +276,7 @@ function fail(payload) {
 
 const server = new McpServer({
   name: 'hebrinex',
-  version: '0.17.0',
+  version: '0.17.1',
 });
 
 // ---------------------------------------------------------------------------

@@ -4,6 +4,8 @@ Referencia operativa actual: **0.17.1**.
 
 Sistema operativo para agentes IA basado en [Hebri-AI-Structure](https://github.com/HebrineX/Hebri-AI-Structure). Objetivo: contrato, trazabilidad y aprobaciones con el minimo contexto — ahorro medido: 90% (hebrinex usage) frente a leer la documentacion operativa completa (`AGENTS.md` + `method/` + `prompts/`).
 
+Guia practica: `HOW_TO_USE.md` resume instalacion, comandos, limites y uso por IA/adaptador.
+
 ## Uso Diario
 
 1. Validar `PROJECT_BINDING.yaml`.
@@ -124,7 +126,7 @@ pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/hebrinex.ps1 state-machine
 pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/hebrinex.ps1 agent-runtime -RoleId implementer -Capability edit_approved_write_set -Json
 ```
 
-La salida de `help` incluye `cli_contract_version=0.4`, `cli_status=stable` y
+La salida de `help` incluye `cli_contract_version=0.5`, `cli_status=stable` y
 la lista cerrada de comandos publicos. `status`, `budget`, `usage`, `preflight` y los
 modos `-CheckOnly` no escriben. La CLI delega en validadores, migrador,
 bootstrap/update/restore, Command Gateway, state machine y agent runtime existentes; no reemplaza

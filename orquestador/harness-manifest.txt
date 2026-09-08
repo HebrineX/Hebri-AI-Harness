@@ -44,6 +44,7 @@ file agents/spec_author.md
 file agents/worker.md
 file CHANGELOG.md
 file HARNESS_VERSION
+file HOW_TO_USE.md
 file SHARED_MANIFEST.yaml
 file instance/README.md
 file init.sh

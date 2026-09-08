@@ -1,0 +1,52 @@
+{
+  "schema": "hebrinex.migration_plan.state",
+  "schema_version": 1,
+  "as_of_date": "2026-09-08",
+  "authority": "plan_documentation_only",
+  "owner_role": "leader",
+  "documentation": {
+    "status": "reviewed",
+    "scope": "migracion/",
+    "product_implementation_status": "not_started",
+    "runtime_verification_status": "not_run",
+    "final_package_check": "passed_documentary",
+    "final_package_check_owner": "/root",
+    "final_package_check_scope": "File inventory, local links, JSON parsing, requirement coverage and inspected external write-scope"
+  },
+  "active_implementation_phase": null,
+  "phases": [
+    {"id": "P00", "status": "planned", "spec": "../fases/P00-baseline-y-contrato.md"},
+    {"id": "P01", "status": "planned", "spec": "../fases/P01-layout-y-resolucion.md"},
+    {"id": "P02", "status": "planned", "spec": "../fases/P02-estado-aprobaciones-y-aislamiento.md"},
+    {"id": "P03", "status": "planned", "spec": "../fases/P03-agentes-contexto-y-proveedores.md"},
+    {"id": "P04", "status": "planned", "spec": "../fases/P04-cli-binding-y-registro.md"},
+    {"id": "P05", "status": "planned", "spec": "../fases/P05-migracion-legacy.md"},
+    {"id": "P06", "status": "planned", "spec": "../fases/P06-payload-launcher-y-msi.md"},
+    {"id": "P07", "status": "planned", "spec": "../fases/P07-upgrade-repair-y-uninstall.md"},
+    {"id": "P08", "status": "planned", "spec": "../fases/P08-validacion-integral.md"},
+    {"id": "P09", "status": "planned", "spec": "../fases/P09-release-y-operacion.md"}
+  ],
+  "authorization_context": {
+    "prior_approval_id": "A-20260906-RO-01",
+    "prior_approval_scope": "read_only_audit",
+    "current_documentation_authorization": "direct_user_request_to_create_plan_in_migracion",
+    "implementation_approvals": [],
+    "installation_authorized": false,
+    "runtime_execution_authorized_by_this_plan": false,
+    "approval_envelopes_created_by_this_plan": false
+  },
+  "known_blockers_for_future_work": [
+    "Reconstruct the operative contract and explicitly resolve source_template maintenance scope before P00 effects.",
+    "Record the existing source_template versus bound memory-registry discrepancy without silently resolving it.",
+    "Obtain an exact preflight and required approval before implementing each authorized slice.",
+    "Resolve phase-specific decisions in FUENTES-DECISIONES.md before their dependent work."
+  ],
+  "next_action": {
+    "owner_role": "leader",
+    "action": "Read README, ROADMAP and P00; revalidate baseline and prepare the exact future preflight.",
+    "references": ["../README.md", "../ROADMAP.md", "../fases/P00-baseline-y-contrato.md"],
+    "effect_approval_required": true
+  },
+  "tracking_locks_created": [],
+  "product_state_or_registry_modified_by_tracking": false
+}
