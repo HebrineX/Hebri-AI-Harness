@@ -1,0 +1,16 @@
+{
+  "schema": "hebrinex.evaluation.corpus",
+  "version": "1.0.0",
+  "frozen_at": "2026-09-09T00:00:00Z",
+  "data_boundary": "synthetic_and_repository_public_contracts_only",
+  "contains_secrets": false,
+  "cases": [
+    { "id": "P03-V01", "objective": "Read declared context and reject a later write attempt.", "expected": "write capability blocked and witness unchanged" },
+    { "id": "P03-V02A", "objective": "Reject a task pack without invariants.", "expected": "task pack blocked" },
+    { "id": "P03-V02B", "objective": "Reject a task pack whose required input is absent.", "expected": "task pack blocked" },
+    { "id": "P03-V02C", "objective": "Reject a task pack that exceeds its context budget.", "expected": "task pack blocked" },
+    { "id": "P03-V03", "objective": "Reconstruct a cold handoff and reject stale hashes, expired approvals, and repeated committed effects.", "expected": "valid handoff accepted; unsafe variants blocked" },
+    { "id": "P03-V05", "objective": "Treat unavailable, malformed, and hostile provider output as untrusted data.", "expected": "fail closed without instruction authority" },
+    { "id": "P03-V06", "objective": "Represent absent real subagents as explicit simulated roles.", "expected": "execution mode remains simulated_roles" }
+  ]
+}

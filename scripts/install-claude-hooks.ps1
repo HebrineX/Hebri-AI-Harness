@@ -1,7 +1,14 @@
 param(
   [string]$ProjectRoot = (Resolve-Path .).Path,
+  [string]$CatalogRoot = '',
   [switch]$CheckOnly,
-  [switch]$Apply
+  [switch]$Apply,
+  [ValidateSet('source_template','legacy_bound','central_instance')][string]$RuntimeMode = 'source_template',
+  [string]$OperationDescriptorPath = '',
+  [string]$ScopedApprovalStoreRoot = '',
+  [string]$ScopedApprovalId = '',
+  [string]$OperationLockPath = '',
+  [string]$OperationJournalPath = ''
 )
 
 $ErrorActionPreference = "Stop"
@@ -11,6 +18,16 @@ if (($CheckOnly -and $Apply) -or (-not $CheckOnly -and -not $Apply)) {
 }
 
 $harnessRoot = Split-Path -Parent $PSScriptRoot
+Import-Module (Join-Path $PSScriptRoot 'lib/hebri-common.psm1') -Force -DisableNameChecking -Prefix 'Op' -Scope Local
+
+if ($RuntimeMode -eq 'central_instance') {
+  [void](Resolve-OpHebriRuntimeContext -InstallRoot $harnessRoot -ProjectRoot $ProjectRoot -DeploymentMode central_instance -CatalogRoot $CatalogRoot)
+}
+
+function Quote-PowerShellArgument([string]$Value) {
+  return "'" + $Value.Replace("'", "''") + "'"
+}
+
 # In a bound project the harness lives under <project_root>/.hebrinex; in the
 # source template repo the scripts live directly under <root>/scripts.
 $isBound = (Split-Path -Leaf $harnessRoot) -eq '.hebrinex'
@@ -43,11 +60,21 @@ $settingsPath = Join-Path $settingsDir 'settings.json'
 $claudeTemplatePath = Join-Path $harnessRoot 'orquestador/integrations/claude/CLAUDE.template.md'
 $claudePath = Join-Path $ProjectRoot 'CLAUDE.md'
 
-$sessionStartCommand = "pwsh -NoProfile -ExecutionPolicy Bypass -File $scriptPrefix/claude-reentry.ps1"
-$preToolUseCommand = "pwsh -NoProfile -ExecutionPolicy Bypass -File $scriptPrefix/claude-pretooluse-hook.ps1"
-$writeguardCommand = "pwsh -NoProfile -ExecutionPolicy Bypass -File $scriptPrefix/claude-writeguard-hook.ps1"
-$stopCommand = "pwsh -NoProfile -ExecutionPolicy Bypass -File $scriptPrefix/claude-stop-hook.ps1"
-$preCompactCommand = "pwsh -NoProfile -ExecutionPolicy Bypass -File $scriptPrefix/claude-precompact-hook.ps1"
+if ($RuntimeMode -eq 'central_instance') {
+  $centralArgs = " -RuntimeMode central_instance -InstallRoot $(Quote-PowerShellArgument $harnessRoot) -ProjectRoot '.'"
+  $sessionStartCommand = "pwsh -NoProfile -ExecutionPolicy Bypass -File $(Quote-PowerShellArgument (Join-Path $PSScriptRoot 'claude-reentry.ps1'))$centralArgs"
+  $preToolUseCommand = "pwsh -NoProfile -ExecutionPolicy Bypass -File $(Quote-PowerShellArgument (Join-Path $PSScriptRoot 'claude-pretooluse-hook.ps1'))$centralArgs"
+  $writeguardCommand = "pwsh -NoProfile -ExecutionPolicy Bypass -File $(Quote-PowerShellArgument (Join-Path $PSScriptRoot 'claude-writeguard-hook.ps1'))$centralArgs"
+  $stopCommand = "pwsh -NoProfile -ExecutionPolicy Bypass -File $(Quote-PowerShellArgument (Join-Path $PSScriptRoot 'claude-stop-hook.ps1'))$centralArgs"
+  $preCompactCommand = "pwsh -NoProfile -ExecutionPolicy Bypass -File $(Quote-PowerShellArgument (Join-Path $PSScriptRoot 'claude-precompact-hook.ps1'))$centralArgs"
+}
+else {
+  $sessionStartCommand = "pwsh -NoProfile -ExecutionPolicy Bypass -File $scriptPrefix/claude-reentry.ps1"
+  $preToolUseCommand = "pwsh -NoProfile -ExecutionPolicy Bypass -File $scriptPrefix/claude-pretooluse-hook.ps1"
+  $writeguardCommand = "pwsh -NoProfile -ExecutionPolicy Bypass -File $scriptPrefix/claude-writeguard-hook.ps1"
+  $stopCommand = "pwsh -NoProfile -ExecutionPolicy Bypass -File $scriptPrefix/claude-stop-hook.ps1"
+  $preCompactCommand = "pwsh -NoProfile -ExecutionPolicy Bypass -File $scriptPrefix/claude-precompact-hook.ps1"
+}
 
 Write-Host 'Hebri-AI-Harness Claude hooks installer'
 Write-Host "project_root=$ProjectRoot"
@@ -67,10 +94,13 @@ if ($CheckOnly) {
   Write-Host ' - merge PreToolUse hooks (command gateway + writeguard Edit|Write|NotebookEdit) into .claude/settings.json'
   Write-Host ' - merge Stop hook (open locks/approvals/gates warning) into .claude/settings.json'
   Write-Host ' - merge PreCompact hook (memory closure summary) into .claude/settings.json'
+  if ($RuntimeMode -eq 'central_instance') { Write-Host ' - reference trusted central scripts; do not copy runtime scripts into the project' }
   Write-Host 'writes=false'
   Write-Host 'apply_available=true'
   exit 0
 }
+
+[void](Assert-OpOperationMutationAuthorized -RuntimeMode $RuntimeMode -ExpectedOperation 'install-claude-hooks:apply' -WritePaths @($claudePath,$settingsPath) -DescriptorPath $OperationDescriptorPath -ApprovalStoreRoot $ScopedApprovalStoreRoot -ApprovalId $ScopedApprovalId -LockPath $OperationLockPath -JournalPath $OperationJournalPath)
 
 if (-not (Test-Path -LiteralPath $ProjectRoot -PathType Container)) {
   New-Item -ItemType Directory -Path $ProjectRoot -Force | Out-Null

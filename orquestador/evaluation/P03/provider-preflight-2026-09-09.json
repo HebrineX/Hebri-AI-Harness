@@ -1,0 +1,36 @@
+{
+  "schema": "hebrinex.evaluation.provider_preflight",
+  "version": "1.0.0",
+  "approval_id": "P03-PROVIDER-EVAL-023",
+  "approval_envelope": "APR-20260909T203107Z-a08f2e",
+  "checked_at": "2026-09-09T20:33:00Z",
+  "cost_limit_usd": 0,
+  "cost_policy": "existing_quota_only_no_additional_spend",
+  "data_boundary": "synthetic_and_repository_public_contracts_only",
+  "provider_calls_executed": 0,
+  "incremental_cost_usd": 0,
+  "providers": [
+    {
+      "id": "claude-cli",
+      "command_present": false,
+      "authentication": "not_checked_command_missing",
+      "availability": "unavailable",
+      "version": null,
+      "stop_reason": "provider_command_missing"
+    },
+    {
+      "id": "codex-cli",
+      "command_present": true,
+      "authentication": "not_logged_in",
+      "availability": "unavailable",
+      "version": "0.153.4",
+      "stop_reason": "provider_not_authenticated"
+    }
+  ],
+  "experiment_status": "blocked_before_smoke",
+  "normative_test": {
+    "id": "P03-V04",
+    "status": "not_run"
+  },
+  "next_action": "Obtain a separately approved, zero-additional-spend provider enablement path or revise the frozen two-provider experiment under a new approval."
+}

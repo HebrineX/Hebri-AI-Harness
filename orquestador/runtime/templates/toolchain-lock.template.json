@@ -1,0 +1,7 @@
+{
+  "schema": "hebrinex.packaging_toolchain",
+  "schema_version": 1,
+  "platform": "windows-x64",
+  "components": [],
+  "release_decision": "local_build_only_network_review_pending"
+}

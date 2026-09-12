@@ -22,6 +22,7 @@ reimplementa politica; envuelve los scripts PowerShell existentes:
 | `lock_release` | Libera un lock (`status: released`). Con rol asumido exige `edit_approved_write_set`. | `scripts/hebrinex.ps1 lock -Release` |
 | `agent_audit` | Corre el rol auditor detractor-senior (fuente unica `agents/detractor-senior.md`) sobre un plan/diff y devuelve el veredicto (`aceptar \| simplificar \| bloquear \| pedir evidencia`). Via agnostica del gate G3A. | backend read-only de `mcp/agents-backend.yaml` |
 | `agent_review` | Corre el rol reviewer (fuente unica `agents/reviewer.md`) sobre un diff + acceptance criteria y devuelve la decision (`aprobado \| bloqueado`). | backend read-only de `mcp/agents-backend.yaml` |
+| `project_service` | Interfaz `central1` para bindings livianos y migracion/restore legacy reversible; exige plan/aprobacion/Apply, raices explicitas y no conserva proyecto global. | `scripts/hebrinex-central.ps1` |
 
 ## Backends de agentes de rol (agent_audit / agent_review)
 
@@ -112,7 +113,14 @@ por host (con fuentes) en `orquestador/portability/mcp-hosts.md`.
   humano; el envelope vale unicamente para el texto exacto aprobado y expira.
 - Las tools de lectura no escriben nada en el harness.
 - Identidad de rol: tras `role_assume`, las tools con efecto (`run_command`,
-  `lock_acquire`, `lock_release`) consultan `scripts/agent-runtime.ps1` con el
+  `lock_acquire`, `lock_release` y mutaciones `project_service`) consultan `scripts/agent-runtime.ps1` con el
   rol del daemon y fallan con `role_capability_blocked` si falta la capability.
   Sin rol asumido operan sin check (`role_enforced=false`). Limite residual
   documentado en `orquestador/agents/README.md`.
+- `project_service` usa el contrato y flujo descritos en
+  `orquestador/runtime/project-service-central1.md`; su catalogo es reconstruible
+  y nunca reemplaza el binding del proyecto.
+- Para `command: migrate`, `baseline_path` es obligatorio al planificar conversion;
+  `restore: true` exige `snapshot_path`. Los apply consumen el descriptor exacto y
+  un `scoped_approval_id`; detalles y matriz soportada en
+  `orquestador/runtime/legacy-migration-central1.md`.

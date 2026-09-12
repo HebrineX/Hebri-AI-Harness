@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Hebrinex Release Metadata",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "schema_version", "product", "product_version", "runtime_api", "architecture", "install_scope", "install_root", "launcher", "features", "support_status"],
+  "properties": {
+    "$schema": { "type": "string", "minLength": 1 },
+    "schema": { "const": "hebrinex.release" },
+    "schema_version": { "const": 1 },
+    "product": { "const": "Hebri-AI-Harness" },
+    "product_version": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$" },
+    "runtime_api": { "type": "string", "pattern": "^[0-9]+$" },
+    "architecture": { "const": "x64" },
+    "install_scope": { "const": "perMachine" },
+    "install_root": { "const": "%ProgramFiles%\\Hebri-AI-Harness" },
+    "launcher": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "framework", "engine"],
+      "properties": {
+        "path": { "const": "bin/hebrinex.exe" },
+        "framework": { "const": ".NET Framework 4.8" },
+        "engine": { "const": "Windows PowerShell 5.1" }
+      }
+    },
+    "features": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["core", "mcp"],
+      "properties": {
+        "core": { "const": "included" },
+        "mcp": { "const": "optional_feature_missing" }
+      }
+    },
+    "support_status": { "const": "unsigned_local_engineering_candidate" }
+  }
+}

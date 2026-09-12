@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "hebrinex.runtime.path_result",
+  "title": "Hebri Runtime Path Result",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "contract_version", "runtime_api", "resource", "rule_id", "classification", "purpose", "root_kind", "root_path", "path", "relative_path", "access", "exists", "writable", "deployment_mode", "legacy_fallback_used"],
+  "properties": {
+    "schema": { "const": "hebrinex.runtime.path_result" },
+    "contract_version": { "const": "1.0.0" },
+    "runtime_api": { "const": "1" },
+    "resource": { "type": "string", "minLength": 1 },
+    "rule_id": { "type": "string", "minLength": 1 },
+    "classification": { "enum": ["product", "template", "instance", "integration", "catalog"] },
+    "purpose": { "type": "string", "minLength": 1 },
+    "root_kind": { "enum": ["InstallRoot", "ProjectRoot", "InstanceRoot", "CatalogRoot"] },
+    "root_path": { "type": "string", "minLength": 1 },
+    "path": { "type": "string", "minLength": 1 },
+    "relative_path": { "type": "string" },
+    "access": { "enum": ["read", "write"] },
+    "exists": { "type": "boolean" },
+    "writable": { "type": "boolean" },
+    "deployment_mode": { "enum": ["source_template", "legacy_bound", "central_instance"] },
+    "legacy_fallback_used": { "type": "boolean" }
+  }
+}

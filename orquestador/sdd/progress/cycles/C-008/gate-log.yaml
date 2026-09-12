@@ -1,0 +1,21 @@
+schema: hebrinex.gate_log
+version: "0.1"
+cycle_id: C-008
+gates:
+  - { gate: G0_session_contract, result: pass, responsible: leader, evidence: [orquestador/sdd/progress/state.yaml], next_action: "Close P04 under the approved full-phase chain." }
+  - { gate: G0A_memory_registry_loaded, result: pass_with_formal_precedence, responsible: leader, evidence: [PROJECT_BINDING.yaml, orquestador/sdd/progress/state.yaml], next_action: "Preserve source-template authority." }
+  - { gate: G1_context_ready, result: pass, responsible: leader, evidence: [migracion/fases/P04-cli-binding-y-registro.md, orquestador/sdd/progress/evidence/P02-T08-final-handoff.md], next_action: "Use only P04 and dependent contracts." }
+  - { gate: G1A_clarification_complete, result: pass, responsible: auditor, evidence: [orquestador/sdd/progress/cycles/C-008/detractor-senior-P04.md], next_action: "Keep catalog non-authoritative and legacy CLI unchanged." }
+  - { gate: G1B_analysis_complete, result: pass, responsible: leader, evidence: [orquestador/sdd/progress/evidence/P04-T01-T07-implementation.md], next_action: "No unresolved P04 design decision remains." }
+  - { gate: G1C_blast_radius_declared, result: pass, responsible: leader, evidence: [P04-COMPLETE-025, APR-20260910T042944Z-46d7e3], next_action: "No Git, network, install, elevation, MSI or real consumer effect." }
+  - { gate: G2_dispatch_ready, result: pass, responsible: leader, evidence: [orquestador/sdd/progress/registry.yaml], next_action: "Use explicit simulated roles." }
+  - { gate: G2A_task_graph_ready, result: pass, responsible: leader, evidence: [orquestador/sdd/progress/cycles/C-008/task-graph.yaml], next_action: "T01-T08 complete sequentially." }
+  - { gate: G3_locks_acquired, result: pass, responsible: leader, evidence: [orquestador/sdd/progress/locks/L-20260910T044224Z-82ecf8.lock.md, orquestador/sdd/progress/locks/L-20260910T044715Z-42692f.lock.md, orquestador/sdd/progress/locks/L-20260910T045343Z-0322a7.lock.md, orquestador/sdd/progress/locks/L-20260910T054853Z-d8e24e.lock.md, orquestador/sdd/progress/locks/L-20260910T055721Z-10b9f2.lock.md], next_action: "Release all five after final tracking writes." }
+  - { gate: G3A_detractor_senior_pre_implementation, result: pass_with_conditions, responsible: auditor, evidence: [orquestador/sdd/progress/cycles/C-008/detractor-senior-P04.md], next_action: "Conditions implemented and tested." }
+  - { gate: G4_execution_complete, result: pass, responsible: executor, evidence: [orquestador/sdd/progress/evidence/P04-T01-T07-implementation.md, scripts/validate-project-service.ps1], next_action: "P05/P06 consume the explicit handoff only after new approval." }
+  - { gate: G5_review_or_validation, result: pass_with_release_limits, responsible: reviewer, evidence: [orquestador/sdd/progress/evidence/P04-T08-review.md, orquestador/sdd/progress/evidence/P04-T08-final-handoff.md], next_action: "Repeat installed-host and external review in P08/P09." }
+  - { gate: G5A_detractor_pass_complete, result: pass, responsible: auditor, evidence: [orquestador/sdd/progress/cycles/C-008/detractor-senior-P04.md], next_action: "Repeat only if scope expands." }
+  - { gate: G5B_release_reconstruction_complete, result: not_applicable, responsible: leader, evidence: [migracion/fases/P04-cli-binding-y-registro.md], next_action: "P04 is not installed release acceptance." }
+  - { gate: G5I_memory_consistency_complete, result: pass_with_formal_precedence, responsible: leader, evidence: [PROJECT_BINDING.yaml, orquestador/sdd/progress/state.yaml, orquestador/sdd/progress/cycles/C-008/memory-closure.yaml], next_action: "Keep full history in cycle evidence." }
+  - { gate: G6_agent_closure_complete, result: pass, responsible: leader, evidence: [orquestador/sdd/progress/cycles/C-008/agent-closure.md, orquestador/sdd/progress/registry.yaml], next_action: "No C-008 role remains open." }
+  - { gate: G7_handoff_complete, result: pass, responsible: leader, evidence: [orquestador/sdd/progress/evidence/P04-T08-final-handoff.md], next_action: "Prepare P05 preflight; P04 approval does not authorize it." }

@@ -1,5 +1,15 @@
-param([string]$Root = (Split-Path -Parent $PSScriptRoot), [switch]$WriteOutputs)
+param(
+  [string]$Root = (Split-Path -Parent $PSScriptRoot),
+  [switch]$WriteOutputs,
+  [ValidateSet('source_template','legacy_bound','central_instance')][string]$RuntimeMode = 'source_template',
+  [string]$OperationDescriptorPath = '',
+  [string]$ScopedApprovalStoreRoot = '',
+  [string]$ScopedApprovalId = '',
+  [string]$OperationLockPath = '',
+  [string]$OperationJournalPath = ''
+)
 $ErrorActionPreference = "Stop"
+Import-Module (Join-Path $PSScriptRoot 'lib/hebri-common.psm1') -Force -DisableNameChecking -Prefix 'Op' -Scope Local
 
 # Instruction builder:
 # 1) Verifica fragments y calcula su hash (contrato historico del builder).
@@ -184,6 +194,10 @@ $generatedDefaults = "role_defaults:`n  # GENERATED - No editar a mano. Fuente u
 
 $drift = New-Object System.Collections.Generic.List[string]
 $written = 0
+if ($WriteOutputs) {
+  $targets = @($expectedOutputs | ForEach-Object { Join-Path $Root $_.Path })
+  [void](Assert-OpOperationMutationAuthorized -RuntimeMode $RuntimeMode -ExpectedOperation 'build-instructions:write-outputs' -WritePaths $targets -DescriptorPath $OperationDescriptorPath -ApprovalStoreRoot $ScopedApprovalStoreRoot -ApprovalId $ScopedApprovalId -LockPath $OperationLockPath -JournalPath $OperationJournalPath)
+}
 foreach ($output in $expectedOutputs) {
   $targetPath = Join-Path $Root $output.Path
   $current = ''

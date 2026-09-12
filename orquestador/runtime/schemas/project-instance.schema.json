@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Hebrinex Project Instance Seed",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "schema_version", "project_id", "instance_id", "lifecycle_state", "state_schema_version", "created_at", "updated_at"],
+  "properties": {
+    "schema": { "const": "hebrinex.project_instance" },
+    "schema_version": { "const": 1 },
+    "project_id": { "type": "string", "pattern": "^PRJ-[a-f0-9]{32}$" },
+    "instance_id": { "type": "string", "pattern": "^INST-[a-f0-9]{32}$" },
+    "lifecycle_state": { "enum": ["pending", "active", "unbound"] },
+    "state_schema_version": { "const": 1 },
+    "created_at": { "type": "string", "format": "date-time" },
+    "updated_at": { "type": "string", "format": "date-time" }
+  }
+}

@@ -1,0 +1,15 @@
+schema: hebrinex.approval_envelope
+version: "0.1"
+approval_id: APR-20260909T203107Z-a08f2e
+status: approved
+human_decision: approved
+approved_text: "SI"
+action_type: run_command
+exact_action: "P03-PROVIDER-EVAL-023: implementar runner, ejecutar smoke y corpus congelado con claude-cli y codex-cli usando solo cuotas existentes y cero gasto adicional, revisar T08 y cerrar P03 solo si cumple umbrales; detener ante cobro, proveedor no disponible o telemetria insuficiente."
+command: "P03-PROVIDER-EVAL-023: implementar runner, ejecutar smoke y corpus congelado con claude-cli y codex-cli usando solo cuotas existentes y cero gasto adicional, revisar T08 y cerrar P03 solo si cumple umbrales; detener ante cobro, proveedor no disponible o telemetria insuficiente."
+command_sha256: 892009d2a0ae378563a1f6cf7474b6ca0513a1878dce3374b01f9e037971e5d8
+purpose: "Completar P03-T07, P03-V04 y P03-T08 sin gasto monetario adicional"
+risk: alto
+created_at: 2026-09-09T20:31:07.9109055Z
+expires_at: 2026-09-10T08:31:07.9109055Z
+harness_version: "0.17.1"

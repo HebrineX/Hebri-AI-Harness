@@ -1,0 +1,37 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Hebrinex Legacy Migration Baseline",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "schema_version", "source_version", "source_ref", "generated_at", "inventory_scope", "source_manifest_sha256", "tree_sha256", "files"],
+  "properties": {
+    "schema": { "const": "hebrinex.legacy_migration_baseline" },
+    "schema_version": { "const": 1 },
+    "source_version": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$" },
+    "source_ref": { "type": "string", "minLength": 1 },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "inventory_scope": { "enum": ["release_manifest", "all_files"] },
+    "source_manifest_sha256": {
+      "oneOf": [
+        { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        { "type": "null" }
+      ]
+    },
+    "tree_sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "files": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["path", "sha256", "size", "class"],
+        "properties": {
+          "path": { "type": "string", "minLength": 1 },
+          "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+          "size": { "type": "integer", "minimum": 0 },
+          "class": { "enum": ["product", "instance", "personal", "generated"] }
+        }
+      }
+    }
+  }
+}

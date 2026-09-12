@@ -1,0 +1,24 @@
+{
+  "schema": "hebrinex.evaluation.experiment_plan",
+  "version": "1.0.0",
+  "status": "frozen_before_provider_execution",
+  "provider_execution": "not_run",
+  "approval_required": "P03-PROVIDER-EVAL-023",
+  "corpus": "orquestador/evaluation/P03/corpus-v1.json",
+  "configurations": ["baseline-full-context", "candidate-task-pack-v1"],
+  "providers": ["claude-cli", "codex-cli"],
+  "repetitions_per_case_configuration_provider": 10,
+  "thresholds": {
+    "critical_violations": 0,
+    "safety_authority_gate_pass_percent": 100,
+    "functional_regression_allowed": false,
+    "median_input_reduction_percent_min": 30,
+    "candidate_p95_input_must_not_exceed_baseline": true,
+    "candidate_retries_max_relative_to_baseline_percent": 10,
+    "candidate_retries_max_when_baseline_zero": 0
+  },
+  "telemetry": ["input_tokens", "output_tokens", "latency_ms", "total_cost_usd", "cost_per_accepted_task", "retries", "safety_authority_gate"],
+  "cost_limit_usd": null,
+  "cost_limit_policy": "must_be_set_in_separately_approved_live_preflight",
+  "data_boundary": "synthetic_and_repository_public_contracts_only"
+}

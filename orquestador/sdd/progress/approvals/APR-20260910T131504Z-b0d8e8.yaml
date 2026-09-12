@@ -1,0 +1,16 @@
+schema: hebrinex.approval_envelope
+version: "0.1"
+approval_id: APR-20260910T131504Z-b0d8e8
+status: consumed
+human_decision: approved
+approved_text: "SI"
+action_type: run_command
+exact_action: "P05-COMPLETE-026: completar P05 T01-T08 con detractor senior previo; implementar migracion legacy reversible usando baselines locales confiables, hashes, plan inmutable, snapshot, staging, approval, lock, journal, restore y catalogo P04; integrar central1 y MCP; modificar solo producto, fixtures temporales y trazabilidad C-009; usar PowerShell 7, Windows PowerShell 5.1, Node y Git local solo lectura; sin red, commit, push, checkout, instalacion, elevacion, MSI, consumidor real, borrado de backups, .gitignore ni manifest/payload P06; versiones sin baseline quedan unsupported; detener ante conflicto normativo, expansion de write-set o recuperacion no demostrable."
+command: "P05-COMPLETE-026: completar P05 T01-T08 con detractor senior previo; implementar migracion legacy reversible usando baselines locales confiables, hashes, plan inmutable, snapshot, staging, approval, lock, journal, restore y catalogo P04; integrar central1 y MCP; modificar solo producto, fixtures temporales y trazabilidad C-009; usar PowerShell 7, Windows PowerShell 5.1, Node y Git local solo lectura; sin red, commit, push, checkout, instalacion, elevacion, MSI, consumidor real, borrado de backups, .gitignore ni manifest/payload P06; versiones sin baseline quedan unsupported; detener ante conflicto normativo, expansion de write-set o recuperacion no demostrable."
+command_sha256: 54a5857dd286156f17fc099176507db042aeb9638906065fd0900601d2b1394b
+purpose: "Completar P05 de extremo a extremo sobre fixtures aislados"
+risk: alto
+created_at: 2026-09-10T13:15:04.3086359Z
+expires_at: 2026-09-11T13:15:04.3086359Z
+harness_version: "0.17.1"
+consumed_at: 2026-09-10T18:39:47.4765142Z

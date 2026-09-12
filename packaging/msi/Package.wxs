@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
+  <Package
+    Name="Hebri-AI-Harness"
+    Manufacturer="HebrineX"
+    Version="0.17.1"
+    UpgradeCode="{5E6C72A1-831B-49CE-B25F-21D930A77101}"
+    ProductCode="{E6639B49-CC2C-5B2C-BE31-5225B7A7852A}"
+    Scope="perMachine"
+    InstallerVersion="500"
+    Compressed="yes">
+    <SummaryInformation Description="Hebri-AI-Harness central runtime" Manufacturer="HebrineX" />
+    <MajorUpgrade DowngradeErrorMessage="A newer version of Hebri-AI-Harness is already installed." />
+    <MediaTemplate EmbedCab="yes" />
+
+    <StandardDirectory Id="ProgramFiles64Folder">
+      <Directory Id="INSTALLFOLDER" Name="Hebri-AI-Harness" />
+    </StandardDirectory>
+
+    <Component Id="MachineIntegration" Directory="INSTALLFOLDER" Guid="{D42F4549-F98D-5D6A-846D-334A5A11F601}" Bitness="always64">
+      <RegistryKey Root="HKLM" Key="Software\Hebri-AI-Harness">
+        <RegistryValue Name="InstallRoot" Type="string" Value="[INSTALLFOLDER]" KeyPath="yes" />
+        <RegistryValue Name="Version" Type="string" Value="0.17.1" />
+        <RegistryValue Name="RuntimeApi" Type="string" Value="1" />
+      </RegistryKey>
+      <Environment Id="SystemPath" Name="PATH" Value="[INSTALLFOLDER]bin" Action="set" Part="last" Permanent="no" System="yes" />
+    </Component>
+
+    <Feature Id="Complete" Title="Hebri-AI-Harness core" Level="1">
+      <ComponentGroupRef Id="PayloadComponents" />
+      <ComponentRef Id="MachineIntegration" />
+    </Feature>
+  </Package>
+</Wix>

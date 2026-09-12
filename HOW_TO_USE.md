@@ -20,6 +20,19 @@ consumidor; en este repo fuente la autoridad es el source template.
 
 ## Instalacion en un proyecto
 
+### Candidato central P06
+
+El repositorio puede construir un MSI local Windows x64 con
+`scripts/validate-packaging.ps1`. Es un artefacto de ingenieria sin firma, no
+una release instalable aceptada. `hebrinex.exe` valida el payload y delega el
+nucleo en Windows PowerShell 5.1; `hebrinex.exe mcp` falla cerrado con
+`OPTIONAL_FEATURE_MISSING` hasta incorporar un runtime Node redistribuible y
+probar su cierre offline.
+
+No ejecutar el MSI en este host ni en un consumidor real sin un nuevo
+preflight. Las pruebas de instalacion, PATH/registro, ACL, repair y uninstall
+pertenecen a P07/P08 sobre una VM descartable.
+
 ### Verificar antes de copiar
 
 ```powershell

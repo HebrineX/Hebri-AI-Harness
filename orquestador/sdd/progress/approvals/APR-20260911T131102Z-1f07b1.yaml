@@ -1,0 +1,16 @@
+schema: hebrinex.approval_envelope
+version: "0.1"
+approval_id: APR-20260911T131102Z-1f07b1
+status: consumed
+human_decision: approved
+approved_text: "SI"
+action_type: run_command
+exact_action: "P06-COMPLETE-028: completar P06-T01..T08 hasta producir un MSI candidato local verificable; implementar payload allowlisted, baselines 0.10.11 y 0.16.0, launcher .NET Framework 4.8, authoring WiX 5.0.2, manifests, schemas, validadores, documentacion y trazabilidad C-010; ejecutar builds y pruebas locales PS7/PS5/Node/Git tags read-only; outputs solo artifacts/p06; MCP no redistribuible queda fail-closed; sin red, commit, push, checkout, CI remoto, instalacion MSI, elevacion, firma, PATH/registro real, consumidor real ni gasto adicional."
+command: "P06-COMPLETE-028: completar P06-T01..T08 hasta producir un MSI candidato local verificable; implementar payload allowlisted, baselines 0.10.11 y 0.16.0, launcher .NET Framework 4.8, authoring WiX 5.0.2, manifests, schemas, validadores, documentacion y trazabilidad C-010; ejecutar builds y pruebas locales PS7/PS5/Node/Git tags read-only; outputs solo artifacts/p06; MCP no redistribuible queda fail-closed; sin red, commit, push, checkout, CI remoto, instalacion MSI, elevacion, firma, PATH/registro real, consumidor real ni gasto adicional."
+command_sha256: 2dc330694ccb6b539c253da87ea4cef56fae0783f7cba04b653e8721539858b1
+purpose: ""
+risk: bajo
+created_at: 2026-09-11T13:11:02.3410613Z
+expires_at: 2026-09-11T14:11:02.3410613Z
+consumed_at: 2026-09-11T23:28:52Z
+harness_version: "0.17.1"

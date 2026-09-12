@@ -2,10 +2,17 @@ param(
   [string]$Root = (Split-Path -Parent $PSScriptRoot),
   [string]$TargetVersion = '0.16.0',
   [switch]$CheckOnly,
-  [switch]$Apply
+  [switch]$Apply,
+  [ValidateSet('source_template','legacy_bound','central_instance')][string]$RuntimeMode = 'source_template',
+  [string]$OperationDescriptorPath = '',
+  [string]$ScopedApprovalStoreRoot = '',
+  [string]$ScopedApprovalId = '',
+  [string]$OperationLockPath = '',
+  [string]$OperationJournalPath = ''
 )
 
 $ErrorActionPreference = 'Stop'
+Import-Module (Join-Path $PSScriptRoot 'lib/hebri-common.psm1') -Force -DisableNameChecking -Prefix 'Op' -Scope Local
 
 function Resolve-HarnessPath([string]$RelativePath) {
   Join-Path $Root $RelativePath
@@ -142,7 +149,10 @@ function New-MigrationBackup([string]$MigrationId) {
   $manifest = New-Object System.Collections.Generic.List[string]
   $files = Get-ChildItem -LiteralPath $Root -Recurse -File | Where-Object {
     $rel = Get-RelativePath $rootFull $_.FullName
-    -not ($rel -like 'orquestador/migration/backups/*')
+    -not ($rel -like 'orquestador/migration/backups/*') -and
+    -not ($rel -like '.git/*') -and
+    -not ($rel -like '.codex/*') -and
+    $rel -ne 'infoHebri.md'
   } | Sort-Object FullName
 
   foreach ($file in $files) {
@@ -150,7 +160,9 @@ function New-MigrationBackup([string]$MigrationId) {
     $destination = Join-Path $snapshotPath ($rel -replace '/', [IO.Path]::DirectorySeparatorChar)
     Ensure-Directory (Split-Path -Parent $destination)
     Copy-Item -LiteralPath $file.FullName -Destination $destination -Force
-    [void]$manifest.Add("$rel|$($file.Length)|$($file.LastWriteTimeUtc.ToString('o'))")
+    $sourceHash = Get-OpHebriFileSha256 $file.FullName
+    if ((Get-OpHebriFileSha256 $destination) -ne $sourceHash) { throw "backup failed: hash mismatch for $rel" }
+    [void]$manifest.Add("$rel|$sourceHash|$($file.Length)")
   }
 
   if ($manifest.Count -eq 0) {
@@ -362,6 +374,14 @@ if ($CheckOnly) {
   Write-Host 'expected_post_migration_contract=orquestador/migration/contracts/post-migration-contract.yaml'
   exit 0
 }
+
+$migrationWritePaths = @(
+  @($plannedAdditions | ForEach-Object { Resolve-HarnessPath $_ })
+  (Resolve-HarnessPath 'orquestador/migration/backups')
+  (Resolve-HarnessPath 'orquestador/migration/contracts/post-migration-contract.yaml')
+  (Resolve-HarnessPath 'orquestador/migration/reports')
+)
+[void](Assert-OpOperationMutationAuthorized -RuntimeMode $RuntimeMode -ExpectedOperation 'migrate-harness:apply' -WritePaths $migrationWritePaths -DescriptorPath $OperationDescriptorPath -ApprovalStoreRoot $ScopedApprovalStoreRoot -ApprovalId $ScopedApprovalId -LockPath $OperationLockPath -JournalPath $OperationJournalPath)
 
 Assert-RequiredRuntimePaths $plannedAdditions
 

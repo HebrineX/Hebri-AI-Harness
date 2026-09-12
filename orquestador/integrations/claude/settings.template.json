@@ -5,7 +5,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "pwsh -NoProfile -ExecutionPolicy Bypass -File .hebrinex/scripts/claude-reentry.ps1"
+            "command": "pwsh -NoProfile -ExecutionPolicy Bypass -File '__HEBRINEX_INSTALL_ROOT__/scripts/claude-reentry.ps1' -RuntimeMode central_instance -InstallRoot '__HEBRINEX_INSTALL_ROOT__' -ProjectRoot '.'"
           }
         ]
       }
@@ -16,7 +16,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "pwsh -NoProfile -ExecutionPolicy Bypass -File .hebrinex/scripts/claude-pretooluse-hook.ps1"
+            "command": "pwsh -NoProfile -ExecutionPolicy Bypass -File '__HEBRINEX_INSTALL_ROOT__/scripts/claude-pretooluse-hook.ps1' -RuntimeMode central_instance -InstallRoot '__HEBRINEX_INSTALL_ROOT__' -ProjectRoot '.'"
           }
         ]
       },
@@ -25,7 +25,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "pwsh -NoProfile -ExecutionPolicy Bypass -File .hebrinex/scripts/claude-writeguard-hook.ps1"
+            "command": "pwsh -NoProfile -ExecutionPolicy Bypass -File '__HEBRINEX_INSTALL_ROOT__/scripts/claude-writeguard-hook.ps1' -RuntimeMode central_instance -InstallRoot '__HEBRINEX_INSTALL_ROOT__' -ProjectRoot '.'"
           }
         ]
       }
@@ -35,7 +35,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "pwsh -NoProfile -ExecutionPolicy Bypass -File .hebrinex/scripts/claude-stop-hook.ps1"
+            "command": "pwsh -NoProfile -ExecutionPolicy Bypass -File '__HEBRINEX_INSTALL_ROOT__/scripts/claude-stop-hook.ps1' -RuntimeMode central_instance -InstallRoot '__HEBRINEX_INSTALL_ROOT__' -ProjectRoot '.'"
           }
         ]
       }
@@ -45,7 +45,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "pwsh -NoProfile -ExecutionPolicy Bypass -File .hebrinex/scripts/claude-precompact-hook.ps1"
+            "command": "pwsh -NoProfile -ExecutionPolicy Bypass -File '__HEBRINEX_INSTALL_ROOT__/scripts/claude-precompact-hook.ps1' -RuntimeMode central_instance -InstallRoot '__HEBRINEX_INSTALL_ROOT__' -ProjectRoot '.'"
           }
         ]
       }

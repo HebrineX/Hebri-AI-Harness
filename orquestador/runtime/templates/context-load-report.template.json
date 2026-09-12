@@ -1,0 +1,14 @@
+{
+  "schema": "hebrinex.context_load_report",
+  "contract_version": "1.0.0",
+  "runtime_api": "1",
+  "task_id": "TASK-ID",
+  "decision": "allow",
+  "reason": "declared_context_loaded",
+  "budget_status": "unknown",
+  "estimated_input_tokens": 0,
+  "repack_threshold_tokens": 1600,
+  "sources": [],
+  "cache_authority": false,
+  "writes": false
+}

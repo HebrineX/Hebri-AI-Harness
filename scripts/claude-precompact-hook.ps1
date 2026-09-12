@@ -7,17 +7,30 @@
 #
 # Fail-open by design: any error in the hook itself exits 0 with no output.
 
+param(
+  [ValidateSet('source_template','legacy_bound','central_instance')][string]$RuntimeMode = 'source_template',
+  [string]$InstallRoot = (Split-Path -Parent $PSScriptRoot),
+  [string]$ProjectRoot = '',
+  [string]$CatalogRoot = ''
+)
+
 $ErrorActionPreference = 'Stop'
 
 try {
   [void][Console]::In.ReadToEnd()
 
-  $harnessRoot = Split-Path -Parent $PSScriptRoot
+  $harnessRoot = [IO.Path]::GetFullPath($InstallRoot)
   Import-Module (Join-Path $PSScriptRoot 'lib/hebri-common.psm1') -Force -DisableNameChecking -Scope Local
+  $stateRoot = $harnessRoot
+  if ($RuntimeMode -eq 'central_instance') {
+    if ([string]::IsNullOrWhiteSpace($ProjectRoot)) { $ProjectRoot = (Get-Location).Path }
+    $context = Resolve-HebriRuntimeContext -InstallRoot $harnessRoot -ProjectRoot $ProjectRoot -DeploymentMode central_instance -CatalogRoot $CatalogRoot
+    $stateRoot = Join-Path ([string]$context.project_root) '.hebrinex'
+  }
 
   $gaps = New-Object System.Collections.Generic.List[string]
 
-  $statePath = Join-Path $harnessRoot 'orquestador/sdd/progress/state.yaml'
+  $statePath = Resolve-HarnessPath -Root $stateRoot -RelativePath 'orquestador/sdd/progress/state.yaml'
   if (-not (Test-Path -LiteralPath $statePath -PathType Leaf)) {
     $gaps.Add('falta orquestador/sdd/progress/state.yaml') | Out-Null
     $stateText = ''
@@ -27,7 +40,7 @@ try {
   }
 
   # Locks reales (inventario de archivos, no solo state.yaml).
-  $locks = Get-LockInventory -Root $harnessRoot
+  $locks = Get-LockInventory -Root $stateRoot
   if (($locks.Active.Count + $locks.Expired.Count) -gt 0) {
     $lockIds = @($locks.Active + $locks.Expired | ForEach-Object { $_.LockId })
     $gaps.Add("locks abiertos sin liberar: $($lockIds -join ', ')") | Out-Null
@@ -49,7 +62,7 @@ try {
       if ([string]::IsNullOrWhiteSpace($lastFinalReport)) {
         $gaps.Add("ciclo $cycleId (status=$cycleStatus) sin last_final_report enlazado") | Out-Null
       }
-      elseif (-not (Test-Path -LiteralPath (Join-Path $harnessRoot $lastFinalReport) -PathType Leaf)) {
+      elseif (-not (Test-Path -LiteralPath (Resolve-HarnessPath -Root $stateRoot -RelativePath $lastFinalReport) -PathType Leaf)) {
         $gaps.Add("last_final_report apunta a archivo inexistente: $lastFinalReport") | Out-Null
       }
       $verificationStatus = Get-SectionScalar -Text $stateText -Section 'verification' -Key 'status'
@@ -67,13 +80,13 @@ try {
     'orquestador/sdd/progress/registry.yaml',
     'orquestador/sdd/progress/templates/memory-closure-checklist.md'
   )) {
-    if (-not (Test-Path -LiteralPath (Join-Path $harnessRoot $rel) -PathType Leaf)) {
+    if (-not (Test-Path -LiteralPath (Resolve-HarnessPath -Root $stateRoot -RelativePath $rel) -PathType Leaf)) {
       $gaps.Add("falta archivo de cierre de memoria: $rel") | Out-Null
     }
   }
 
   # Handoffs de continuidad abiertos.
-  $progressDir = Join-Path $harnessRoot 'orquestador/sdd/progress'
+  $progressDir = Resolve-HarnessPath -Root $stateRoot -RelativePath 'orquestador/sdd/progress'
   if (Test-Path -LiteralPath $progressDir -PathType Container) {
     foreach ($handoff in (Get-ChildItem -LiteralPath $progressDir -File -Filter 'HANDOFF-*.md' -ErrorAction SilentlyContinue)) {
       $gaps.Add("handoff de continuidad abierto: orquestador/sdd/progress/$($handoff.Name) (actualizarlo ANTES de compactar)") | Out-Null

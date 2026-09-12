@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Hebrinex Project Registration",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "schema_version", "project_id", "status", "catalog_entry_relative_path", "updated_at"],
+  "properties": {
+    "schema": { "const": "hebrinex.project_registration" },
+    "schema_version": { "const": 1 },
+    "project_id": { "type": "string", "pattern": "^PRJ-[a-f0-9]{32}$" },
+    "status": { "enum": ["pending", "registered", "unbinding", "unbound"] },
+    "catalog_entry_relative_path": { "type": "string", "pattern": "^projects/PRJ-[a-f0-9]{32}\\.json$" },
+    "last_error": { "type": "string", "maxLength": 512 },
+    "updated_at": { "type": "string", "format": "date-time" }
+  }
+}

@@ -1,6 +1,7 @@
 param(
   [string]$Root = (Split-Path -Parent $PSScriptRoot),
-  [switch]$RunNegativeTests
+  [switch]$RunNegativeTests,
+  [switch]$NoGit
 )
 
 $ErrorActionPreference = 'Stop'
@@ -57,11 +58,21 @@ if ($mcpJsonText -notmatch 'mcp/server\.mjs') {
   Add-Failure '.mcp.json does not point to mcp/server.mjs'
 }
 
-# Las 13 tools comprometidas deben estar registradas en el server.
-foreach ($tool in @('run_command','preflight_approve','approval_check','session_contract','gate_check','memory_route','close_cycle_check','session_usage','role_assume','lock_acquire','lock_release','agent_audit','agent_review')) {
+# Las 14 tools comprometidas deben estar registradas en el server.
+foreach ($tool in @('run_command','preflight_approve','approval_check','session_contract','gate_check','memory_route','close_cycle_check','session_usage','role_assume','lock_acquire','lock_release','agent_audit','agent_review','project_service')) {
   if ($serverText -notmatch ("registerTool\('" + [regex]::Escape($tool) + "'")) {
     Add-Failure "mcp/server.mjs does not register tool: $tool"
   }
+}
+
+if ($serverText -notmatch 'scripts/hebrinex-central\.ps1') {
+  Add-Failure 'project_service must wrap scripts/hebrinex-central.ps1'
+}
+if ($serverText -notmatch 'explicit_roots_required') {
+  Add-Failure 'project_service must reject implicit project/catalog roots'
+}
+if ($serverText -notmatch "project_service'[\s\S]*edit_approved_write_set") {
+  Add-Failure 'project_service mutations must enforce edit_approved_write_set'
 }
 
 # Identidad de rol honesta: el rol vive en el estado del daemon y las tools con
@@ -155,8 +166,27 @@ elseif (-not (Test-Path -LiteralPath $sdkPath -PathType Container)) {
 }
 else {
   $smokePath = Resolve-HarnessPath 'mcp/smoke.mjs'
-  $output = & $nodeCommand.Source $smokePath 2>&1
-  $smokeExit = $LASTEXITCODE
+  $previousNoGit = $env:HEBRINEX_SMOKE_NO_GIT
+  if ($NoGit) { $env:HEBRINEX_SMOKE_NO_GIT = '1' }
+  try {
+    $start = New-Object Diagnostics.ProcessStartInfo
+    $start.FileName = $nodeCommand.Source
+    $start.Arguments = '"' + $smokePath + '"'
+    $start.UseShellExecute = $false
+    $start.CreateNoWindow = $true
+    $start.RedirectStandardOutput = $true
+    $start.RedirectStandardError = $true
+    $process = [Diagnostics.Process]::Start($start)
+    $stdoutTask = $process.StandardOutput.ReadToEndAsync()
+    $stderrTask = $process.StandardError.ReadToEndAsync()
+    $process.WaitForExit()
+    $smokeExit = $process.ExitCode
+    $output = @($stdoutTask.GetAwaiter().GetResult(), $stderrTask.GetAwaiter().GetResult())
+  }
+  finally {
+    if ($null -eq $previousNoGit) { Remove-Item Env:HEBRINEX_SMOKE_NO_GIT -ErrorAction SilentlyContinue }
+    else { $env:HEBRINEX_SMOKE_NO_GIT = $previousNoGit }
+  }
   if ($smokeExit -ne 0) {
     $smokeStatus = 'failed'
     Add-Failure "mcp smoke test failed (exit $smokeExit): $((($output | Select-Object -Last 5) -join ' | '))"

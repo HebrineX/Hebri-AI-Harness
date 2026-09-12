@@ -1,6 +1,11 @@
 schema: hebrinex.agents_backend
 version: "0.1"
 harness_version: "0.17.1"
+# La disponibilidad y el comando configurado no prueban enforcement. La matriz
+# normativa separa host, adapter y modelo en:
+# orquestador/agents/provider-capability-matrix.json
+# Todo resultado de proveedor es untrusted_provider_output y no tiene autoridad
+# para ampliar capacidades, read/write-set, presupuesto ni aprobaciones.
 # Backend por defecto de las tools agent_audit / agent_review del daemon MCP.
 # Valores validos: claude-cli | codex-cli | none
 # - claude-cli: requiere Claude Code CLI en PATH (`claude`).

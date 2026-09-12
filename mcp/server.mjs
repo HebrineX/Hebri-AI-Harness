@@ -1227,6 +1227,86 @@ server.registerTool('agent_review', {
   });
 });
 
+// 14. project_service - central1 binding and recoverable catalog interface.
+server.registerTool('project_service', {
+  title: 'Hebrinex central project service',
+  description: [
+    'Envuelve scripts/hebrinex-central.ps1 (API central1) para planificar, aprobar,',
+    'aplicar y consultar bindings livianos. ProjectRoot y CatalogRoot son siempre',
+    'explicitos: el daemon no conserva un proyecto global. status/list/doctor son',
+    'read-only; approve y los Apply exigen edit_approved_write_set cuando hay rol asumido.',
+  ].join(' '),
+  inputSchema: {
+    command: z.enum(['help', 'approve', 'init', 'bind', 'status', 'list', 'doctor', 'validate', 'reconcile', 'unbind', 'migrate', 'upgrade']),
+    project_root: z.string().min(1).optional().describe('Raiz absoluta del proyecto; obligatoria para comandos de proyecto.'),
+    catalog_root: z.string().min(1).optional().describe('Raiz explicita del catalogo; obligatoria para list y comandos de proyecto.'),
+    search_roots: z.array(z.string().min(1)).optional().describe('Raices de proyecto explicitamente aprobadas para detectar move/duplicate.'),
+    baseline_path: z.string().min(1).optional().describe('Baseline legacy JSON verificable para planificar migrate.'),
+    decisions_path: z.string().min(1).optional().describe('Decisiones preserve explicitas para drift de producto.'),
+    snapshot_base: z.string().min(1).optional().describe('Raiz de snapshots dentro del proyecto y fuera de .hebrinex.'),
+    snapshot_path: z.string().min(1).optional().describe('Snapshot verificado que se desea restaurar.'),
+    include_gitignore: z.boolean().optional().describe('Incluye .gitignore en el plan init cuando falta .hebrinex/.'),
+    copy_as_new: z.boolean().optional().describe('En reconcile, asigna identidad nueva a la copia elegida.'),
+    restore: z.boolean().optional().describe('Con migrate, planifica/aplica restore en vez de conversion legacy.'),
+    preserve_post_migration_changes: z.boolean().optional().describe('Registra que restore preservara la instancia central divergente.'),
+    apply: z.boolean().optional().describe('false/omitido genera plan; true aplica usando descriptor y APR2.'),
+    descriptor_json: z.string().min(1).optional().describe('Descriptor exacto emitido por CheckOnly, serializado como JSON.'),
+    scoped_approval_id: z.string().min(1).optional().describe('APR2 ligado al descriptor para Apply.'),
+    approval_store_root: z.string().min(1).optional().describe('Store APR2 explicito; debe estar dentro de InstanceRoot.'),
+    human_evidence_id: z.string().min(1).optional().describe('ID visible del SI humano, obligatorio para approve.'),
+    ttl_minutes: z.number().int().min(1).max(1440).optional(),
+  },
+}, async ({ command, project_root, catalog_root, search_roots, baseline_path, decisions_path, snapshot_base, snapshot_path, include_gitignore, copy_as_new, restore, preserve_post_migration_changes, apply, descriptor_json, scoped_approval_id, approval_store_root, human_evidence_id, ttl_minutes }) => {
+  const projectCommands = new Set(['init', 'bind', 'status', 'reconcile', 'unbind', 'migrate']);
+  if (projectCommands.has(command) && (!project_root || !catalog_root)) {
+    return fail({ status: 'blocked', reason: 'explicit_roots_required', command, required: ['project_root', 'catalog_root'] });
+  }
+  if (command === 'list' && !catalog_root) {
+    return fail({ status: 'blocked', reason: 'explicit_roots_required', command, required: ['catalog_root'] });
+  }
+  if ((command === 'doctor' || command === 'validate') && project_root && !catalog_root) {
+    return fail({ status: 'blocked', reason: 'explicit_roots_required', command, required: ['catalog_root when project_root is supplied'] });
+  }
+  const mutationApply = command === 'approve' || (['init', 'bind', 'reconcile', 'unbind', 'migrate'].includes(command) && apply === true);
+  const roleCheck = mutationApply
+    ? await checkRoleCapability(['edit_approved_write_set'])
+    : { enforced: Boolean(assumedRole), allowed: true, role: assumedRole };
+  if (!roleCheck.allowed) return roleBlocked('project_service', roleCheck);
+
+  const args = [command, '-InstallRoot', ROOT, '-Json'];
+  if (project_root) args.push('-ProjectRoot', project_root);
+  if (catalog_root) args.push('-CatalogRoot', catalog_root);
+  if (search_roots?.length) args.push('-SearchRoots', search_roots.join(';'));
+  if (baseline_path) args.push('-BaselinePath', baseline_path);
+  if (decisions_path) args.push('-DecisionsPath', decisions_path);
+  if (snapshot_base) args.push('-SnapshotBase', snapshot_base);
+  if (snapshot_path) args.push('-SnapshotPath', snapshot_path);
+  if (include_gitignore) args.push('-IncludeGitIgnore');
+  if (copy_as_new) args.push('-CopyAsNew');
+  if (restore) args.push('-Restore');
+  if (preserve_post_migration_changes) args.push('-PreservePostMigrationChanges');
+  if (command === 'approve' || apply === true) args.push('-Apply');
+  else if (['init', 'bind', 'reconcile', 'unbind', 'migrate'].includes(command)) args.push('-CheckOnly');
+  if (descriptor_json) args.push('-OperationDescriptorJson', descriptor_json);
+  if (scoped_approval_id) args.push('-ScopedApprovalId', scoped_approval_id);
+  if (approval_store_root) args.push('-ScopedApprovalStoreRoot', approval_store_root);
+  if (human_evidence_id) args.push('-HumanEvidenceId', human_evidence_id);
+  if (ttl_minutes) args.push('-TtlMinutes', String(ttl_minutes));
+
+  const run = await runPowerShellFile('scripts/hebrinex-central.ps1', args);
+  let result;
+  try { result = JSON.parse(run.stdout); }
+  catch {
+    return fail({ status: 'error', reason: 'project_service_output_not_json', exit_code: run.exitCode, stdout: run.stdout.slice(0, 4000), stderr: run.stderr.slice(0, 4000) });
+  }
+  result.details = {
+    ...(result.details ?? {}),
+    mcp: { assumed_role: assumedRole || null, role_enforced: mutationApply ? roleCheck.enforced : false },
+  };
+  if (run.exitCode !== 0 || result.exit_code !== 0 || ['blocked', 'failed', 'unavailable'].includes(result.status)) return fail(result);
+  return ok(result);
+});
+
 // ---------------------------------------------------------------------------
 
 const transport = new StdioServerTransport();

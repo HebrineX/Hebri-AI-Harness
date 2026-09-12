@@ -1,0 +1,22 @@
+schema: hebrinex.gate_log
+version: "0.1"
+cycle_id: C-009
+gates:
+  - { gate: G0_session_contract, result: pass, responsible: leader, evidence: [orquestador/sdd/progress/state.yaml], next_action: "Close only approved P05 source and fixtures." }
+  - { gate: G0A_memory_registry_loaded, result: pass_with_formal_precedence, responsible: leader, evidence: [PROJECT_BINDING.yaml, orquestador/sdd/progress/state.yaml], next_action: "Preserve source-template authority." }
+  - { gate: G1_context_ready, result: pass, responsible: leader, evidence: [migracion/fases/P05-migracion-legacy.md, orquestador/sdd/progress/evidence/P04-T08-final-handoff.md], next_action: "Use P02 operation safety and P04 central contracts." }
+  - { gate: G1A_clarification_complete, result: pass, responsible: auditor, evidence: [orquestador/sdd/progress/cycles/C-009/detractor-senior-P05.md], next_action: "Keep unsupported versions blocked and preserve all data." }
+  - { gate: G1B_analysis_complete, result: pass, responsible: leader, evidence: [orquestador/sdd/progress/evidence/P05-T01-T07-implementation.md], next_action: "No unresolved P05 source decision remains." }
+  - { gate: G1C_blast_radius_declared, result: pass, responsible: leader, evidence: [P05-COMPLETE-026, APR-20260910T131504Z-b0d8e8], next_action: "No network, Git write, install, MSI, real consumer or backup deletion." }
+  - { gate: G2_dispatch_ready, result: pass, responsible: leader, evidence: [orquestador/sdd/progress/registry.yaml], next_action: "Use explicit simulated roles." }
+  - { gate: G2A_task_graph_ready, result: pass, responsible: leader, evidence: [orquestador/sdd/progress/cycles/C-009/task-graph.yaml], next_action: "T01-T08 completed sequentially." }
+  - { gate: G3_locks_acquired, result: pass, responsible: leader, evidence: [orquestador/sdd/progress/locks/L-20260910T131613Z-28445a.lock.md, orquestador/sdd/progress/locks/L-20260910T131614Z-eecf3c.lock.md, orquestador/sdd/progress/locks/L-20260910T131616Z-09202f.lock.md, orquestador/sdd/progress/locks/L-20260910T131618Z-dfc971.lock.md, orquestador/sdd/progress/locks/L-20260910T131619Z-af4d71.lock.md], next_action: "All five released after tracking writes." }
+  - { gate: G3A_detractor_senior_pre_implementation, result: pass_with_conditions, responsible: auditor, evidence: [orquestador/sdd/progress/cycles/C-009/detractor-senior-P05.md], next_action: "Conditions implemented and tested." }
+  - { gate: G4_execution_complete, result: pass, responsible: executor, evidence: [orquestador/sdd/progress/evidence/P05-T01-T07-implementation.md, scripts/validate-legacy-migration.ps1], next_action: "P06 consumes only the explicit handoff after new approval." }
+  - { gate: G5_review_or_validation, result: pass_with_pilot_and_release_limits, responsible: reviewer, evidence: [orquestador/sdd/progress/evidence/P05-T08-review.md, orquestador/sdd/progress/evidence/P05-T08-final-handoff.md], next_action: "Run installed-host and pilot gates in P08/P09." }
+  - { gate: G5A_detractor_pass_complete, result: pass, responsible: auditor, evidence: [orquestador/sdd/progress/cycles/C-009/detractor-senior-P05.md], next_action: "Repeat if migration scope expands." }
+  - { gate: G5B_release_reconstruction_complete, result: partial_local_tags, responsible: reviewer, evidence: [orquestador/sdd/progress/evidence/P05-T08-final-handoff.md], next_action: "P06 packages verified baselines; P08 repeats on installed artifacts." }
+  - { gate: G5C_deploy_migration_complete, result: pass_local_fixtures_only, responsible: reviewer, evidence: [scripts/validate-legacy-migration.ps1], next_action: "Real/disposable consumer remains separately approved." }
+  - { gate: G5I_memory_consistency_complete, result: pass_with_formal_precedence, responsible: leader, evidence: [PROJECT_BINDING.yaml, orquestador/sdd/progress/state.yaml, orquestador/sdd/progress/cycles/C-009/memory-closure.yaml], next_action: "Keep history in cycle evidence." }
+  - { gate: G6_agent_closure_complete, result: pass, responsible: leader, evidence: [orquestador/sdd/progress/cycles/C-009/agent-closure.md, orquestador/sdd/progress/registry.yaml], next_action: "No C-009 role remains open." }
+  - { gate: G7_handoff_complete, result: pass, responsible: leader, evidence: [orquestador/sdd/progress/evidence/P05-T08-final-handoff.md], next_action: "Prepare P06 preflight; P05 approval does not authorize it." }

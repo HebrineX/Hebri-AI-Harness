@@ -11,6 +11,8 @@ actors:
     trust: untrusted_until_validated
   - id: remote_dependency
     trust: denied_by_default
+  - id: provider_output
+    trust: untrusted_data_without_instruction_authority
 attack_surfaces:
   - powershell_scripts
   - bash_scripts
@@ -22,6 +24,9 @@ attack_surfaces:
   - logs_and_reports
   - network
   - git_remote
+  - task_packs_and_context_references
+  - provider_backends
+  - cold_handoffs
 threats:
   - id: prompt_defined_authority
     control: HL0_agent_authority
@@ -39,8 +44,24 @@ threats:
     control: command-risk-registry.yaml
   - id: unsafe_backup
     control: logging-policy.yaml
+  - id: approval_replay_or_foreign_project
+    control: operation-safety/1 scoped approval
+  - id: concurrent_lost_update
+    control: operation-safety/1 atomic overlapping-resource lock
+  - id: reused_pid_lock_theft
+    control: operation-safety/1 process start identity
+  - id: interrupted_publication
+    control: operation-safety/1 journal and recovery
   - id: supply_chain_remote_code
     control: supply-chain-policy.yaml
+  - id: provider_output_authority_escalation
+    control: provider-capability-matrix.json plus agent-runtime.ps1
+  - id: stale_context_or_handoff
+    control: sha256 revalidation in agent-runtime.ps1
+  - id: context_budget_overflow
+    control: closed task-pack budget plus 80-percent repack gate
+  - id: committed_effect_replay
+    control: cold handoff journal revalidation
 defaults:
   fail_closed: true
   chat_memory_is_evidence: false

@@ -1,6 +1,6 @@
 # P04 — CLI, binding y catálogo recuperable
 
-Estado: **plan propuesto; no ejecutado**. Owner: leader de integración. Requisitos R01, R02, R03, R04, R06, R07, R10, R13, R16, R17, R18. Dependencias P01–P03 aceptadas. Referencias: [arquitectura](../ARQUITECTURA-CONTRATOS.md), [agentes](../AGENTES-CONTEXTO.md), [validación](../VALIDACION.md).
+Estado: **implementado y validado localmente; aceptado con bloqueos futuros de packaging/host**. Owner: leader de integración. Requisitos R01, R02, R03, R04, R06, R07, R10, R13, R16, R17, R18. Dependencias P01–P03 aceptadas. Referencias: [arquitectura](../ARQUITECTURA-CONTRATOS.md), [agentes](../AGENTES-CONTEXTO.md), [validación](../VALIDACION.md).
 
 ## Objetivo y exclusiones
 
@@ -62,3 +62,20 @@ Auditor detractor verifica que el catálogo no duplique autoridad y que la semil
 Si falla staging, limpiar sólo objetos propios después de registrar error; si falla catálogo, conservar la instancia válida y reconciliar; si falla unbind, mantener binding coherente o señalar recuperación. El rollback nunca borra datos del usuario porque el índice falló. Conservar preimagen de `.gitignore` y no sobrescribir ediciones concurrentes al revertir.
 
 Handoff a P05 incluye CLI exacta vigente, schema, semillas, errores, ubicaciones resueltas y pruebas. Handoff a P06 incluye contrato del launcher y descubrimiento sin rutas personales. Un nuevo agente lee [README](../README.md), esta fase, comandos versionados y evidencia de aceptación, verifica instalación/identidad y solicita aprobación del efecto siguiente.
+
+## Resultado local 2026-09-10
+
+P04-T01..T08 fueron completadas bajo `P04-COMPLETE-025`. La interfaz efectiva
+es `scripts/hebrinex-central.ps1` (`central1`), respaldada por
+`scripts/lib/project-service.psm1`; `scripts/hebrinex.ps1` permanece sin cambios
+como oracle `stable0.5`. La tool MCP `project_service` exige raíces explícitas y
+los hooks centrales ejecutan sólo scripts del `InstallRoot` confiable.
+
+`scripts/validate-project-service.ps1 -RunNegativeTests` pasa 63 checks en
+PowerShell 7.6.5 y Windows PowerShell 5.1.26100.9444. MCP y el agregado pasan con
+`-NoGit`, que omite únicamente el gate dependiente de Git porque la aprobación de
+esta fase lo excluyó. Evidencia y límites: [handoff P04](../../orquestador/sdd/progress/evidence/P04-T08-final-handoff.md).
+
+No se declara instalado ni distribuido: manifest/payload/launcher/MSI pertenecen
+a P06; conversión legacy a P05; upgrade/repair a P07; VM offline, ACLs, symlink y
+revisión externa de release a P08/P09.

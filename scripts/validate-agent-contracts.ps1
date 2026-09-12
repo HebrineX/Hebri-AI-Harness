@@ -147,6 +147,15 @@ Assert-Contains 'orquestador/agents/role-contracts/reporter.yaml' 'may_approve_w
 Assert-Contains 'orquestador/agents/model-adapter-profiles.yaml' 'may_grant_new_capabilities:\s*false' 'model adapters must not grant new capabilities'
 Assert-Contains 'orquestador/agents/model-adapter-profiles.yaml' 'may_override_role_contract:\s*false' 'model adapters must not override role contracts'
 Assert-Contains 'orquestador/agents/model-adapter-profiles.yaml' 'unknown_model_profile:\s*simple_model' 'unknown models must use simple_model profile'
+$providerMatrixPath = Resolve-HarnessPath 'orquestador/agents/provider-capability-matrix.json'
+if (Test-Path -LiteralPath $providerMatrixPath -PathType Leaf) {
+  Assert-Contains 'orquestador/agents/provider-capability-matrix.json' '"default_policy":\s*"deny"' 'provider capability matrix must deny by default'
+  Assert-Contains 'orquestador/agents/provider-capability-matrix.json' '"enforced"' 'provider capability matrix must represent enforced status'
+  Assert-Contains 'orquestador/agents/provider-capability-matrix.json' '"advisory"' 'provider capability matrix must represent advisory status'
+  Assert-Contains 'orquestador/agents/provider-capability-matrix.json' '"unsupported"' 'provider capability matrix must represent unsupported status'
+  Assert-Contains 'orquestador/agents/provider-capability-matrix.json' '"not_tested"' 'provider capability matrix must represent not_tested status'
+  Assert-Contains 'orquestador/agents/provider-capability-matrix.json' '"provider_output_authority":\s*false' 'provider output must never grant authority'
+}
 
 Assert-Contains 'orquestador/agents/lifecycle-registry.yaml' 'all_agents_closed:\s*true' 'done gate must require all agents closed'
 Assert-Contains 'orquestador/agents/lifecycle-registry.yaml' 'open_locks_allowed:\s*false' 'done gate must reject open locks'

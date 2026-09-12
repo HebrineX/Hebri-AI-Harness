@@ -7,6 +7,12 @@ param(
   [string]$ApprovalId = '',
   [string]$RiskClass = '',
   [int]$TimeoutSeconds = 30,
+  [ValidateSet('source_template','legacy_bound','central_instance')][string]$RuntimeMode = 'source_template',
+  [string]$OperationDescriptorPath = '',
+  [string]$ScopedApprovalStoreRoot = '',
+  [string]$ScopedApprovalId = '',
+  [string]$OperationLockPath = '',
+  [string]$OperationJournalPath = '',
   [switch]$Json
 )
 
@@ -332,6 +338,8 @@ $detectedRisk = 'unknown'
 $requiresPreflight = $true
 $requiresSi = $true
 $executes = $false
+$writes = $false
+$mutationContract = 'none'
 $execution = [ordered]@{
   attempted = $false
   exit_code = $null
@@ -413,6 +421,9 @@ if (-not [string]::IsNullOrWhiteSpace($ApprovalId)) {
 if ($Apply -and $decision -eq 'allow') {
   try {
     $plan = New-ApplyPlan $command
+    $ratePath = Resolve-HarnessPath -Root $Root -RelativePath 'orquestador/runtime/gateway-rate.json'
+    $mutation = Assert-OperationMutationAuthorized -RuntimeMode $RuntimeMode -ExpectedOperation 'command-gateway:apply' -WritePaths @($ratePath) -DescriptorPath $OperationDescriptorPath -ApprovalStoreRoot $ScopedApprovalStoreRoot -ApprovalId $ScopedApprovalId -LockPath $OperationLockPath -JournalPath $OperationJournalPath
+    $mutationContract = if ($RuntimeMode -eq 'central_instance') { 'operation-safety/1' } else { 'source_or_legacy_explicit_exception' }
     # Rate check after plan validation so rejected plans do not consume budget,
     # and before execution so the limit actually caps effects per window.
     $rateConfig = Get-RateLimitConfig $registryText
@@ -420,6 +431,7 @@ if ($Apply -and $decision -eq 'allow') {
     if (-not $rate.Allowed) {
       throw "rate_limit_exceeded: $($rate.CountInWindow) Apply executions in the last $($rateConfig.WindowSeconds)s (max $($rateConfig.MaxPerWindow))"
     }
+    $writes = $true
     $execution = Invoke-ApplyPlan $plan
     $executes = $true
   }
@@ -442,7 +454,7 @@ $preflight = [ordered]@{
   action = "Review command before any execution: $safeCommand"
   cwd = $Root
   read_set = 'orquestador/security/command-risk-registry.yaml, orquestador/security/secrets-policy.yaml'
-  write_set = 'none declared by gateway'
+  write_set = if ($Apply) { 'InstanceRoot/runtime/gateway-rate.json' } else { 'none' }
   command_tool = $safeCommand
   network_git_external = if ($detectedRisk -in @('network','git_remote')) { 'yes' } else { 'no by default' }
   risk = $detectedRisk
@@ -453,7 +465,7 @@ $preflight = [ordered]@{
 
 $result = [ordered]@{
   schema = 'hebrinex.command_gateway.result'
-  version = '0.4'
+  version = '0.5'
   root = $Root
   mode = $mode
   command_text = $safeCommand
@@ -465,13 +477,14 @@ $result = [ordered]@{
   risk_class = $detectedRisk
   requires_preflight = $requiresPreflight
   requires_si = $requiresSi
-  writes = $false
+  writes = $writes
   executes = $executes
+  mutation_contract = $mutationContract
   matched_pattern = $matchedPattern
   reason = $reason
   generated_preflight = $preflight
   execution = $execution
-  next_step = if ($decision -eq 'allow' -and $Apply) { 'read-only command executed by gateway with redacted evidence' } elseif ($decision -eq 'allow') { 'external caller may request Apply for read-only allowlisted execution' } else { 'use generated_preflight before any execution' }
+  next_step = if ($decision -eq 'allow' -and $Apply) { 'read-only command executed; rate-state mutation is declared separately from command effects' } elseif ($decision -eq 'allow') { 'external caller may request Apply for read-only allowlisted execution' } else { 'use generated_preflight before any execution' }
 }
 
 $gatewayExitCode = 0
@@ -495,8 +508,9 @@ Write-Output "decision=$decision"
 Write-Output "risk_class=$detectedRisk"
 Write-Output "requires_preflight=$($requiresPreflight.ToString().ToLowerInvariant())"
 Write-Output "requires_si=$($requiresSi.ToString().ToLowerInvariant())"
-Write-Output 'writes=false'
+Write-Output "writes=$($writes.ToString().ToLowerInvariant())"
 Write-Output "executes=$($executes.ToString().ToLowerInvariant())"
+Write-Output "mutation_contract=$mutationContract"
 Write-Output "matched_pattern=$matchedPattern"
 Write-Output "reason=$reason"
 Write-Output "execution_attempted=$($execution.attempted.ToString().ToLowerInvariant())"

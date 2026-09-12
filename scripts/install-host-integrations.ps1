@@ -1,8 +1,15 @@
 param(
   [Parameter(Mandatory = $true)][ValidateSet('claude', 'cursor', 'copilot')][string]$HostName,
   [string]$ProjectRoot = (Resolve-Path .).Path,
+  [string]$CatalogRoot = '',
   [switch]$CheckOnly,
-  [switch]$Apply
+  [switch]$Apply,
+  [ValidateSet('source_template','legacy_bound','central_instance')][string]$RuntimeMode = 'source_template',
+  [string]$OperationDescriptorPath = '',
+  [string]$ScopedApprovalStoreRoot = '',
+  [string]$ScopedApprovalId = '',
+  [string]$OperationLockPath = '',
+  [string]$OperationJournalPath = ''
 )
 
 # Instala en un proyecto consumidor las integraciones nativas GENERADAS por
@@ -20,6 +27,11 @@ if (($CheckOnly -and $Apply) -or (-not $CheckOnly -and -not $Apply)) {
 }
 
 $harnessRoot = Split-Path -Parent $PSScriptRoot
+Import-Module (Join-Path $PSScriptRoot 'lib/hebri-common.psm1') -Force -DisableNameChecking -Prefix 'Op' -Scope Local
+
+if ($RuntimeMode -eq 'central_instance') {
+  [void](Resolve-OpHebriRuntimeContext -InstallRoot $harnessRoot -ProjectRoot $ProjectRoot -DeploymentMode central_instance -CatalogRoot $CatalogRoot)
+}
 
 $plan = switch ($HostName) {
   'claude' {
@@ -62,6 +74,9 @@ if ($CheckOnly) {
   Write-Host 'apply_available=true'
   exit 0
 }
+
+$integrationTargets = @($plan | ForEach-Object { Join-Path $ProjectRoot $_.Target })
+[void](Assert-OpOperationMutationAuthorized -RuntimeMode $RuntimeMode -ExpectedOperation 'install-host-integrations:apply' -WritePaths $integrationTargets -DescriptorPath $OperationDescriptorPath -ApprovalStoreRoot $ScopedApprovalStoreRoot -ApprovalId $ScopedApprovalId -LockPath $OperationLockPath -JournalPath $OperationJournalPath)
 
 foreach ($step in $plan) {
   $sourcePath = Join-Path $harnessRoot $step.Source

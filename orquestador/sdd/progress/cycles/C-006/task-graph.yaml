@@ -1,0 +1,62 @@
+schema: hebrinex.task_graph
+version: "0.6"
+cycle_id: C-006
+slice_id: P03-PROVIDER-EVAL-T07-T08
+waves:
+  - wave_id: W-001
+    type: sequential
+    tasks:
+      - task_id: P03-PF01
+        title: "Verify zero-spend provider availability and authentication"
+        depends_on: [P03-T06]
+        role: auditor
+        profile: detractor_senior
+        execution_mode: simulated
+        status: done_blocked
+      - task_id: P03-T07
+        title: "Implement runner and execute frozen provider corpus"
+        depends_on: [P03-PF01]
+        role: executor
+        profile: worker
+        execution_mode: simulated
+        status: blocked_not_started
+      - task_id: P03-V04
+        title: "Compare baseline and candidate with frozen criteria"
+        depends_on: [P03-T07]
+        role: executor
+        profile: worker
+        execution_mode: simulated
+        status: not_run
+      - task_id: P03-T08
+        title: "Review provider results and recommend by task class"
+        depends_on: [P03-V04]
+        role: reviewer
+        profile: none
+        execution_mode: simulated
+        status: blocked_no_results
+limits:
+  max_active_agents_total: 5
+  leader_slot_reserved: true
+  max_subagents_active: 4
+ownership:
+  owned_files:
+    - orquestador/evaluation/P03/
+    - orquestador/agents/provider-capability-matrix.json
+    - orquestador/sdd/progress/cycles/C-006/
+    - orquestador/sdd/progress/evidence/P03-provider-evaluation-blocked.md
+    - orquestador/sdd/progress/state.yaml
+    - orquestador/sdd/progress/registry.yaml
+    - migracion/operacion/state.json
+  readonly_files:
+    - migracion/fases/P03-agentes-contexto-y-proveedores.md
+    - mcp/agent-backends.mjs
+    - mcp/agents-backend.yaml
+blockers:
+  - id: P03-B04
+    status: active
+    summary: "claude-cli is missing and codex-cli is not authenticated; zero-spend provider evaluation cannot start."
+completion:
+  result: blocked_before_provider_execution
+  evidence:
+    - orquestador/evaluation/P03/provider-preflight-2026-09-09.json
+    - orquestador/sdd/progress/evidence/P03-provider-evaluation-blocked.md

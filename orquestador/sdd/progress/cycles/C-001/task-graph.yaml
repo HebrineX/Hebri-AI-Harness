@@ -1,0 +1,288 @@
+schema: hebrinex.task_graph
+version: "0.6"
+cycle_id: C-001
+slice_id: P00-T08
+waves:
+  - wave_id: W-001
+    type: sequential
+    tasks:
+      - task_id: P00-T01
+        title: "Reconstruct session contract and operative state"
+        depends_on: []
+        role: leader
+        profile: none
+        execution_mode: simulated
+        status: done
+        ownership:
+          owned_files:
+            - orquestador/sdd/progress/state.yaml
+            - orquestador/sdd/progress/registry.yaml
+            - orquestador/sdd/progress/cycles/C-001/
+            - orquestador/sdd/progress/evidence/P00-T01-session-contract.md
+            - migracion/operacion/state.json
+          readonly_files:
+            - AGENTS.md
+            - PROJECT_BINDING.yaml
+            - HARNESS_VERSION
+            - SHARED_MANIFEST.yaml
+            - migracion/fases/P00-baseline-y-contrato.md
+            - migracion/REQUISITOS.md
+            - migracion/FUENTES-DECISIONES.md
+        evidence_expected:
+          - orquestador/sdd/progress/evidence/P00-T01-session-contract.md
+  - wave_id: W-002
+    type: sequential
+    tasks:
+      - task_id: P00-T02
+        title: "Inventory shared, instance and project-local resources"
+        depends_on: [P00-T01]
+        role: executor
+        profile: worker
+        declared_task_role: implementer
+        execution_mode: simulated
+        status: done
+        ownership:
+          owned_files:
+            - orquestador/sdd/progress/evidence/P00-T02-resource-inventory.md
+          readonly_files:
+            - SHARED_MANIFEST.yaml
+            - scripts/
+            - mcp/
+            - orquestador/integrations/
+            - init.sh
+            - .github/workflows/ci.yml
+        evidence_expected:
+          - orquestador/sdd/progress/evidence/P00-T02-resource-inventory.md
+  - wave_id: W-003
+    type: sequential
+    tasks:
+      - task_id: P00-T03
+        title: "Capture stable0.5 CLI behavior and compatibility oracle"
+        depends_on: [P00-T02]
+        role: executor
+        profile: worker
+        declared_task_role: implementer
+        execution_mode: simulated
+        status: done
+        ownership:
+          owned_files:
+            - orquestador/sdd/progress/evidence/P00-T03-cli-baseline.md
+          readonly_files:
+            - scripts/hebrinex.ps1
+            - scripts/validate-cli.ps1
+            - orquestador/method/cli-contract.md
+            - orquestador/runtime/commands.md
+            - scripts/validate-harness.ps1
+            - scripts/audit-harness.ps1
+            - init.sh
+            - .github/workflows/ci.yml
+        evidence_expected:
+          - orquestador/sdd/progress/evidence/P00-T03-cli-baseline.md
+  - wave_id: W-004
+    type: sequential
+    tasks:
+      - task_id: P00-T04
+        title: "Decide on-demand service versus daemon and database"
+        depends_on: [P00-T03]
+        role: auditor
+        profile: architecture
+        execution_mode: simulated
+        status: done
+        ownership:
+          owned_files:
+            - orquestador/sdd/progress/evidence/P00-T04-service-topology-decision.md
+          readonly_files:
+            - migracion/fases/P00-baseline-y-contrato.md
+            - migracion/REQUISITOS.md
+            - migracion/FUENTES-DECISIONES.md
+            - migracion/ARQUITECTURA-CONTRATOS.md
+            - mcp/server.mjs
+            - mcp/agent-backends.mjs
+            - mcp/agents-backend.yaml
+            - mcp/package.json
+            - mcp/package-lock.json
+            - .mcp.json
+            - orquestador/portability/mcp-hosts.md
+            - scripts/validate-mcp.ps1
+            - scripts/command-gateway.ps1
+        evidence_expected:
+          - orquestador/sdd/progress/evidence/P00-T04-service-topology-decision.md
+  - wave_id: W-005
+    type: sequential
+    tasks:
+      - task_id: P00-T05
+        title: "Resolve platform, engine, schema and initial-limit decisions"
+        depends_on: [P00-T04]
+        role: leader
+        profile: none
+        execution_mode: simulated
+        status: done
+        ownership:
+          owned_files:
+            - orquestador/sdd/progress/evidence/P00-T05-blocking-decisions.md
+          readonly_files:
+            - migracion/fases/P00-baseline-y-contrato.md
+            - migracion/fases/P01-layout-y-resolucion.md
+            - migracion/fases/P03-agentes-contexto-y-proveedores.md
+            - migracion/fases/P04-cli-binding-y-registro.md
+            - migracion/fases/P06-payload-launcher-y-msi.md
+            - migracion/REQUISITOS.md
+            - migracion/FUENTES-DECISIONES.md
+            - migracion/ARQUITECTURA-CONTRATOS.md
+            - migracion/VALIDACION.md
+            - PROJECT_BINDING.yaml
+            - HARNESS_VERSION
+            - orquestador/context-budget.yaml
+            - orquestador/policies/schemas/project-binding.schema.yaml
+            - orquestador/sdd/progress/schemas/state.schema.yaml
+            - orquestador/runtime/schemas/
+            - mcp/package.json
+            - .github/workflows/ci.yml
+        evidence_expected:
+          - orquestador/sdd/progress/evidence/P00-T05-blocking-decisions.md
+  - wave_id: W-006
+    type: sequential
+    tasks:
+      - task_id: P00-T06
+        title: "Design sanitized central-binding fixture inventory"
+        depends_on: [P00-T05]
+        role: executor
+        profile: worker
+        declared_task_role: implementer
+        execution_mode: simulated
+        status: done
+        ownership:
+          owned_files:
+            - orquestador/sdd/progress/evidence/P00-T06-fixture-design.md
+          readonly_files:
+            - migracion/fases/P00-baseline-y-contrato.md
+            - migracion/REQUISITOS.md
+            - migracion/ARQUITECTURA-CONTRATOS.md
+            - migracion/VALIDACION.md
+            - orquestador/sdd/progress/evidence/P00-T05-blocking-decisions.md
+            - PROJECT_BINDING.yaml
+            - orquestador/policies/schemas/project-binding.schema.yaml
+            - orquestador/sdd/progress/schemas/state.schema.yaml
+            - orquestador/testing/fixtures/
+            - scripts/validate-fixtures.ps1
+            - scripts/validate-bootstrap.ps1
+            - scripts/validate-migration.ps1
+            - scripts/validate-bound-update.ps1
+        evidence_expected:
+          - orquestador/sdd/progress/evidence/P00-T06-fixture-design.md
+  - wave_id: W-007
+    type: sequential
+    tasks:
+      - task_id: P00-T07
+        title: "Independently review requirements, decisions and fixture design"
+        depends_on: [P00-T06]
+        role: reviewer
+        profile: none
+        execution_mode: simulated
+        independent_process: false
+        status: done
+        ownership:
+          owned_files:
+            - orquestador/sdd/progress/evidence/P00-T07-independent-review.md
+          readonly_files:
+            - migracion/fases/P00-baseline-y-contrato.md
+            - migracion/REQUISITOS.md
+            - migracion/FUENTES-DECISIONES.md
+            - migracion/ARQUITECTURA-CONTRATOS.md
+            - migracion/VALIDACION.md
+            - orquestador/sdd/progress/evidence/P00-T01-session-contract.md
+            - orquestador/sdd/progress/evidence/P00-T02-resource-inventory.md
+            - orquestador/sdd/progress/evidence/P00-T03-cli-baseline.md
+            - orquestador/sdd/progress/evidence/P00-T04-service-topology-decision.md
+            - orquestador/sdd/progress/evidence/P00-T05-blocking-decisions.md
+            - orquestador/sdd/progress/evidence/P00-T06-fixture-design.md
+            - SHARED_MANIFEST.yaml
+            - PROJECT_BINDING.yaml
+            - HARNESS_VERSION
+            - orquestador/memory/memory-registry.yaml
+            - orquestador/policies/schemas/project-binding.schema.yaml
+            - orquestador/sdd/progress/schemas/state.schema.yaml
+            - scripts/hebrinex.ps1
+            - scripts/validate-cli.ps1
+            - scripts/validate-fixtures.ps1
+            - mcp/server.mjs
+        evidence_expected:
+          - orquestador/sdd/progress/evidence/P00-T07-independent-review.md
+  - wave_id: W-008
+    type: sequential
+    tasks:
+      - task_id: P00-T08
+        title: "Close P00 documentary gates and publish cold handoff"
+        depends_on: [P00-T07]
+        role: leader
+        profile: none
+        execution_mode: simulated
+        status: done
+        ownership:
+          owned_files:
+            - orquestador/sdd/progress/state.yaml
+            - orquestador/sdd/progress/registry.yaml
+            - orquestador/sdd/progress/cycles/C-001/task-graph.yaml
+            - orquestador/sdd/progress/cycles/C-001/gate-log.yaml
+            - orquestador/sdd/progress/cycles/C-001/audit.jsonl
+            - orquestador/sdd/progress/cycles/C-001/detractor-senior-P00-T08.md
+            - orquestador/sdd/progress/evidence/P00-T08-final-handoff.md
+            - migracion/operacion/state.json
+          readonly_files:
+            - migracion/fases/P00-baseline-y-contrato.md
+            - migracion/fases/P01-layout-y-resolucion.md
+            - migracion/REQUISITOS.md
+            - migracion/FUENTES-DECISIONES.md
+            - orquestador/sdd/progress/evidence/P00-T07-independent-review.md
+        evidence_expected:
+          - orquestador/sdd/progress/evidence/P00-T08-final-handoff.md
+limits:
+  max_active_agents_total: 5
+  leader_slot_reserved: true
+  max_subagents_active: 4
+blockers:
+  - id: P00-B01
+    status: resolved_for_p00
+    summary: "P00-D21 makes PROJECT_BINDING.yaml and HARNESS_VERSION authoritative for this source repository; stale bound memory metadata remains a later correction."
+  - id: P00-B02
+    status: open
+    summary: "state.schema.yaml contains literal `n sequences; correction is outside P00-T01."
+  - id: P00-B03
+    status: open
+    summary: "SHARED_MANIFEST is declarative, but bootstrap/update still enumerate the legacy structural manifest."
+  - id: P00-B04
+    status: open
+    summary: "Instance mapping is duplicated across PowerShell, CLI and MCP; agent-runtime and migrate-harness still use flat root joins."
+  - id: P00-B05
+    status: open
+    summary: "The stable CLI validator does not positively execute every public dispatcher path or operational Apply branch."
+  - id: P00-B06
+    status: open
+    summary: "Several write-capable CLI branches do not accept or validate ApprovalId; external procedural enforcement is not runtime proof."
+  - id: P00-B07
+    status: open
+    summary: "MCP imports zod directly but receives it only through the SDK transitive dependency; offline payload closure is unproven."
+  - id: P00-B08
+    status: open
+    summary: "MCP ROOT and assumed role are process-global, so one resident process cannot yet isolate multiple project contexts."
+  - id: P00-B09
+    status: open
+    summary: "The default claude-cli role backend is unavailable on the current host; automatic fallback is not proven."
+  - id: P00-B10
+    status: open
+    summary: "Windows client build 10.0.26200 x64 with pwsh 7.6.5 is only a local validation candidate; clean/offline VM and MSI evidence are not_run."
+  - id: P00-B11
+    status: open
+    summary: "PowerShell runtime bundling/prerequisite and minimum supported version are unresolved; the Windows PowerShell 5.1 aggregate attempt exposed a validator stderr-capture incompatibility."
+  - id: P00-B12
+    status: open
+    summary: "API line 1 and hebrinex.binding schema version 1 are accepted design boundaries, but canonical schema implementation, negative fixtures and compatibility tests are not_run."
+  - id: P00-B13
+    status: open
+    summary: "No payload, latency, catalog-throughput or concurrency performance limit is accepted until owners freeze and execute representative workloads."
+  - id: P00-B14
+    status: open
+    summary: "The observed legacy binding declares harness 0.17.1 while project-binding.schema.yaml requires 0.17.0, so the legacy-intact executable fixture lacks a consistent validity oracle."
+  - id: P00-B15
+    status: open
+    summary: "P00-T07 used a simulated same-process reviewer; independent-process review required for R18 product release remains not_run."

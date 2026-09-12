@@ -2,9 +2,10 @@
 
 Hooks implementados (ver `settings.template.json` e instalador `scripts/install-claude-hooks.ps1`):
 
-- `SessionStart`: ejecuta `scripts/claude-reentry.ps1`. Genera el brief liviano en
-  `orquestador/runtime/claude/reentry-brief.md` y lo inyecta al contexto de la sesion
-  (binding, estado de contrato, ciclo activo, locks abiertos/vencidos).
+- `SessionStart`: ejecuta `scripts/claude-reentry.ps1` desde el producto central.
+  En `central_instance` resuelve `.hebrinex/binding.json`, calcula el brief y lo
+  inyecta sin persistir acceso ni copiar scripts. En modos legacy conserva el brief
+  local de `orquestador/runtime/claude/reentry-brief.md`.
 - `PreToolUse` (matcher `Bash|PowerShell`): ejecuta `scripts/claude-pretooluse-hook.ps1`,
   que clasifica el comando con el Command Gateway y responde:
   - gateway `allow` -> `permissionDecision=allow` (read-only seguro, sin prompt).
@@ -35,9 +36,19 @@ sale con exit 0 sin output, y el flujo de permisos normal de Claude Code queda a
 El writeguard corre en cada edicion: tiene que mantenerse rapido y jamas romper el
 flujo si el harness esta a medias.
 
+En `central_instance`, el instalador fija la ruta absoluta del producto confiable y
+pasa `-ProjectRoot '.'`; el binding nunca contiene una ruta ejecutable. Estado,
+memoria y locks se resuelven bajo `.hebrinex/instance`, mientras scripts, schemas y
+politicas se leen del `InstallRoot`. El placeholder `__HEBRINEX_INSTALL_ROOT__` de
+`settings.template.json` siempre es reemplazado por el instalador; no es una orden
+lista para ejecutar manualmente. Si el proyecto fue movido, duplicado o desvinculado,
+`SessionStart` falla con una instruccion de `status/reconcile` en vez de buscar o
+ejecutar scripts dentro del proyecto.
+
 Instalacion: `scripts/install-claude-hooks.ps1 -CheckOnly` muestra el plan;
 `-Apply` instala/actualiza `<project_root>/CLAUDE.md` y mergea los hooks en
-`<project_root>/.claude/settings.json`.
+`<project_root>/.claude/settings.json`. Para una instancia central se agrega
+`-RuntimeMode central_instance -ProjectRoot <root> -CatalogRoot <root-catalogo>`.
 
 El `SI` del operador se materializa con `hebrinex approve -Apply -CommandText <accion>`,
 que crea un approval envelope con expiracion y hash exacto de la accion. El gateway

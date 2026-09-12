@@ -1,0 +1,49 @@
+schema: hebrinex.task_graph
+version: "0.6"
+cycle_id: C-002
+slice_id: P01-T01
+waves:
+  - wave_id: W-001
+    type: sequential
+    tasks:
+      - task_id: P01-T01
+        title: "Convert the P00 inventory into canonical path classes"
+        depends_on: []
+        role: executor
+        profile: worker
+        declared_task_role: architect-implementer
+        execution_mode: simulated
+        status: done
+        ownership:
+          owned_files:
+            - orquestador/sdd/progress/evidence/P01-T01-path-classification.md
+            - orquestador/sdd/progress/evidence/P01-T01-review.md
+            - orquestador/sdd/progress/cycles/C-002/
+            - orquestador/sdd/progress/state.yaml
+            - orquestador/sdd/progress/registry.yaml
+            - migracion/operacion/state.json
+          readonly_files:
+            - migracion/fases/P01-layout-y-resolucion.md
+            - migracion/ARQUITECTURA-CONTRATOS.md
+            - migracion/REQUISITOS.md
+            - migracion/FUENTES-DECISIONES.md
+            - SHARED_MANIFEST.yaml
+            - orquestador/harness-manifest.txt
+            - orquestador/sdd/progress/evidence/P00-T02-resource-inventory.md
+            - orquestador/sdd/progress/evidence/P00-T05-blocking-decisions.md
+            - orquestador/sdd/progress/evidence/P00-T07-independent-review.md
+            - orquestador/sdd/progress/evidence/P00-T08-final-handoff.md
+        evidence_expected:
+          - orquestador/sdd/progress/evidence/P01-T01-path-classification.md
+          - orquestador/sdd/progress/evidence/P01-T01-review.md
+limits:
+  max_active_agents_total: 5
+  leader_slot_reserved: true
+  max_subagents_active: 4
+blockers:
+  - id: P01-B01
+    status: open
+    summary: "The executable resolver and behavioral containment tests are owned by P01-T02 through P01-T07; P01-T01 is classification only."
+  - id: P01-B02
+    status: resolved_for_t01
+    summary: "T01 explicitly classified all 36 structural gaps; executable convergence of SHARED_MANIFEST, PowerShell, CLI and MCP remains owned by later P01 tasks."

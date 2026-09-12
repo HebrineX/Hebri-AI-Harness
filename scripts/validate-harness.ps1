@@ -1,7 +1,8 @@
 param(
   [string]$Root = (Split-Path -Parent $PSScriptRoot),
   [switch]$RunNegativeTests,
-  [switch]$SkipNestedValidators
+  [switch]$SkipNestedValidators,
+  [switch]$NoGit
 )
 
 $ErrorActionPreference = 'Stop'
@@ -150,7 +151,7 @@ function Assert-Budget([string]$Name, [int]$MaxTokens, [string[]]$RelativePaths)
 }
 
 function Invoke-Validator([string]$Name, [string]$RelativePath) {
-  $path = Resolve-HarnessPath $RelativePath
+  $path = if ([IO.Path]::IsPathRooted($RelativePath)) { [IO.Path]::GetFullPath($RelativePath) } else { [IO.Path]::GetFullPath((Join-Path $Root $RelativePath)) }
   if (-not (Test-Path -LiteralPath $path -PathType Leaf)) {
     Add-Failure "missing validator: $Name ($RelativePath)"
     return
@@ -480,7 +481,7 @@ function Invoke-WriteguardHook([string]$RelativeTargetPath) {
 if ((Invoke-WriteguardHook 'HARNESS_VERSION') -notmatch '"permissionDecision":"ask"') {
   Add-Failure 'writeguard hook must answer ask for a protected path (HARNESS_VERSION)'
 }
-if (-not [string]::IsNullOrWhiteSpace((Invoke-WriteguardHook 'README.md'))) {
+if (-not [string]::IsNullOrWhiteSpace((Invoke-WriteguardHook 'artifacts/validate-harness-unprotected-witness.tmp'))) {
   Add-Failure 'writeguard hook must stay silent for an unprotected, unlocked path'
 }
 Assert-Contains 'orquestador/integrations/claude/CLAUDE.template.md' 'reentry-brief' 'CLAUDE template must point to reentry brief'
@@ -542,10 +543,26 @@ Assert-Contains 'scripts/validate-bound-backups.ps1' 'Bound backup inventory val
 Assert-Contains 'scripts/validate-bound-restore.ps1' 'Bound restore validation OK' 'validate-bound-restore.ps1 must expose success marker'
 Assert-Contains 'scripts/command-gateway.ps1' 'Command Gateway' 'command-gateway.ps1 must expose gateway marker'
 Assert-Contains 'scripts/validate-command-gateway.ps1' 'Command gateway validation OK' 'validate-command-gateway.ps1 must expose success marker'
+if (-not $SkipNestedValidators -or (Test-HarnessLeaf (Resolve-HarnessPath 'scripts/validate-operation-safety.ps1'))) {
+  Assert-Contains 'scripts/validate-operation-safety.ps1' 'Operation safety validation OK' 'validate-operation-safety.ps1 must expose success marker'
+}
+if (-not $SkipNestedValidators -or (Test-HarnessLeaf (Resolve-HarnessPath 'scripts/validate-project-service.ps1'))) {
+  Assert-Contains 'scripts/validate-project-service.ps1' 'P04 project service validation OK' 'validate-project-service.ps1 must expose success marker'
+  Assert-Contains 'scripts/hebrinex-central.ps1' "cli_api = 'central1'" 'hebrinex-central.ps1 must expose the central1 interface'
+  Assert-Contains 'scripts/lib/project-service.psm1' 'REGISTRATION_PENDING' 'project-service must preserve explicit registration recovery state'
+}
+if (-not $SkipNestedValidators -or (Test-HarnessLeaf (Resolve-HarnessPath 'scripts/validate-legacy-migration.ps1'))) {
+  Assert-Contains 'scripts/validate-legacy-migration.ps1' 'P05 legacy migration validation OK' 'validate-legacy-migration.ps1 must expose success marker'
+  Assert-Contains 'scripts/lib/legacy-migration-service.psm1' 'BACKUP_INTEGRITY_FAILED' 'legacy migration service must enforce snapshot integrity'
+  Assert-Contains 'scripts/hebrinex-central.ps1' 'New-HebriLegacyMigrationPlan' 'central1 must expose P05 migration planning'
+}
 Assert-Contains 'scripts/state-machine.ps1' 'hebrinex.runtime.state_machine.decision' 'state-machine.ps1 must expose structured decision schema'
 Assert-Contains 'scripts/agent-runtime.ps1' 'hebrinex.runtime.agent_enforcement.decision' 'agent-runtime.ps1 must expose structured decision schema'
 Assert-Contains 'scripts/validate-state-machine.ps1' 'State machine validation OK' 'validate-state-machine.ps1 must expose success marker'
 Assert-Contains 'scripts/validate-agent-runtime.ps1' 'Agent runtime enforcement validation OK' 'validate-agent-runtime.ps1 must expose success marker'
+if (Test-HarnessLeaf (Resolve-HarnessPath 'scripts/validate-agent-context.ps1')) {
+  Assert-Contains 'scripts/validate-agent-context.ps1' 'Agent context validation OK' 'validate-agent-context.ps1 must expose success marker'
+}
 Assert-Contains 'scripts/command-gateway.ps1' 'hebrinex.command_gateway.result' 'command-gateway.ps1 must expose structured result schema'
 Assert-Contains 'orquestador/harness-manifest.txt' 'orquestador/runtime/schemas/command-gateway-result.schema.json' 'command gateway result schema must be in manifest'
 Assert-Contains 'orquestador/harness-manifest.txt' 'orquestador/runtime/templates/command-gateway-result.template.json' 'command gateway result template must be in manifest'
@@ -581,7 +598,9 @@ Assert-Budget 'first_message' 1800 @('PROJECT_BINDING.yaml','orquestador/memory/
 Assert-Budget 'debug_log_intake' 2000 @('PROJECT_BINDING.yaml','orquestador/memory/local/session-pin.md','orquestador/memory/memory-registry.yaml','orquestador/memory/memory-routing.yaml','orquestador/context-budget.yaml','orquestador/entrypoints/debug-log-intake.md','orquestador/entrypoints/reentry-light.md')
 Assert-Budget 'leader_light' 2600 @('PROJECT_BINDING.yaml','orquestador/memory/local/session-pin.md','orquestador/memory/memory-registry.yaml','orquestador/memory/memory-routing.yaml','orquestador/context-budget.yaml','orquestador/sdd/progress/state.yaml','orquestador/sdd/progress/registry.yaml','orquestador/method/session-contract.md')
 
-foreach ($jsonRel in @('orquestador/integrations/claude/settings.template.json','orquestador/runtime/active-session.template.json','orquestador/runtime/schemas/active-session.schema.json','orquestador/runtime/schemas/harness-command.schema.json','orquestador/runtime/schemas/command-gateway-result.schema.json','orquestador/runtime/schemas/state-machine-decision.schema.json','orquestador/runtime/schemas/agent-runtime-decision.schema.json','orquestador/runtime/templates/command-result.template.json','orquestador/runtime/templates/command-gateway-result.template.json','orquestador/runtime/templates/state-machine-decision.template.json','orquestador/runtime/templates/agent-runtime-decision.template.json','orquestador/runtime/templates/budget-report.template.json','orquestador/runtime/templates/reentry-result.template.json','orquestador/sdd/progress/templates/runtime-audit-report.json')) {
+$centralOnlyJson = @('orquestador/runtime/schemas/runtime-layout.schema.json','orquestador/runtime/schemas/harness-runtime-context.schema.json','orquestador/runtime/schemas/harness-path-request.schema.json','orquestador/runtime/schemas/harness-path-result.schema.json','orquestador/runtime/schemas/command-gateway-result-v0.5.schema.json','orquestador/runtime/schemas/operation-descriptor.schema.json','orquestador/runtime/schemas/scoped-approval.schema.json','orquestador/runtime/schemas/operation-lock.schema.json','orquestador/runtime/schemas/operation-journal.schema.json','orquestador/runtime/schemas/operation-result.schema.json','orquestador/runtime/schemas/project-binding.schema.json','orquestador/runtime/schemas/project-instance.schema.json','orquestador/runtime/schemas/project-registration.schema.json','orquestador/runtime/schemas/project-catalog-entry.schema.json','orquestador/runtime/schemas/project-service-result.schema.json','orquestador/runtime/schemas/legacy-migration-baseline.schema.json','orquestador/runtime/schemas/legacy-migration-plan.schema.json','orquestador/runtime/schemas/legacy-migration-snapshot.schema.json','orquestador/runtime/schemas/legacy-migration-result.schema.json','orquestador/runtime/templates/operation-journal.template.json','orquestador/runtime/templates/operation-result.template.json','orquestador/runtime/templates/project-binding.template.json','orquestador/runtime/templates/project-instance.template.json','orquestador/runtime/templates/project-registration.template.json','orquestador/runtime/templates/project-catalog-entry.template.json','orquestador/runtime/templates/legacy-migration-baseline.template.json','orquestador/runtime/templates/legacy-migration-plan.template.json','orquestador/runtime/templates/legacy-migration-snapshot.template.json','orquestador/runtime/templates/legacy-migration-result.template.json','packaging/runtime-layout.json','orquestador/testing/fixtures/root-resolver/binding.central.template.json','orquestador/testing/fixtures/root-resolver/binding.injected.template.json','orquestador/testing/fixtures/root-resolver/resolver-cases.json')
+foreach ($jsonRel in @('orquestador/integrations/claude/settings.template.json','orquestador/runtime/active-session.template.json','orquestador/runtime/schemas/active-session.schema.json','orquestador/runtime/schemas/harness-command.schema.json','orquestador/runtime/schemas/command-gateway-result.schema.json','orquestador/runtime/schemas/command-gateway-result-v0.5.schema.json','orquestador/runtime/schemas/operation-descriptor.schema.json','orquestador/runtime/schemas/scoped-approval.schema.json','orquestador/runtime/schemas/operation-lock.schema.json','orquestador/runtime/schemas/operation-journal.schema.json','orquestador/runtime/schemas/operation-result.schema.json','orquestador/runtime/schemas/state-machine-decision.schema.json','orquestador/runtime/schemas/agent-runtime-decision.schema.json','orquestador/runtime/schemas/runtime-layout.schema.json','orquestador/runtime/schemas/harness-runtime-context.schema.json','orquestador/runtime/schemas/harness-path-request.schema.json','orquestador/runtime/schemas/harness-path-result.schema.json','orquestador/runtime/schemas/project-binding.schema.json','orquestador/runtime/schemas/project-instance.schema.json','orquestador/runtime/schemas/project-registration.schema.json','orquestador/runtime/schemas/project-catalog-entry.schema.json','orquestador/runtime/schemas/project-service-result.schema.json','orquestador/runtime/schemas/legacy-migration-baseline.schema.json','orquestador/runtime/schemas/legacy-migration-plan.schema.json','orquestador/runtime/schemas/legacy-migration-snapshot.schema.json','orquestador/runtime/schemas/legacy-migration-result.schema.json','orquestador/runtime/templates/command-result.template.json','orquestador/runtime/templates/command-gateway-result.template.json','orquestador/runtime/templates/operation-journal.template.json','orquestador/runtime/templates/operation-result.template.json','orquestador/runtime/templates/project-binding.template.json','orquestador/runtime/templates/project-instance.template.json','orquestador/runtime/templates/project-registration.template.json','orquestador/runtime/templates/project-catalog-entry.template.json','orquestador/runtime/templates/legacy-migration-baseline.template.json','orquestador/runtime/templates/legacy-migration-plan.template.json','orquestador/runtime/templates/legacy-migration-snapshot.template.json','orquestador/runtime/templates/legacy-migration-result.template.json','orquestador/runtime/templates/state-machine-decision.template.json','orquestador/runtime/templates/agent-runtime-decision.template.json','orquestador/runtime/templates/budget-report.template.json','orquestador/runtime/templates/reentry-result.template.json','orquestador/sdd/progress/templates/runtime-audit-report.json','packaging/runtime-layout.json','orquestador/testing/fixtures/root-resolver/binding.central.template.json','orquestador/testing/fixtures/root-resolver/binding.injected.template.json','orquestador/testing/fixtures/root-resolver/resolver-cases.json')) {
+  if ($SkipNestedValidators -and $jsonRel -in $centralOnlyJson -and -not (Test-HarnessLeaf (Resolve-HarnessPath $jsonRel))) { continue }
   try { [void](Read-HarnessText $jsonRel | ConvertFrom-Json) }
   catch { Add-Failure "$jsonRel must be valid JSON" }
 }
@@ -598,6 +617,12 @@ try { & (Resolve-HarnessPath 'scripts/hebrinex.ps1') preflight -Root $Root -Appr
 try { & (Resolve-HarnessPath 'scripts/hebrinex.ps1') command -Root $Root -CheckOnly -CommandText 'Get-Content README.md' *> $null } catch { Add-Failure 'hebrinex.ps1 command must pass read-only CheckOnly' }
 try { & (Resolve-HarnessPath 'scripts/hebrinex.ps1') state-machine -Root $Root -FromState 'requested' -ToState 'contract_resolved' *> $null } catch { Add-Failure 'hebrinex.ps1 state-machine must pass allowed transition' }
 try { & (Resolve-HarnessPath 'scripts/hebrinex.ps1') agent-runtime -Root $Root -RoleId 'implementer' -Capability 'edit_approved_write_set' *> $null } catch { Add-Failure 'hebrinex.ps1 agent-runtime must pass allowed capability' }
+
+# These simulations rely on the aggregate's local helpers. Run them before the
+# nested P01/P02 validators import the shared module without a prefix.
+Test-BoundCopySimulation
+Test-ClaudeInstallSimulation
+if ($RunNegativeTests) { Run-NegativeTests }
 
 if ($SkipNestedValidators) {
   Write-Host 'Nested validators skipped for bound smoke.'
@@ -616,12 +641,20 @@ else {
   Invoke-Validator 'validate-command-gateway' 'scripts/validate-command-gateway.ps1'
   Invoke-Validator 'validate-state-machine' 'scripts/validate-state-machine.ps1'
   Invoke-Validator 'validate-agent-runtime' 'scripts/validate-agent-runtime.ps1'
+  if (Test-HarnessLeaf (Resolve-HarnessPath 'scripts/validate-agent-context.ps1')) {
+    Invoke-Validator 'validate-agent-context' 'scripts/validate-agent-context.ps1'
+  }
+  Invoke-Validator 'validate-root-resolver' 'scripts/validate-root-resolver.ps1'
+  Invoke-Validator 'validate-operation-safety' 'scripts/validate-operation-safety.ps1'
+  Invoke-Validator 'validate-project-service' 'scripts/validate-project-service.ps1'
+  Invoke-Validator 'validate-legacy-migration' 'scripts/validate-legacy-migration.ps1'
+  if ($NoGit) {
+    & ([IO.Path]::GetFullPath((Join-Path $Root 'scripts/validate-mcp.ps1'))) -Root $Root -RunNegativeTests:$RunNegativeTests -NoGit
+    if ($LASTEXITCODE -ne 0) { Add-Failure "validate-mcp failed with exit code $LASTEXITCODE" }
+  }
+  else { Invoke-Validator 'validate-mcp' 'scripts/validate-mcp.ps1' }
   Write-Host 'validator audit-harness skipped (aggregate wrapper; nested validators already ran above).'
 }
-
-Test-BoundCopySimulation
-Test-ClaudeInstallSimulation
-if ($RunNegativeTests) { Run-NegativeTests }
 
 if ($script:Warnings.Count -gt 0) {
   Write-Host 'Validation warnings:'

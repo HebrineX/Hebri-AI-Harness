@@ -1,10 +1,17 @@
 param(
   [string]$Root = (Split-Path -Parent $PSScriptRoot),
   [string]$RegistryPath = "",
-  [switch]$Apply
+  [switch]$Apply,
+  [ValidateSet('source_template','legacy_bound','central_instance')][string]$RuntimeMode = 'source_template',
+  [string]$OperationDescriptorPath = '',
+  [string]$ScopedApprovalStoreRoot = '',
+  [string]$ScopedApprovalId = '',
+  [string]$OperationLockPath = '',
+  [string]$OperationJournalPath = ''
 )
 
 $ErrorActionPreference = 'Stop'
+Import-Module (Join-Path $PSScriptRoot 'lib/hebri-common.psm1') -Force -DisableNameChecking -Prefix 'Op' -Scope Local
 $Root = (Resolve-Path -LiteralPath $Root).Path
 if ([string]::IsNullOrWhiteSpace($RegistryPath)) { $RegistryPath = Join-Path $Root 'orquestador/sdd/progress/registry.yaml' }
 if (-not (Test-Path -LiteralPath $RegistryPath)) { Write-Error "registry.yaml missing: $RegistryPath" }
@@ -85,6 +92,7 @@ if (-not $Apply) {
 }
 
 $backup = $RegistryPath + '.bak'
+[void](Assert-OpOperationMutationAuthorized -RuntimeMode $RuntimeMode -ExpectedOperation 'regularize-registry:apply' -WritePaths @($RegistryPath,$backup) -DescriptorPath $OperationDescriptorPath -ApprovalStoreRoot $ScopedApprovalStoreRoot -ApprovalId $ScopedApprovalId -LockPath $OperationLockPath -JournalPath $OperationJournalPath)
 Copy-Item -LiteralPath $RegistryPath -Destination $backup -Force
 [IO.File]::WriteAllText($RegistryPath, (($text -replace "`r`n", "`n") -replace "`r", "`n"), [Text.UTF8Encoding]::new($false))
 Write-Host "OK. registry.yaml regularized. Backup: $backup"

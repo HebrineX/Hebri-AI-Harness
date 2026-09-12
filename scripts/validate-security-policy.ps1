@@ -78,10 +78,15 @@ Assert-Contains 'orquestador/security/threat-model.yaml' 'path_traversal' 'threa
 Assert-Contains 'orquestador/security/threat-model.yaml' 'symlink_escape' 'threat model must include symlink escape'
 Assert-Contains 'orquestador/security/threat-model.yaml' 'secret_leak' 'threat model must include secret leak'
 Assert-Contains 'orquestador/security/threat-model.yaml' 'supply_chain_remote_code' 'threat model must include supply-chain remote code'
+Assert-Contains 'orquestador/security/threat-model.yaml' 'provider_output_authority_escalation' 'threat model must include provider output authority escalation'
+Assert-Contains 'orquestador/security/threat-model.yaml' 'stale_context_or_handoff' 'threat model must include stale context/handoff'
+Assert-Contains 'orquestador/security/threat-model.yaml' 'committed_effect_replay' 'threat model must include committed effect replay'
 
 Assert-Contains 'orquestador/security/permission-registry.yaml' 'prompt_defined_permission:\s*block' 'prompt-defined permissions must block'
 Assert-Contains 'orquestador/security/permission-registry.yaml' 'define_agents:[\s\S]*hard_deny:\s*true' 'define_agents must be hard-denied'
 Assert-Contains 'orquestador/security/permission-registry.yaml' 'escalate_capabilities:[\s\S]*hard_deny:\s*true' 'capability escalation must be hard-denied'
+Assert-Contains 'orquestador/security/permission-registry.yaml' 'provider_output_defined_permission:\s*block' 'provider output permissions must block'
+Assert-Contains 'orquestador/security/permission-registry.yaml' 'effective_capability:\s*intersection_of_role_task_host_adapter_model' 'effective capabilities must be an intersection'
 
 Assert-Contains 'orquestador/security/command-risk-registry.yaml' 'unknown_command:\s*block' 'unknown commands must block'
 Assert-Contains 'orquestador/security/command-risk-registry.yaml' 'string_built_shell_from_untrusted_input:\s*block' 'string-built commands from untrusted input must block'
@@ -97,6 +102,9 @@ Assert-Contains 'orquestador/security/write-scope-registry.yaml' 'path_traversal
 Assert-Contains 'orquestador/security/write-scope-registry.yaml' 'symlink_escape:\s*block' 'symlink escape must block'
 Assert-Contains 'orquestador/security/write-scope-registry.yaml' 'reject_dotdot_segments:\s*true' 'dotdot path segments must be rejected'
 Assert-Contains 'orquestador/security/write-scope-registry.yaml' 'missing_write_set:\s*block' 'missing write-set must block'
+Assert-Contains 'orquestador/security/write-scope-registry.yaml' 'missing_operation_descriptor:\s*block' 'missing operation descriptor must block'
+Assert-Contains 'orquestador/security/write-scope-registry.yaml' 'ttl_may_steal_live_lock:\s*false' 'TTL must not steal a verified live lock'
+Assert-Contains 'orquestador/security/write-scope-registry.yaml' 'cross_volume_global_atomicity:\s*false' 'cross-volume global atomicity must not be claimed'
 
 Assert-Contains 'orquestador/security/network-policy.yaml' 'default:\s*deny' 'network must default deny'
 Assert-Contains 'orquestador/security/network-policy.yaml' 'execute_remote_script' 'network policy must block remote script execution'
@@ -113,6 +121,9 @@ Assert-Contains 'orquestador/security/escalation-policy.yaml' 'persistent_privil
 Assert-Contains 'orquestador/security/logging-policy.yaml' 'redact_before_write:\s*true' 'logs must redact before write'
 Assert-Contains 'orquestador/security/logging-policy.yaml' 'chat_memory_is_evidence:\s*false' 'chat memory must not be evidence'
 Assert-Contains 'orquestador/security/logging-policy.yaml' 'manifest_or_checksum' 'backup evidence must include manifest or checksum'
+Assert-Contains 'orquestador/security/logging-policy.yaml' 'approval_is_separate_precondition:\s*true' 'approval must remain separate from journal state'
+Assert-Contains 'orquestador/security/logging-policy.yaml' 'status_reads_may_persist_access:\s*false' 'status reads must not persist access metadata'
+Assert-Contains 'orquestador/security/logging-policy.yaml' 'provider_output_instruction_authority:\s*false' 'provider output must not have instruction authority'
 
 Assert-Contains 'orquestador/security/supply-chain-policy.yaml' 'default:\s*deny' 'supply chain must default deny'
 Assert-Contains 'orquestador/security/supply-chain-policy.yaml' 'download_and_execute:\s*deny' 'download and execute must be denied'

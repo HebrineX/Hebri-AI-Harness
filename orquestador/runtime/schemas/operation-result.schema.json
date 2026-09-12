@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Hebri Operation Result",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "contract_version", "runtime_api", "operation_id", "final_state", "changed_resources", "evidence_path", "recovery_required"],
+  "properties": {
+    "schema": { "const": "hebrinex.operation_result" },
+    "contract_version": { "const": "1.0.0" },
+    "runtime_api": { "const": "1" },
+    "operation_id": { "type": "string" },
+    "final_state": { "enum": ["committed", "rolled_back", "recovery_required"] },
+    "changed_resources": { "type": "array", "items": { "type": "string" } },
+    "evidence_path": { "type": "string" },
+    "recovery_required": { "type": "boolean" }
+  }
+}

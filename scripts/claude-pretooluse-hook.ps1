@@ -9,6 +9,13 @@
 # Fail-open by design: if the gateway or parsing fails, the hook emits nothing and
 # Claude Code's own permission system remains in charge.
 
+param(
+  [ValidateSet('source_template','legacy_bound','central_instance')][string]$RuntimeMode = 'source_template',
+  [string]$InstallRoot = (Split-Path -Parent $PSScriptRoot),
+  [string]$ProjectRoot = '',
+  [string]$CatalogRoot = ''
+)
+
 $ErrorActionPreference = 'Stop'
 
 function Write-HookDecision([string]$Decision, [string]$Reason) {
@@ -31,8 +38,13 @@ try {
   $commandText = [string]$payload.tool_input.command
   if ([string]::IsNullOrWhiteSpace($commandText)) { exit 0 }
 
-  $gatewayScript = Join-Path $PSScriptRoot 'command-gateway.ps1'
-  $harnessRoot = Split-Path -Parent $PSScriptRoot
+  $harnessRoot = [IO.Path]::GetFullPath($InstallRoot)
+  if ($RuntimeMode -eq 'central_instance') {
+    if ([string]::IsNullOrWhiteSpace($ProjectRoot)) { $ProjectRoot = (Get-Location).Path }
+    Import-Module (Join-Path $PSScriptRoot 'lib/hebri-common.psm1') -Force -DisableNameChecking -Scope Local
+    [void](Resolve-HebriRuntimeContext -InstallRoot $harnessRoot -ProjectRoot $ProjectRoot -DeploymentMode central_instance -CatalogRoot $CatalogRoot)
+  }
+  $gatewayScript = Join-Path $harnessRoot 'scripts/command-gateway.ps1'
   if (-not (Test-Path -LiteralPath $gatewayScript -PathType Leaf)) { exit 0 }
 
   $gatewayOutput = & $gatewayScript -Root $harnessRoot -CheckOnly -Json -CommandText $commandText 2>$null

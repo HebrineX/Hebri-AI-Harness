@@ -1,0 +1,32 @@
+schema: hebrinex.memory.closure_checklist
+version: "0.1"
+cycle_id: C-008
+status: passed_with_formal_source_template_precedence
+local:
+  current_focus_updated: true
+  active_contract_matches_session: true
+  operator_hard_locks_recorded: true
+  note: "Local current-focus and active-contract are source templates; authoritative session state is state.yaml and C-008 evidence, per P00 precedence."
+daily:
+  daily_memory_updated_or_not_applicable: true
+  transient_logs_summarized: true
+  stale_daily_context_removed_or_marked: true
+  note: "No dated daily memory exists; transient output is summarized in P04 evidence."
+cycle:
+  state_yaml_updated: true
+  registry_yaml_updated: true
+  gates_and_evidence_linked: true
+  open_agents_empty_or_blocked: true
+  open_locks_empty_or_blocked: true
+project:
+  stable_decisions_promoted: true
+  architecture_or_product_memory_updated_if_changed: true
+  no_transient_debug_noise_promoted: true
+  note: "Source-template consumer memory remains a template; stable product architecture is in orquestador/runtime/project-service-central1.md and the final handoff."
+complete:
+  used: false
+  approval_id: ""
+  evidence_refs: []
+result:
+  pass: true
+  gaps: []

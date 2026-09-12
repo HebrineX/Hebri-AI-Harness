@@ -1,0 +1,18 @@
+{
+  "schema": "hebrinex.agent_handoff",
+  "contract_version": "1.0.0",
+  "runtime_api": "1",
+  "handoff_id": "HANDOFF-ID",
+  "task_id": "TASK-ID",
+  "project_id": "PROJECT-ID",
+  "from_actor_id": "ACTOR-ID",
+  "to_role_id": "reviewer",
+  "execution_mode": "simulated_roles",
+  "state": "ready",
+  "result_ref": { "path": "instance/runtime/agent-results/TASK-ID.json", "sha256": "0000000000000000000000000000000000000000000000000000000000000000" },
+  "source_refs": [],
+  "approval_refs": [],
+  "journal_refs": [],
+  "effects_to_execute": [],
+  "next_action": "Review the result using only declared evidence."
+}

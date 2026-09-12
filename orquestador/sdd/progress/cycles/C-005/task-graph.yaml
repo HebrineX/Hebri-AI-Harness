@@ -1,0 +1,129 @@
+schema: hebrinex.task_graph
+version: "0.6"
+cycle_id: C-005
+slice_id: P03-LOCAL-T01-T06
+waves:
+  - wave_id: W-001
+    type: sequential
+    tasks:
+      - task_id: P03-T01
+        title: "Map roles to verifiable capabilities and enforcement layers"
+        depends_on: [P02-T08]
+        role: executor
+        profile: worker
+        execution_mode: simulated
+        status: done
+      - task_id: P03-T02
+        title: "Implement strict task-pack validation"
+        depends_on: [P03-T01]
+        role: executor
+        profile: worker
+        execution_mode: simulated
+        status: done
+      - task_id: P03-T03
+        title: "Implement selective context loading and provenance"
+        depends_on: [P03-T02]
+        role: executor
+        profile: worker
+        execution_mode: simulated
+        status: done
+      - task_id: P03-T04
+        title: "Separate host adapter and model capabilities"
+        depends_on: [P03-T03]
+        role: executor
+        profile: worker
+        execution_mode: simulated
+        status: done
+      - task_id: P03-T05
+        title: "Implement verifiable result handoff and cold reentry"
+        depends_on: [P03-T04]
+        role: executor
+        profile: worker
+        execution_mode: simulated
+        status: done
+      - task_id: P03-T06
+        title: "Freeze sanitized corpus candidates and thresholds before evaluation"
+        depends_on: [P03-T05]
+        role: leader
+        profile: none
+        execution_mode: simulated
+        status: done
+      - task_id: P03-LV01
+        title: "Run approved offline adversarial conformance matrix"
+        depends_on: [P03-T06]
+        role: executor
+        profile: worker
+        execution_mode: simulated
+        status: done
+      - task_id: P03-LR01
+        title: "Review local implementation without editing production"
+        depends_on: [P03-LV01]
+        role: reviewer
+        profile: none
+        execution_mode: simulated
+        status: done
+limits:
+  max_active_agents_total: 5
+  leader_slot_reserved: true
+  max_subagents_active: 4
+ownership:
+  owned_files:
+    - scripts/agent-runtime.ps1
+    - scripts/validate-agent-runtime.ps1
+    - scripts/validate-agent-contracts.ps1
+    - scripts/validate-agent-context.ps1
+    - scripts/validate-harness.ps1
+    - mcp/agent-backends.mjs
+    - mcp/agent-backends.test.mjs
+    - mcp/agents-backend.yaml
+    - orquestador/agents/
+    - orquestador/adapters/
+    - orquestador/portability/adapter-matrix.yaml
+    - orquestador/runtime/schemas/
+    - orquestador/runtime/templates/
+    - orquestador/testing/fixtures/agent-context/
+    - orquestador/evaluation/P03/
+    - orquestador/security/
+    - packaging/runtime-layout.json
+    - orquestador/sdd/progress/cycles/C-005/
+    - orquestador/sdd/progress/evidence/P03-T01-role-capabilities.md
+    - orquestador/sdd/progress/evidence/P03-T02-task-pack.md
+    - orquestador/sdd/progress/evidence/P03-T03-context-loading.md
+    - orquestador/sdd/progress/evidence/P03-T04-provider-capabilities.md
+    - orquestador/sdd/progress/evidence/P03-T05-handoff.md
+    - orquestador/sdd/progress/evidence/P03-T06-experiment-freeze.md
+    - orquestador/sdd/progress/evidence/P03-local-review.md
+    - orquestador/sdd/progress/evidence/P03-LOCAL-final-handoff.md
+    - orquestador/sdd/progress/state.yaml
+    - orquestador/sdd/progress/registry.yaml
+    - migracion/operacion/state.json
+  readonly_files:
+    - migracion/fases/P03-agentes-contexto-y-proveedores.md
+    - migracion/AGENTES-CONTEXTO.md
+    - migracion/VALIDACION.md
+    - migracion/REQUISITOS.md
+    - orquestador/sdd/progress/evidence/P01-T08-final-handoff.md
+    - orquestador/sdd/progress/evidence/P02-T08-final-handoff.md
+    - mcp/server.mjs
+    - orquestador/harness-manifest.txt
+blockers:
+  - id: P03-B01
+    status: waiting_for_separate_approval
+    summary: "P03-T07 live provider benchmark and normative P03-V04 require a separate network/data/cost preflight after T06 freezes the experiment."
+  - id: P03-B02
+    status: inherited
+    summary: "P04 owns MCP service integration of the P03 task-pack and handoff contracts."
+  - id: P03-B03
+    status: inherited
+    summary: "P06 must publish P03 runtime artifacts through the executable manifest and registries as one atomic packaging change."
+completion:
+  result: accepted_local_foundation_with_provider_and_packaging_blockers
+  evidence:
+    - orquestador/sdd/progress/evidence/P03-T01-role-capabilities.md
+    - orquestador/sdd/progress/evidence/P03-T02-task-pack.md
+    - orquestador/sdd/progress/evidence/P03-T03-context-loading.md
+    - orquestador/sdd/progress/evidence/P03-T04-provider-capabilities.md
+    - orquestador/sdd/progress/evidence/P03-T05-handoff.md
+    - orquestador/sdd/progress/evidence/P03-T06-experiment-freeze.md
+    - orquestador/sdd/progress/evidence/P03-local-review.md
+    - orquestador/sdd/progress/evidence/P03-LOCAL-final-handoff.md

@@ -1,0 +1,17 @@
+{
+  "schema": "hebrinex.root_resolver.fixture_cases",
+  "schema_version": 1,
+  "positive": [
+    { "id": "product-read", "resource": "scripts/lib/hebri-common.psm1", "access": "read", "class": "product", "root": "InstallRoot" },
+    { "id": "instance-write", "resource": "orquestador/context/session.md", "access": "write", "class": "instance", "root": "InstanceRoot" },
+    { "id": "integration-write", "resource": "@integration/claude-agent/session.md", "access": "write", "class": "integration", "root": "ProjectRoot" },
+    { "id": "catalog-write", "resource": "@catalog/projects/project-a.json", "access": "write", "class": "catalog", "root": "CatalogRoot" }
+  ],
+  "negative": [
+    { "id": "parent", "resource": "../outside.txt", "error": "PATH_OUTSIDE_ROOT" },
+    { "id": "absolute", "resource": "C:/outside.txt", "error": "PATH_OUTSIDE_ROOT" },
+    { "id": "ads", "resource": "orquestador/context/file.txt:stream", "error": "PATH_OUTSIDE_ROOT" },
+    { "id": "provider", "resource": "Registry::HKEY_CURRENT_USER/Test", "error": "PATH_OUTSIDE_ROOT" },
+    { "id": "unknown", "resource": "unclassified/data.txt", "error": "RESOURCE_UNKNOWN" }
+  ]
+}

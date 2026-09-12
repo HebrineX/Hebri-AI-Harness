@@ -1,0 +1,15 @@
+schema: hebrinex.approval_envelope
+version: "0.1"
+approval_id: APR-20260909T052210Z-5eec12
+status: approved
+human_decision: approved
+approved_text: "SI"
+action_type: run_command
+exact_action: "P01-T01-LAYOUT-019: complete canonical path classification, evidence, C-002 tracking, and validation within the approved write-set"
+command: "P01-T01-LAYOUT-019: complete canonical path classification, evidence, C-002 tracking, and validation within the approved write-set"
+command_sha256: 6565a2dfb5d074cecf145a99a9e0adc644979a80d916156e753709a229e9e90c
+purpose: ""
+risk: low
+created_at: 2026-09-09T05:22:10.1263588Z
+expires_at: 2026-09-09T06:22:10.1263588Z
+harness_version: "0.17.1"

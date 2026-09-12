@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Hebrinex Legacy Migration Result",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "contract_version", "cli_api", "command", "status", "reason", "exit_code", "writes_performed", "observed_at", "details", "next_step"],
+  "properties": {
+    "schema": { "const": "hebrinex.project_service.result" },
+    "contract_version": { "const": "1.0.0" },
+    "cli_api": { "const": "central1" },
+    "command": { "const": "migrate" },
+    "status": { "enum": ["planned", "applied", "blocked", "failed"] },
+    "reason": { "type": "string", "minLength": 1 },
+    "exit_code": { "type": "integer", "minimum": 0, "maximum": 255 },
+    "writes_performed": { "type": "boolean" },
+    "project_id": { "type": "string", "pattern": "^PRJ-[a-f0-9]{32}$" },
+    "observed_at": { "type": "string", "format": "date-time" },
+    "details": { "type": "object" },
+    "next_step": { "type": "string" }
+  }
+}

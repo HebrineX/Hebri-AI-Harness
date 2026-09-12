@@ -1,0 +1,10 @@
+{
+  "schema": "hebrinex.project_instance",
+  "schema_version": 1,
+  "project_id": "PRJ-00000000000000000000000000000000",
+  "instance_id": "INST-00000000000000000000000000000000",
+  "lifecycle_state": "pending",
+  "state_schema_version": 1,
+  "created_at": "1970-01-01T00:00:00.0000000Z",
+  "updated_at": "1970-01-01T00:00:00.0000000Z"
+}

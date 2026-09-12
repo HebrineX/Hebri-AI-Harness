@@ -1,0 +1,18 @@
+{
+  "schema": "hebrinex.agent_result",
+  "contract_version": "1.0.0",
+  "runtime_api": "1",
+  "task_id": "TASK-ID",
+  "project_id": "PROJECT-ID",
+  "actor_id": "ACTOR-ID",
+  "role_id": "auditor",
+  "execution_mode": "simulated_roles",
+  "provider_id": null,
+  "status": "accepted",
+  "summary": "Bounded result summary.",
+  "task_pack_ref": { "path": "instance/runtime/agent-task-packs/TASK-ID.json", "sha256": "0000000000000000000000000000000000000000000000000000000000000000" },
+  "evidence": [],
+  "capability_decisions": [],
+  "instruction_authority": false,
+  "writes": false
+}

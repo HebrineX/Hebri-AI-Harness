@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Hebri Agent Result",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "contract_version", "runtime_api", "task_id", "project_id", "actor_id", "role_id", "execution_mode", "provider_id", "status", "summary", "task_pack_ref", "evidence", "capability_decisions", "instruction_authority", "writes"],
+  "properties": {
+    "schema": { "const": "hebrinex.agent_result" },
+    "contract_version": { "const": "1.0.0" },
+    "runtime_api": { "const": "1" },
+    "task_id": { "type": "string", "minLength": 1 },
+    "project_id": { "type": "string", "minLength": 1 },
+    "actor_id": { "type": "string", "minLength": 1 },
+    "role_id": { "type": "string", "minLength": 1 },
+    "execution_mode": { "enum": ["real_agent", "simulated_roles"] },
+    "provider_id": { "type": ["string", "null"] },
+    "status": { "enum": ["accepted", "blocked", "failed"] },
+    "summary": { "type": "string", "minLength": 1 },
+    "task_pack_ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "sha256"],
+      "properties": {
+        "path": { "type": "string", "minLength": 1 },
+        "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+      }
+    },
+    "evidence": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["path", "sha256", "kind"],
+        "properties": {
+          "path": { "type": "string", "minLength": 1 },
+          "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+          "kind": { "enum": ["input", "test", "output", "decision"] }
+        }
+      }
+    },
+    "capability_decisions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["capability", "decision", "enforcement"],
+        "properties": {
+          "capability": { "type": "string" },
+          "decision": { "enum": ["allow", "block"] },
+          "enforcement": { "enum": ["enforced", "advisory", "unsupported", "not_tested"] }
+        }
+      }
+    },
+    "instruction_authority": { "const": false },
+    "writes": { "type": "boolean" }
+  }
+}

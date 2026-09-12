@@ -1,6 +1,6 @@
 # P05 — Migración legacy reversible y preservación de drift
 
-Estado: **plan propuesto; no ejecutado**. Owner: leader de migración. Requisitos R02, R03, R04, R05, R06, R07, R10, R16, R17, R18. Dependencias P00–P04 aceptadas. Entradas normativas: [arquitectura](../ARQUITECTURA-CONTRATOS.md), [validación](../VALIDACION.md), [fuentes](../FUENTES-DECISIONES.md).
+Estado: **implementado y validado localmente; aceptado con límites de piloto, packaging y host**. Owner: leader de migración. Requisitos R02, R03, R04, R05, R06, R07, R10, R16, R17, R18. Dependencias P00–P04 aceptadas. Entradas normativas: [arquitectura](../ARQUITECTURA-CONTRATOS.md), [validación](../VALIDACION.md), [fuentes](../FUENTES-DECISIONES.md).
 
 ## Objetivo y exclusiones
 
@@ -61,3 +61,26 @@ Auditor detractor revisa preservación, dependencias y duplicación de formatos.
 Una interrupción exige leer journal y comprobar archivos reales antes de continuar. No repetir apply a ciegas. Una migración comprometida correctamente con catálogo incompleto conserva datos y repara índice; una publicación parcial entra en recovery_required. No asumir atomicidad entre directorios o volúmenes. Rollback conserva evidencias y revalida precondiciones, snapshots y cambios posteriores.
 
 Entregar matriz versión→ruta soportada→resultado; plan piloto revisado; hash del producto y baseline; backups localizables; instrucciones de recuperación exactas; operaciones pendientes y locks cerrados. El nuevo agente empieza por [README](../README.md), esta fase, último journal y binding real, y obtiene aprobación específica para un consumidor nuevo. Haber migrado un fixture no autoriza producción.
+
+## Resultado local 2026-09-10
+
+P05-T01..T08 fueron completadas bajo `P05-COMPLETE-026`. La implementación
+incorpora baselines confiables por contenido, clasificación de recursos, plan
+inmutable, snapshot verificado fuera de `.hebrinex`, staging, publicación con
+approval/lock/journal P02, registro P04 y restore que bloquea cambios posteriores.
+Los backups legacy preexistentes se preservan fuera del snapshot restaurable y
+no generan recursión al migrar, restaurar y volver a migrar.
+
+`scripts/validate-legacy-migration.ps1 -RunNegativeTests` pasa 69 checks en
+PowerShell 7.6.5 y Windows PowerShell 5.1.26100.9444. Con `-UseGitTags` pasa 75
+checks y verifica localmente los tags `v0.10.11` y `v0.16.0`; cualquier versión
+no listada permanece `unsupported`. También pasan los validadores de
+backup/restore/update, project service, MCP y el agregado con `-NoGit`.
+
+La aceptación es `accepted_local_with_pilot_packaging_and_host_blockers`.
+Evidencia y revisión: [implementación](../../orquestador/sdd/progress/evidence/P05-T01-T07-implementation.md),
+[review](../../orquestador/sdd/progress/evidence/P05-T08-review.md) y
+[handoff](../../orquestador/sdd/progress/evidence/P05-T08-final-handoff.md).
+P06 debe empaquetar baselines, schemas, servicio y CLI; P08/P09 deben probar VM
+limpia/offline, ACL instaladas, interrupciones reales y revisión externa. Un
+consumidor piloto requiere preflight y aprobación propios.

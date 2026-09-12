@@ -1,6 +1,6 @@
 ﻿schema: hebrinex.progress.registry
 version: "0.2"
-updated_at: ""
+updated_at: "2026-09-11"
 kanban_statuses:
   - todo
   - ready
@@ -26,6 +26,7 @@ profiles:
     - release
     - pipeline
     - detractor
+    - detractor_senior
   reporter:
     - operator
     - technical
@@ -49,3 +50,73 @@ cycles:
           - orquestador/sdd/progress/registry.md
         handoff_to: human
         blocking_reason: none
+  - cycle_id: C-001
+    status: done
+    mode: automatico
+    closed_agents:
+      agent_ids: [A-P00-L01, A-P00-A02, A-P00-I01, A-P00-A03, A-P00-I02, A-P00-A04, A-P00-A05, A-P00-A06, A-P00-A07, A-P00-I03, A-P00-A08, A-P00-R01, A-P00-A09]
+      records: [orquestador/sdd/progress/cycles/C-001/task-graph.yaml, orquestador/sdd/progress/cycles/C-001/audit.jsonl, orquestador/sdd/progress/evidence/P00-T08-final-handoff.md]
+    agents: []
+  - cycle_id: C-002
+    status: done
+    mode: automatico
+    closed_agents:
+      agent_ids: [A-P01-L01, A-P01-A01, A-P01-I01, A-P01-R01]
+      records: [orquestador/sdd/progress/cycles/C-002/task-graph.yaml, orquestador/sdd/progress/cycles/C-002/audit.jsonl, orquestador/sdd/progress/evidence/P01-T01-path-classification.md, orquestador/sdd/progress/evidence/P01-T01-review.md]
+    agents: []
+  - cycle_id: C-003
+    status: done
+    mode: automatico
+    closed_agents:
+      agent_ids: [A-P01-L02, A-P01-A02, A-P01-I02, A-P01-R02]
+      records: [orquestador/sdd/progress/cycles/C-003/task-graph.yaml, orquestador/sdd/progress/cycles/C-003/audit.jsonl, orquestador/sdd/progress/evidence/P01-T07-resolver-review.md, orquestador/sdd/progress/evidence/P01-T08-final-handoff.md]
+    agents: []
+  - cycle_id: C-004
+    status: done
+    mode: automatico
+    closed_agents:
+      agent_ids: [A-P02-L01, A-P02-A01, A-P02-I01, A-P02-R01]
+      records: [orquestador/sdd/progress/cycles/C-004/task-graph.yaml, orquestador/sdd/progress/cycles/C-004/audit.jsonl, orquestador/sdd/progress/evidence/P02-T08-final-handoff.md]
+    agents: []
+  - cycle_id: C-005
+    status: done
+    mode: automatico
+    closed_agents:
+      agent_ids: [A-P03-L01, A-P03-A01, A-P03-I01, A-P03-R01]
+      records: [orquestador/sdd/progress/cycles/C-005/task-graph.yaml, orquestador/sdd/progress/cycles/C-005/audit.jsonl, orquestador/sdd/progress/cycles/C-005/agent-closure.md, orquestador/sdd/progress/evidence/P03-LOCAL-final-handoff.md]
+    agents: []
+  - cycle_id: C-006
+    status: blocked
+    mode: automatico
+    closed_agents:
+      agent_ids: [A-P03-L02, A-P03-A02, A-P03-I02, A-P03-R02]
+      records: [orquestador/sdd/progress/cycles/C-006/task-graph.yaml, orquestador/sdd/progress/cycles/C-006/audit.jsonl, orquestador/sdd/progress/cycles/C-006/agent-closure.md, orquestador/sdd/progress/evidence/P03-provider-evaluation-blocked.md]
+    agents: []
+  - cycle_id: C-007
+    status: blocked
+    mode: automatico
+    closed_agents:
+      agent_ids: [A-P03-L03, A-P03-A03, A-P03-I03, A-P03-R03]
+      records: [orquestador/sdd/progress/cycles/C-007/task-graph.yaml, orquestador/sdd/progress/cycles/C-007/audit.jsonl, orquestador/sdd/progress/cycles/C-007/agent-closure.md, orquestador/sdd/progress/cycles/C-007/blocked-handoff.md]
+    agents: []
+  - cycle_id: C-008
+    status: done
+    mode: automatico
+    closed_agents:
+      agent_ids: [A-P04-L01, A-P04-A01, A-P04-I01, A-P04-R01]
+      records: [orquestador/sdd/progress/cycles/C-008/task-graph.yaml, orquestador/sdd/progress/cycles/C-008/audit.jsonl, orquestador/sdd/progress/cycles/C-008/agent-closure.md, orquestador/sdd/progress/evidence/P04-T08-final-handoff.md]
+    agents: []
+  - cycle_id: C-009
+    status: done
+    mode: automatico
+    closed_agents:
+      agent_ids: [A-P05-L01, A-P05-A01, A-P05-I01, A-P05-R01]
+      records: [orquestador/sdd/progress/cycles/C-009/task-graph.yaml, orquestador/sdd/progress/cycles/C-009/audit.jsonl, orquestador/sdd/progress/cycles/C-009/agent-closure.md, orquestador/sdd/progress/evidence/P05-T08-final-handoff.md]
+    agents: []
+  - cycle_id: C-010
+    status: done
+    mode: automatico
+    closed_agents:
+      agent_ids: [A-P06-L01, A-P06-A01, A-P06-I01, A-P06-R01]
+      records: [orquestador/sdd/progress/cycles/C-010/task-graph.yaml, orquestador/sdd/progress/cycles/C-010/audit.jsonl, orquestador/sdd/progress/cycles/C-010/agent-closure.md, orquestador/sdd/progress/evidence/P06-T08-final-handoff.md]
+    agents: []

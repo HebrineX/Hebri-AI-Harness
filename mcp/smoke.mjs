@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Smoke test del daemon MCP hebrinex. Levanta server.mjs por stdio como un
-// cliente MCP real, valida que las 13 tools esten registradas y ejercita las
+// cliente MCP real, valida que las 14 tools esten registradas y ejercita las
 // tools read-only, run_command (allow + block), el ciclo de locks
 // (acquire -> conflicto -> release), la identidad de rol (role_assume +
 // capability block) y los errores claros de agent_audit/agent_review sin
@@ -14,6 +14,7 @@ import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js'
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const failures = [];
+const noGit = process.env.HEBRINEX_SMOKE_NO_GIT === '1';
 
 function check(condition, label) {
   if (condition) {
@@ -54,6 +55,7 @@ try {
     'lock_release',
     'memory_route',
     'preflight_approve',
+    'project_service',
     'role_assume',
     'run_command',
     'session_contract',
@@ -66,9 +68,14 @@ try {
   check(Boolean(contractPayload?.contract_text?.includes('Contrato de sesion:')), 'session_contract devuelve contrato armado');
   check(typeof contractPayload?.context_budget?.estimated_tokens === 'number', 'session_contract reporta presupuesto');
 
-  const gates = await client.callTool({ name: 'gate_check', arguments: {} });
-  const gatesPayload = parsePayload(gates);
-  check(Array.isArray(gatesPayload?.gates) && gatesPayload.gates.length === 8, 'gate_check clasifica G5B..G5I');
+  if (noGit) {
+    console.error('skip: gate_check requiere Git y HEBRINEX_SMOKE_NO_GIT=1');
+  } else {
+    const gates = await client.callTool({ name: 'gate_check', arguments: {} });
+    const gatesPayload = parsePayload(gates);
+    const gateIds = new Set(gatesPayload?.gates?.map((gate) => gate.id) ?? []);
+    check(['G5B_release_reconstruction_complete', 'G5C_deploy_migration_complete', 'G5D_reference_drift_complete', 'G5E_ci_pipeline_history_complete', 'G5F_backlog_classification_complete', 'G5G_audit_report_contract_complete', 'G5H_final_report_crosslink_complete', 'G5I_memory_consistency_complete'].every((id) => gateIds.has(id)), 'gate_check clasifica G5B..G5I');
+  }
 
   const route = await client.callTool({ name: 'memory_route', arguments: {} });
   const routePayload = parsePayload(route);
@@ -78,7 +85,16 @@ try {
   const closurePayload = parsePayload(closure);
   check(typeof closurePayload?.pass === 'boolean' && Array.isArray(closurePayload?.gaps), 'close_cycle_check devuelve pass/gaps');
 
-  const allowed = await client.callTool({ name: 'run_command', arguments: { command_text: 'git status --short' } });
+  const projectRootsBlocked = await client.callTool({ name: 'project_service', arguments: { command: 'status' } });
+  const projectRootsPayload = parsePayload(projectRootsBlocked);
+  check(projectRootsBlocked.isError === true && projectRootsPayload?.reason === 'explicit_roots_required', 'project_service no usa contexto global implicito');
+
+  const projectHelp = await client.callTool({ name: 'project_service', arguments: { command: 'help' } });
+  const projectHelpPayload = parsePayload(projectHelp);
+  check(projectHelp.isError !== true && projectHelpPayload?.cli_api === 'central1' && projectHelpPayload?.writes_performed === false, 'project_service expone ayuda central1 read-only');
+  check(projectHelpPayload?.details?.commands?.migrate?.includes('reversible legacy migration'), 'project_service anuncia migrate P05 sin exito ficticio');
+
+  const allowed = await client.callTool({ name: 'run_command', arguments: { command_text: 'Get-Content HARNESS_VERSION' } });
   const allowedPayload = parsePayload(allowed);
   check(allowedPayload?.decision === 'allow' && allowedPayload?.execution?.attempted === true, 'run_command ejecuta comando allowlisteado via gateway');
 
@@ -187,7 +203,7 @@ try {
     'agent_review con backend desconocido falla listando los backends conocidos',
   );
 
-  const roleGuardedRun = await client.callTool({ name: 'run_command', arguments: { command_text: 'git status --short' } });
+  const roleGuardedRun = await client.callTool({ name: 'run_command', arguments: { command_text: 'Get-Content HARNESS_VERSION' } });
   const roleGuardedRunPayload = parsePayload(roleGuardedRun);
   check(
     roleGuardedRun.isError !== true && roleGuardedRunPayload?.role_enforced === true,

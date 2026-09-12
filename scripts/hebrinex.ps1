@@ -30,6 +30,12 @@ param(
   [string]$LockId = '',
   [string]$Owner = '',
   [string]$Reason = '',
+  [ValidateSet('source_template','legacy_bound','central_instance')][string]$RuntimeMode = 'source_template',
+  [string]$OperationDescriptorPath = '',
+  [string]$ScopedApprovalStoreRoot = '',
+  [string]$ScopedApprovalId = '',
+  [string]$OperationLockPath = '',
+  [string]$OperationJournalPath = '',
   [switch]$Json
 )
 
@@ -80,6 +86,17 @@ function Resolve-BoundCanonicalPath([string]$BoundRoot, [string]$RelativePath) {
 
 function Test-HarnessLeaf([string]$Path) {
   return [IO.File]::Exists($Path)
+}
+
+function Get-HarnessFileSha256([string]$Path) {
+  if (-not (Test-HarnessLeaf $Path)) { throw "cannot hash missing file: $Path" }
+  $stream = [IO.File]::OpenRead($Path)
+  try {
+    $sha = [Security.Cryptography.SHA256]::Create()
+    try { return ([BitConverter]::ToString($sha.ComputeHash($stream))).Replace('-', '').ToLowerInvariant() }
+    finally { $sha.Dispose() }
+  }
+  finally { $stream.Dispose() }
 }
 
 function Get-HarnessFileLength([string]$Path) {
@@ -673,9 +690,11 @@ function Create-BoundUpdateBackupRecord([string]$BoundRoot, [string]$UpdateId) {
     Ensure-Directory (Split-Path -Parent $destination)
     Copy-Item -LiteralPath $source -Destination $destination -Force
     $item = [IO.FileInfo]::new($source)
+    $sha256 = Get-HarnessFileSha256 $source
+    if ((Get-HarnessFileSha256 $destination) -ne $sha256) { throw "backup integrity verification failed after copy: $rel" }
     $reason = Get-BoundUpdatePreserveReason $rel
     if ([string]::IsNullOrWhiteSpace($reason)) { $reason = 'overwrite_backup' }
-    [void]$manifest.Add("$rel|$($item.Length)|$($item.LastWriteTimeUtc.ToString('o'))|$reason")
+    [void]$manifest.Add("$rel|$sha256|$($item.Length)|$($item.LastWriteTimeUtc.ToString('o'))|$reason")
   }
   if ($manifest.Count -eq 0) { [void]$manifest.Add('no_existing_bound_files') }
   $manifestPath = Join-Path $backupPath 'backup-manifest.txt'
@@ -1040,7 +1059,8 @@ function Get-BoundBackupInventoryItem([string]$BoundRoot, [object]$BackupDirecto
       if ($line -match '^(no_existing_bound_files|no_preexisting_project_files)$') { continue }
       $manifestEntries++
       try {
-        $rel = Get-SafeRestoreRelativePath (($line -split '[|]')[0])
+        $parts = @($line -split '[|]')
+        $rel = Get-SafeRestoreRelativePath $parts[0]
         $source = Join-Path $filesRoot ($rel -replace '/', [IO.Path]::DirectorySeparatorChar)
         if (-not (Test-ChildPathOfRoot $filesRoot $source)) {
           [void]$reasons.Add("source_outside_files_root:$rel")
@@ -1048,6 +1068,14 @@ function Get-BoundBackupInventoryItem([string]$BoundRoot, [object]$BackupDirecto
         }
         if (-not (Test-HarnessLeaf $source)) {
           [void]$reasons.Add("missing_source_file:$rel")
+          continue
+        }
+        if ($parts.Count -lt 2 -or $parts[1] -notmatch '^[a-fA-F0-9]{64}$') {
+          [void]$reasons.Add("missing_sha256:$rel")
+          continue
+        }
+        if ((Get-HarnessFileSha256 $source) -ne $parts[1].ToLowerInvariant()) {
+          [void]$reasons.Add("sha256_mismatch:$rel")
           continue
         }
         $restorableFiles++
@@ -1130,23 +1158,39 @@ function Write-BoundBackupInventoryCheckOnly([string]$ProjectRootValue) {
   Write-Host 'inventory_status=ok'
 }
 
-function Restore-BoundBackupFiles([string]$BoundRoot, [object]$Backup) {
-  $restored = 0
+function Get-BoundRestoreEntries([string]$BoundRoot, [object]$Backup) {
+  $entries = New-Object System.Collections.Generic.List[object]
   $boundFull = [IO.Path]::GetFullPath($BoundRoot).TrimEnd('\','/')
   foreach ($line in ([IO.File]::ReadAllLines($Backup.ManifestPath))) {
     if ([string]::IsNullOrWhiteSpace($line)) { continue }
     if ($line -match '^(no_existing_bound_files|no_preexisting_project_files)$') { continue }
-    $rel = Get-SafeRestoreRelativePath (($line -split '[|]')[0])
+    $parts = @($line -split '[|]')
+    $rel = Get-SafeRestoreRelativePath $parts[0]
     $source = Join-Path $Backup.FilesRoot ($rel -replace '/', [IO.Path]::DirectorySeparatorChar)
     if (-not (Test-HarnessLeaf $source)) { throw "backup source file missing: $rel" }
+    if ($parts.Count -lt 2 -or $parts[1] -notmatch '^[a-fA-F0-9]{64}$') { throw "backup manifest has no SHA-256: $rel" }
+    if ((Get-HarnessFileSha256 $source) -ne $parts[1].ToLowerInvariant()) { throw "backup SHA-256 mismatch: $rel" }
     $destination = Join-Path $BoundRoot ($rel -replace '/', [IO.Path]::DirectorySeparatorChar)
     $destinationFull = [IO.Path]::GetFullPath($destination)
     if (-not ($destinationFull.StartsWith(($boundFull + [IO.Path]::DirectorySeparatorChar), [StringComparison]::OrdinalIgnoreCase) -or
               $destinationFull.StartsWith(($boundFull + [IO.Path]::AltDirectorySeparatorChar), [StringComparison]::OrdinalIgnoreCase))) {
       throw "restore destination outside bound root: $rel"
     }
+    [void]$entries.Add([pscustomobject]@{ RelativePath = $rel; Source = $source; Destination = $destination; Sha256 = $parts[1].ToLowerInvariant() })
+  }
+  if ($entries.Count -eq 0) { throw 'backup manifest has no restorable files' }
+  return $entries.ToArray()
+}
+
+function Restore-BoundBackupFiles([string]$BoundRoot, [object]$Backup, [object[]]$ValidatedEntries = @()) {
+  $restored = 0
+  $entries = if ($ValidatedEntries.Count -gt 0) { @($ValidatedEntries) } else { @(Get-BoundRestoreEntries $BoundRoot $Backup) }
+  foreach ($entry in $entries) {
+    if ((Get-HarnessFileSha256 $entry.Source) -ne $entry.Sha256) { throw "backup SHA-256 mismatch before copy: $($entry.RelativePath)" }
+    $destination = [string]$entry.Destination
     Ensure-Directory (Split-Path -Parent $destination)
-    Copy-Item -LiteralPath $source -Destination $destination -Force
+    Copy-Item -LiteralPath $entry.Source -Destination $destination -Force
+    if ((Get-HarnessFileSha256 $destination) -ne $entry.Sha256) { throw "restore SHA-256 mismatch after copy: $($entry.RelativePath)" }
     $restored++
   }
   return $restored
@@ -1215,11 +1259,12 @@ function Invoke-BoundRestoreApply([string]$ProjectRootValue, [string]$RequestedB
   $sourceVersion = if (Test-Path -LiteralPath $currentVersionPath -PathType Leaf) { ([IO.File]::ReadAllText($currentVersionPath)).Trim() } else { Get-Scalar $target.Binding 'harness_version' }
   if ([string]::IsNullOrWhiteSpace($sourceVersion)) { $sourceVersion = 'unknown' }
   $restoreSource = Resolve-BoundRestoreBackup $target.BoundRoot $RequestedBackupId
+  $validatedEntries = @(Get-BoundRestoreEntries $target.BoundRoot $restoreSource)
   $targetVersion = Get-RestoreTargetVersion $restoreSource $sourceVersion
   $startedAt = (Get-Date).ToUniversalTime().ToString('o')
   $restoreId = 'migration-bound-restore-' + (Get-Date).ToUniversalTime().ToString('yyyyMMddTHHmmssZ') + '-' + ([guid]::NewGuid().ToString('N').Substring(0, 8))
   $preRestoreBackup = Create-BoundUpdateBackupRecord $target.BoundRoot $restoreId
-  $restoredFiles = Restore-BoundBackupFiles $target.BoundRoot $restoreSource
+  $restoredFiles = Restore-BoundBackupFiles $target.BoundRoot $restoreSource $validatedEntries
 
   $validatorResults = @{}
   $validatorResults['validate_agent_contracts'] = Invoke-BoundValidator $target.BoundRoot 'scripts/validate-agent-contracts.ps1'
@@ -1482,7 +1527,7 @@ switch ($Command) {
       break
     }
     $version = (Read-HarnessText 'HARNESS_VERSION').Trim()
-    $envelope = New-HebriApprovalEnvelope -Root $Root -CommandText $CommandText -Purpose $Purpose -TtlMinutes $TtlMinutes -HarnessVersion $version
+    $envelope = New-HebriApprovalEnvelope -Root $Root -CommandText $CommandText -Purpose $Purpose -Risk $Risk -TtlMinutes $TtlMinutes -HarnessVersion $version
     Write-Host 'Hebri-AI-Harness approve Apply'
     Write-Host "root=$Root"
     Write-Host "command_text=$safeCommandText"
@@ -1532,8 +1577,8 @@ switch ($Command) {
       throw "current version already equals target version: $TargetVersion"
     }
     $scriptPath = Resolve-HarnessPath 'scripts/migrate-harness.ps1'
-    if ($CheckOnly) { & $scriptPath -Root $Root -TargetVersion $TargetVersion -CheckOnly }
-    else { & $scriptPath -Root $Root -TargetVersion $TargetVersion -Apply }
+    if ($CheckOnly) { & $scriptPath -Root $Root -TargetVersion $TargetVersion -CheckOnly -RuntimeMode $RuntimeMode }
+    else { & $scriptPath -Root $Root -TargetVersion $TargetVersion -Apply -RuntimeMode $RuntimeMode -OperationDescriptorPath $OperationDescriptorPath -ScopedApprovalStoreRoot $ScopedApprovalStoreRoot -ScopedApprovalId $ScopedApprovalId -OperationLockPath $OperationLockPath -OperationJournalPath $OperationJournalPath }
     if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
   }
   'bootstrap' {
@@ -1544,6 +1589,8 @@ switch ($Command) {
       Write-BootstrapCheckOnly $ProjectRoot
       break
     }
+    $bootstrapRoot = [IO.Path]::GetFullPath($ProjectRoot)
+    [void](Assert-HebriOperationMutationAuthorized -RuntimeMode $RuntimeMode -ExpectedOperation 'bootstrap:apply' -WritePaths @((Join-Path $bootstrapRoot '.hebrinex'),(Join-Path $bootstrapRoot '.gitignore')) -DescriptorPath $OperationDescriptorPath -ApprovalStoreRoot $ScopedApprovalStoreRoot -ApprovalId $ScopedApprovalId -LockPath $OperationLockPath -JournalPath $OperationJournalPath)
     $result = Invoke-BootstrapApply $ProjectRoot
     Write-Host 'Hebri-AI-Harness bootstrap Apply'
     Write-Host "source_root=$Root"
@@ -1567,6 +1614,8 @@ switch ($Command) {
       Write-BoundUpdateCheckOnly $ProjectRoot
       break
     }
+    $updateRoot = [IO.Path]::GetFullPath($ProjectRoot)
+    [void](Assert-HebriOperationMutationAuthorized -RuntimeMode $RuntimeMode -ExpectedOperation 'update-bound:apply' -WritePaths @((Join-Path $updateRoot '.hebrinex'),(Join-Path $updateRoot '.gitignore')) -DescriptorPath $OperationDescriptorPath -ApprovalStoreRoot $ScopedApprovalStoreRoot -ApprovalId $ScopedApprovalId -LockPath $OperationLockPath -JournalPath $OperationJournalPath)
     $result = Invoke-BoundUpdateApply $ProjectRoot
     Write-Host 'Hebri-AI-Harness update-bound Apply'
     Write-Host "source_root=$Root"
@@ -1599,6 +1648,8 @@ switch ($Command) {
       Write-BoundRestoreCheckOnly $ProjectRoot $BackupId
       break
     }
+    $restoreRoot = [IO.Path]::GetFullPath($ProjectRoot)
+    [void](Assert-HebriOperationMutationAuthorized -RuntimeMode $RuntimeMode -ExpectedOperation 'restore-bound:apply' -WritePaths @((Join-Path $restoreRoot '.hebrinex')) -DescriptorPath $OperationDescriptorPath -ApprovalStoreRoot $ScopedApprovalStoreRoot -ApprovalId $ScopedApprovalId -LockPath $OperationLockPath -JournalPath $OperationJournalPath)
     $result = Invoke-BoundRestoreApply $ProjectRoot $BackupId
     Write-Host 'Hebri-AI-Harness restore-bound Apply'
     Write-Host "source_root=$Root"
@@ -1645,6 +1696,9 @@ switch ($Command) {
       Write-Host 'lock_status=listed'
       break
     }
+    if ($RuntimeMode -eq 'central_instance') {
+      throw 'LEGACY_LOCK_BLOCKED: central_instance must use operation-safety/1 locks'
+    }
     if ($Acquire) {
       if ([string]::IsNullOrWhiteSpace($Paths)) {
         throw 'lock -Acquire requires -Paths with one or more comma-separated paths'
@@ -1681,7 +1735,7 @@ switch ($Command) {
       throw 'command requires exactly one mode: -CheckOnly or -Apply'
     }
     $scriptPath = Resolve-HarnessPath 'scripts/command-gateway.ps1'
-    & $scriptPath -Root $Root -CheckOnly:$CheckOnly -Apply:$Apply -CommandText $CommandText -Purpose $Purpose -ApprovalId $ApprovalId -RiskClass $RiskClass -Json:$Json
+    & $scriptPath -Root $Root -CheckOnly:$CheckOnly -Apply:$Apply -CommandText $CommandText -Purpose $Purpose -ApprovalId $ApprovalId -RiskClass $RiskClass -RuntimeMode $RuntimeMode -OperationDescriptorPath $OperationDescriptorPath -ScopedApprovalStoreRoot $ScopedApprovalStoreRoot -ScopedApprovalId $ScopedApprovalId -OperationLockPath $OperationLockPath -OperationJournalPath $OperationJournalPath -Json:$Json
     if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
   }
 }

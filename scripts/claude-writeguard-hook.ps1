@@ -8,6 +8,13 @@
 # This hook runs on EVERY edit: it must stay fast and must never break the flow.
 # Fail-open by design: any error in the hook itself exits 0 with no output.
 
+param(
+  [ValidateSet('source_template','legacy_bound','central_instance')][string]$RuntimeMode = 'source_template',
+  [string]$InstallRoot = (Split-Path -Parent $PSScriptRoot),
+  [string]$ProjectRoot = '',
+  [string]$CatalogRoot = ''
+)
+
 $ErrorActionPreference = 'Stop'
 
 function Write-HookDecision([string]$Decision, [string]$Reason) {
@@ -32,18 +39,25 @@ try {
   if ([string]::IsNullOrWhiteSpace($filePath)) { $filePath = [string]$payload.tool_input.notebook_path }
   if ([string]::IsNullOrWhiteSpace($filePath)) { exit 0 }
 
-  $harnessRoot = Split-Path -Parent $PSScriptRoot
-  if (-not [IO.Path]::IsPathRooted($filePath)) { $filePath = Join-Path $harnessRoot $filePath }
+  $harnessRoot = [IO.Path]::GetFullPath($InstallRoot)
+  Import-Module (Join-Path $PSScriptRoot 'lib/hebri-common.psm1') -Force -DisableNameChecking -Scope Local
+  $scopeRoot = $harnessRoot
+  $stateRoot = $harnessRoot
+  if ($RuntimeMode -eq 'central_instance') {
+    if ([string]::IsNullOrWhiteSpace($ProjectRoot)) { $ProjectRoot = (Get-Location).Path }
+    $context = Resolve-HebriRuntimeContext -InstallRoot $harnessRoot -ProjectRoot $ProjectRoot -DeploymentMode central_instance -CatalogRoot $CatalogRoot
+    $scopeRoot = [string]$context.project_root
+    $stateRoot = Join-Path $scopeRoot '.hebrinex'
+  }
+  if (-not [IO.Path]::IsPathRooted($filePath)) { $filePath = Join-Path $scopeRoot $filePath }
   $fullPath = [IO.Path]::GetFullPath($filePath)
-  $rootFull = [IO.Path]::GetFullPath($harnessRoot).TrimEnd('\', '/')
+  $rootFull = [IO.Path]::GetFullPath($scopeRoot).TrimEnd('\', '/')
   $comparison = [StringComparison]::OrdinalIgnoreCase
   $underRoot = $fullPath.StartsWith(($rootFull + [IO.Path]::DirectorySeparatorChar), $comparison) -or
     $fullPath.StartsWith(($rootFull + [IO.Path]::AltDirectorySeparatorChar), $comparison)
   # Paths outside the harness stay with the normal Claude Code permission flow.
   if (-not $underRoot) { exit 0 }
   $relativePath = ($fullPath.Substring($rootFull.Length).TrimStart('\', '/')) -replace '\\', '/'
-
-  Import-Module (Join-Path $PSScriptRoot 'lib/hebri-common.psm1') -Force -DisableNameChecking -Scope Local
 
   # a) Protected paths from the write-scope registry.
   $registryPath = Join-Path $harnessRoot 'orquestador/security/write-scope-registry.yaml'
@@ -58,7 +72,7 @@ try {
   }
 
   # b) Active non-expired locks over the path.
-  $lock = Find-LockForPath -Root $harnessRoot -Path $relativePath
+  $lock = Find-LockForPath -Root $stateRoot -Path $relativePath
   if ($null -ne $lock) {
     Write-HookDecision 'ask' "hebrinex writeguard: '$relativePath' esta lockeado por $($lock.LockId) (owner=$($lock.Owner), expires_at=$($lock.ExpiresAt)). Editarlo requiere SI explicito del operador o liberar el lock."
     exit 0

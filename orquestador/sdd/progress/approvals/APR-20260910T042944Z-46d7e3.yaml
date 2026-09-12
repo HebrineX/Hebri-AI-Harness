@@ -1,0 +1,16 @@
+schema: hebrinex.approval_envelope
+version: "0.1"
+approval_id: APR-20260910T042944Z-46d7e3
+status: consumed
+human_decision: approved
+approved_text: "SI"
+action_type: run_command
+exact_action: "P04-COMPLETE-025: leer P04 y contratos dependientes, cerrar P03 como done_with_deferred_benchmark, implementar revisar validar y cerrar toda P04 para CLI MCP binding y catalogo; usar solo PowerShell y Node locales, sin Git red proveedores instalacion elevacion MSI ni consumidores reales; detener ante decision normativa no resuelta, incompatibilidad publica o expansion de scope."
+command: "P04-COMPLETE-025: leer P04 y contratos dependientes, cerrar P03 como done_with_deferred_benchmark, implementar revisar validar y cerrar toda P04 para CLI MCP binding y catalogo; usar solo PowerShell y Node locales, sin Git red proveedores instalacion elevacion MSI ni consumidores reales; detener ante decision normativa no resuelta, incompatibilidad publica o expansion de scope."
+command_sha256: f2e1db87d60ea8dfb4ab528d45d20aaa2e70df11a8ed08696f7f69d06dfb71bf
+purpose: "Completar P04 de extremo a extremo y diferir P03-V04 a P08"
+risk: alto
+created_at: 2026-09-10T04:29:44.2147610Z
+expires_at: 2026-09-11T04:29:44.2147610Z
+harness_version: "0.17.1"
+consumed_at: 2026-09-10T05:57:21.3622920Z

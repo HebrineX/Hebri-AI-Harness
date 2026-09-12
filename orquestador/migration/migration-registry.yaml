@@ -103,6 +103,26 @@ routes:
     apply: false
     writes: false
     validates_backup_integrity: true
+  - id: "legacy-full-copy-to-central1"
+    source_version: "explicit-baseline"
+    target_version: "0.17.1"
+    route_file: scripts/lib/legacy-migration-service.psm1
+    supported_binding_modes: [bound]
+    check_only: true
+    apply: true
+    restore: true
+    approval_contract: operation-safety/1
+    binding_contract: hebrinex.binding/1
+    baseline_required: true
+    local_tag_matrix: ["0.10.11", "0.16.0"]
+    unlisted_versions: unsupported
+    packaged_baselines_owner: P06
+    packaged_baselines_status: local_candidate
+    baseline_inventory_scope: release_manifest
+    packaged_baselines:
+      - orquestador/migration/baselines/0.10.11.json
+      - orquestador/migration/baselines/0.16.0.json
+    installed_use_gate: P08
 required_contracts:
   post_migration_contract: orquestador/migration/contracts/post-migration-contract.yaml
 required_report_template: orquestador/migration/reports/migration-report.template.yaml
@@ -113,6 +133,7 @@ required_validators:
   - scripts/validate-bound-update.ps1
   - scripts/validate-bound-backups.ps1
   - scripts/validate-bound-restore.ps1
+  - scripts/validate-legacy-migration.ps1
   - scripts/validate-state-machine.ps1
   - scripts/validate-agent-runtime.ps1
   - scripts/audit-harness.ps1

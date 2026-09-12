@@ -190,6 +190,29 @@ function Invoke-SourceTemplateBoundRestoreSmoke() {
 
     Assert-RestoreShape $boundRoot $projectRoot $backupId
 
+    if ($RunNegativeTests) {
+      $backupRoot = Resolve-RootHarnessPath $boundRoot 'orquestador/migration/backups'
+      $corruptSource = Join-Path $backupRoot "$backupId/files/orquestador/context/product.md"
+      if (-not (Test-Path -LiteralPath $corruptSource -PathType Leaf)) {
+        Add-Failure 'restore corruption test could not locate manifest-backed source file'
+      }
+      else {
+        Write-Utf8Text $corruptSource "corrupted backup content`n"
+        Write-Utf8Text $markerPath "restore_hash_guard_target`n"
+        $preBackupCount = @(Get-ChildItem -LiteralPath $backupRoot -Directory -Filter 'migration-bound-restore-*').Count
+        $global:LASTEXITCODE = 0
+        $corruptFailed = $false
+        $corruptRestore = @()
+        try { $corruptRestore = @(& $cli restore-bound -Root $Root -Apply -ProjectRoot $projectRoot -BackupId $backupId *>&1) }
+        catch { $corruptFailed = $true; $corruptRestore += $_.Exception.Message }
+        if (-not $corruptFailed -and (Get-LastExitCodeValue) -eq 0) { Add-Failure 'restore-bound accepted a corrupted backup source' }
+        if (($corruptRestore -join "`n") -notmatch 'backup SHA-256 mismatch') { Add-Failure 'restore-bound corruption failure did not identify SHA-256 mismatch' }
+        if ([IO.File]::ReadAllText($markerPath) -ne "restore_hash_guard_target`n") { Add-Failure 'corrupt restore modified target data before full manifest validation' }
+        $postBackupCount = @(Get-ChildItem -LiteralPath $backupRoot -Directory -Filter 'migration-bound-restore-*').Count
+        if ($postBackupCount -ne $preBackupCount) { Add-Failure 'corrupt restore created a pre-backup before validating the source manifest' }
+      }
+    }
+
     $boundValidator = Join-Path $boundRoot 'scripts/validate-harness.ps1'
     if (Test-Path -LiteralPath $boundValidator -PathType Leaf) {
       $global:LASTEXITCODE = 0
@@ -226,6 +249,8 @@ Write-Host "Validating bound restore service at $Root"
 Assert-Contains 'scripts/hebrinex.ps1' 'restore-bound -CheckOnly\|-Apply' 'CLI help must expose restore-bound Apply'
 Assert-Contains 'scripts/hebrinex.ps1' 'Resolve-BoundRestoreBackup' 'restore-bound must validate backup containment'
 Assert-Contains 'scripts/hebrinex.ps1' 'Restore-BoundBackupFiles' 'restore-bound must restore from backup files'
+Assert-Contains 'scripts/hebrinex.ps1' 'Get-BoundRestoreEntries' 'restore-bound must validate the full source manifest before writes'
+Assert-Contains 'scripts/hebrinex.ps1' 'restore SHA-256 mismatch after copy' 'restore-bound must verify copied destination bytes'
 Assert-Contains 'scripts/hebrinex.ps1' 'Write-BoundRestoreMigrationReport' 'restore-bound must write applied restore report'
 Assert-Contains 'scripts/hebrinex.ps1' 'migration-bound-restore-' 'restore-bound report id must be distinguishable'
 Assert-Contains 'scripts/hebrinex.ps1' 'deletes_extra_files: false' 'restore-bound must declare non-destructive restore'

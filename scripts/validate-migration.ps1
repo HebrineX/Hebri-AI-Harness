@@ -278,6 +278,13 @@ Assert-Contains 'SHARED_MANIFEST.yaml' 'harness_version:\s*"0[.]17[.]1"' 'shared
 Assert-Contains 'SHARED_MANIFEST.yaml' 'shared_dirs:' 'shared manifest must declare shared_dirs'
 Assert-Contains 'SHARED_MANIFEST.yaml' 'instance_dirs:' 'shared manifest must declare instance_dirs'
 Assert-Contains 'SHARED_MANIFEST.yaml' 'instance_path_map:' 'shared manifest must declare instance path map'
+Assert-Contains 'scripts/migrate-harness.ps1' 'Get-OpHebriFileSha256' 'legacy product migration backup must verify SHA-256 content'
+$legacyMigrationModule = Test-Path -LiteralPath (Join-Path $Root 'scripts/lib/legacy-migration-service.psm1') -PathType Leaf
+$legacyMigrationValidator = Test-Path -LiteralPath (Join-Path $Root 'scripts/validate-legacy-migration.ps1') -PathType Leaf
+if ($legacyMigrationModule -or $legacyMigrationValidator) {
+    Assert-Contains 'scripts/lib/legacy-migration-service.psm1' 'hebrinex[.]legacy_migration_snapshot' 'P05 central migration must write a structured snapshot manifest'
+    Assert-Contains 'scripts/validate-legacy-migration.ps1' 'P05-V01[.][.]V08=pass' 'P05 migration validator must exercise the complete fixture matrix'
+}
 Assert-Contains 'orquestador/migration/contracts/post-migration-contract.yaml' 'target_version:\s*"0[.]16[.]0"|target_version:\s*"0[.]17[.]0"|target_version:\s*"0[.]17[.]1"' 'post migration template must target a supported release'
 $currentHarnessVersion = (Read-HarnessText 'HARNESS_VERSION').Trim()
 $bindingText = Read-HarnessText 'PROJECT_BINDING.yaml'

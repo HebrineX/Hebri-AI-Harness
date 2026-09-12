@@ -17,6 +17,50 @@ import { join } from 'node:path';
 
 const DEFAULT_TIMEOUT_SECONDS = 240;
 
+const BACKEND_CAPABILITY_DECLARATIONS = Object.freeze({
+  'claude-cli': Object.freeze({
+    host: 'local-cli',
+    adapter: 'claude-code',
+    execution_mode: 'real_agent',
+    filesystem: 'not_tested',
+    network: 'not_tested',
+    process: 'not_tested',
+  }),
+  'codex-cli': Object.freeze({
+    host: 'local-cli',
+    adapter: 'codex',
+    execution_mode: 'real_agent',
+    filesystem: 'not_tested',
+    network: 'not_tested',
+    process: 'not_tested',
+  }),
+});
+
+export function getBackendCapabilityDeclaration(backendId) {
+  const declaration = BACKEND_CAPABILITY_DECLARATIONS[backendId];
+  return declaration ? { ...declaration } : null;
+}
+
+export function normalizeProviderResult(result, { backendId, payloadFormat = 'text' }) {
+  const declaration = getBackendCapabilityDeclaration(backendId);
+  return {
+    ...result,
+    backend: backendId,
+    payload_format: payloadFormat,
+    execution_mode: declaration?.execution_mode || 'real_agent',
+    trust: 'untrusted_provider_output',
+    instruction_authority: false,
+    capability_evidence: declaration || {
+      host: 'unknown',
+      adapter: 'unknown',
+      execution_mode: 'real_agent',
+      filesystem: 'unsupported',
+      network: 'unsupported',
+      process: 'unsupported',
+    },
+  };
+}
+
 // --- Config (mcp/agents-backend.yaml, YAML plano sin dependencia externa) ----
 
 function readTextFile(path) {
@@ -139,14 +183,14 @@ function runFixedCommandWithStdin(command, prompt, { cwd, timeoutMs }) {
 
 // `claude -p --output-format json` devuelve un objeto con el texto final en
 // `result`; si no parsea, se usa stdout crudo como raw.
-function extractClaudeJsonResult(stdout) {
+export function extractClaudeJsonResult(stdout) {
   try {
     const parsed = JSON.parse(stdout);
     if (parsed && typeof parsed.result === 'string') {
-      return { raw: parsed.result, isError: parsed.is_error === true, meta: { total_cost_usd: parsed.total_cost_usd ?? null, num_turns: parsed.num_turns ?? null } };
+      return { raw: parsed.result, isError: parsed.is_error === true, wellFormed: true, meta: { total_cost_usd: parsed.total_cost_usd ?? null, num_turns: parsed.num_turns ?? null } };
     }
   } catch { /* fallthrough */ }
-  return { raw: stdout, isError: false, meta: {} };
+  return { raw: stdout, isError: false, wellFormed: false, meta: {} };
 }
 
 const BACKENDS = {
@@ -158,6 +202,9 @@ const BACKENDS = {
       if (result.timedOut) return { status: 'timeout', raw: result.stdout, stderr: result.stderr, exitCode: result.exitCode };
       if (result.exitCode === 127) return { status: 'unavailable', raw: '', stderr: result.stderr, exitCode: result.exitCode };
       const extracted = extractClaudeJsonResult(result.stdout);
+      if (!extracted.wellFormed) {
+        return { status: 'malformed_output', raw: extracted.raw, stderr: result.stderr, exitCode: result.exitCode, meta: extracted.meta };
+      }
       if (result.exitCode !== 0 || extracted.isError) {
         return { status: 'failed', raw: extracted.raw, stderr: result.stderr, exitCode: result.exitCode, meta: extracted.meta };
       }
@@ -198,10 +245,10 @@ export async function runRoleAgent({ root, prompt, backendOverride, timeoutSecon
       'Fallback sin backend: correr el rol manualmente con el prompt de agents/<rol>.md (simulacion trazable).',
     ].join(' '),
   };
-  if (backendId === 'none' || backendId === '') return notConfigured;
+  if (backendId === 'none' || backendId === '') return normalizeProviderResult(notConfigured, { backendId: backendId || 'none' });
   const backend = BACKENDS[backendId];
   if (!backend) {
-    return { status: 'unknown_backend', backend: backendId, known_backends: listKnownBackends(), config_path: 'mcp/agents-backend.yaml' };
+    return normalizeProviderResult({ status: 'unknown_backend', known_backends: listKnownBackends(), config_path: 'mcp/agents-backend.yaml' }, { backendId });
   }
   const entry = config.backends[backendId] || {};
   const timeoutSeconds = timeoutSecondsOverride || config.timeoutSeconds || DEFAULT_TIMEOUT_SECONDS;
@@ -212,11 +259,10 @@ export async function runRoleAgent({ root, prompt, backendOverride, timeoutSecon
     cwd: root,
     timeoutMs: timeoutSeconds * 1000,
   });
-  return {
+  return normalizeProviderResult({
     ...result,
-    backend: backendId,
     command: entry.command || backend.defaultCommand,
     duration_ms: Date.now() - startedAt,
     local_override: config.localOverride || null,
-  };
+  }, { backendId, payloadFormat: entry.output || (backendId === 'claude-cli' ? 'claude_json' : 'text') });
 }

@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Hebrinex Recoverable Project Catalog Entry",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "schema_version", "project_id", "instance_id", "project_root", "binding_schema_version", "state", "observed_at", "source"],
+  "properties": {
+    "schema": { "const": "hebrinex.project_catalog_entry" },
+    "schema_version": { "const": 1 },
+    "project_id": { "type": "string", "pattern": "^PRJ-[a-f0-9]{32}$" },
+    "instance_id": { "type": "string", "pattern": "^INST-[a-f0-9]{32}$" },
+    "project_root": { "type": "string", "minLength": 1 },
+    "binding_schema_version": { "const": 1 },
+    "state": { "enum": ["active", "unbound"] },
+    "observed_at": { "type": "string", "format": "date-time" },
+    "source": { "const": "validated_binding" }
+  }
+}

@@ -1,0 +1,89 @@
+schema: hebrinex.gate_log
+version: "0.1"
+cycle_id: C-007
+gates:
+  - gate: G0_session_contract
+    result: pass
+    responsible: leader
+    evidence: [PROJECT_BINDING.yaml, orquestador/sdd/progress/state.yaml]
+    next_action: "Preserve source-template authority."
+  - gate: G0A_memory_registry_loaded
+    result: pass_with_formal_precedence
+    responsible: leader
+    evidence: [orquestador/memory/memory-registry.yaml, PROJECT_BINDING.yaml]
+    next_action: "Use current state and evidence as authority."
+  - gate: G1_context_ready
+    result: pass
+    responsible: leader
+    evidence: [orquestador/evaluation/P03/experiment-plan-v2-codex-only.json]
+    next_action: "Keep V2 frozen and not_run."
+  - gate: G1A_clarification_complete
+    result: blocked_operator_clarification
+    responsible: leader
+    evidence: [orquestador/sdd/progress/cycles/C-007/blocked-handoff.md]
+    next_action: "Choose CLI benchmark or local-only validation."
+  - gate: G1B_analysis_complete
+    result: pass
+    responsible: leader
+    evidence: [orquestador/sdd/progress/cycles/C-007/detractor-senior-P03-codex.md]
+    next_action: "Do not claim current-chat telemetry as isolated provider evidence."
+  - gate: G1C_blast_radius_declared
+    result: pass
+    responsible: leader
+    evidence: [P03-CODEX-ONLY-024, APR-20260910T035325Z-c24332]
+    next_action: "No API key, payment, installation, Git or Claude."
+  - gate: G2_dispatch_ready
+    result: pass
+    responsible: leader
+    evidence: [orquestador/sdd/progress/registry.yaml]
+    next_action: "Roles remain explicit and simulated."
+  - gate: G2A_task_graph_ready
+    result: pass
+    responsible: leader
+    evidence: [orquestador/sdd/progress/cycles/C-007/task-graph.yaml]
+    next_action: "Downstream work remains blocked."
+  - gate: G3_locks_acquired
+    result: pass
+    responsible: leader
+    evidence: [orquestador/sdd/progress/locks/L-20260910T035345Z-fa877d.lock.md]
+    next_action: "Release during blocked closure."
+  - gate: G3A_detractor_senior_pre_implementation
+    result: pass_with_conditions
+    responsible: auditor
+    evidence: [orquestador/sdd/progress/cycles/C-007/detractor-senior-P03-codex.md]
+    next_action: "No runner without authenticated measurable provider access."
+  - gate: G4_execution_complete
+    result: blocked_not_started
+    responsible: executor
+    evidence: [orquestador/sdd/progress/cycles/C-007/blocked-handoff.md]
+    next_action: "Provider calls remain zero."
+  - gate: G5_review_or_validation
+    result: not_run_no_results
+    responsible: reviewer
+    evidence: [orquestador/sdd/progress/cycles/C-007/blocked-handoff.md]
+    next_action: "Do not close P03."
+  - gate: G5A_detractor_pass_complete
+    result: pass
+    responsible: auditor
+    evidence: [orquestador/sdd/progress/cycles/C-007/detractor-senior-P03-codex.md]
+    next_action: "Repeat if evaluation method changes."
+  - gate: G5B_release_reconstruction_complete
+    result: not_applicable
+    responsible: leader
+    evidence: [migracion/fases/P03-agentes-contexto-y-proveedores.md]
+    next_action: "This is not release acceptance."
+  - gate: G5I_memory_consistency_complete
+    result: pass_with_formal_precedence
+    responsible: leader
+    evidence: [PROJECT_BINDING.yaml, orquestador/sdd/progress/state.yaml]
+    next_action: "Current evidence overrides conversational assumptions."
+  - gate: G6_agent_closure_complete
+    result: pass
+    responsible: leader
+    evidence: [orquestador/sdd/progress/cycles/C-007/agent-closure.md]
+    next_action: "No C-007 role remains active."
+  - gate: G7_handoff_complete
+    result: pass_blocked_handoff
+    responsible: leader
+    evidence: [orquestador/sdd/progress/cycles/C-007/blocked-handoff.md]
+    next_action: "Await operator choice."

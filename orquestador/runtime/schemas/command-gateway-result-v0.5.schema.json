@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Hebri Command Gateway Result 0.5",
+  "type": "object",
+  "required": ["schema", "version", "mode", "command_text", "decision", "risk_class", "requires_preflight", "requires_si", "writes", "executes", "mutation_contract", "reason", "generated_preflight", "execution", "next_step"],
+  "properties": {
+    "schema": { "const": "hebrinex.command_gateway.result" },
+    "version": { "const": "0.5" },
+    "root": { "type": "string" },
+    "mode": { "enum": ["CheckOnly", "Apply"] },
+    "command_text": { "type": "string" },
+    "purpose": { "type": "string" },
+    "approval_id": { "type": "string" },
+    "approval_status": { "enum": ["not_provided", "valid", "invalid"] },
+    "approval_reason": { "type": "string" },
+    "decision": { "enum": ["allow", "block"] },
+    "risk_class": { "enum": ["read_only", "local_validation", "write", "destructive", "network", "git_remote", "secrets", "privileged", "unknown"] },
+    "requires_preflight": { "type": "boolean" },
+    "requires_si": { "type": "boolean" },
+    "writes": { "type": "boolean" },
+    "executes": { "type": "boolean" },
+    "mutation_contract": { "enum": ["none", "source_or_legacy_explicit_exception", "operation-safety/1"] },
+    "matched_pattern": { "type": "string" },
+    "reason": { "type": "string" },
+    "generated_preflight": { "type": "object" },
+    "execution": { "type": "object" },
+    "next_step": { "type": "string" }
+  }
+}

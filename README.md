@@ -34,6 +34,28 @@ Denegado por defecto: documentacion personal/local, memoria `complete/`, `CHANGE
 
 Si un proyecto no tiene `.hebrinex`, no se opera con un harness externo. Se copia una fuente libre `source_template` a `<project_root>/.hebrinex/`, excluyendo materialmente documentacion personal/local, `.git/` y temporales, y luego se vincula como `bound`.
 
+## Candidato de instalacion central
+
+P06 incorpora un candidato local Windows x64, por maquina y sin firma. El
+payload se genera por interseccion del manifest estructural con
+`packaging/runtime-layout.json`; incluye `bin/hebrinex.exe`, metadata de release
+y un manifest SHA-256. El launcher usa Windows PowerShell 5.1 por ruta del
+sistema, valida todos los archivos antes de despachar y no busca ejecutables en
+el directorio actual.
+
+```powershell
+pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/build-legacy-baselines.ps1 -Apply
+pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/build-payload.ps1 -Apply
+pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/build-msi.ps1 -Apply
+pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/validate-packaging.ps1
+```
+
+Los outputs quedan en `artifacts/p06/` y no se versionan. El MSI no debe
+instalarse ni publicarse sin un preflight separado: P06 no probo instalacion,
+elevacion, ACL, PATH/registro reales, repair, uninstall ni VM limpia/offline.
+MCP figura como `OPTIONAL_FEATURE_MISSING` porque Node y su cierre de
+dependencias no se redistribuyen en este candidato.
+
 ## Novedades Actuales
 
 - Cache compartida declarativa: `SHARED_MANIFEST.yaml` versiona qué directorios son compartibles (`shared_dirs`) y qué estado debe ser copia real por proyecto (`instance_dirs` + `instance_path_map`). La ruta 0.16.0 -> 0.17.0 conserva binding, progreso, memoria, backups/reportes, runtime y overrides locales bajo `instance/`, sin convertir un harness externo en autoridad operativa.

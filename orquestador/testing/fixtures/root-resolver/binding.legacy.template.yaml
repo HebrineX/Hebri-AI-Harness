@@ -1,0 +1,13 @@
+schema: hebrinex.project_binding
+version: "0.1"
+harness_version: "0.17.1"
+binding_mode: bound
+harness_instance_id: "{{INSTANCE_ID}}"
+project_name: "{{PROJECT_ID}}"
+project_root: "{{PROJECT_ROOT}}"
+repo_remote: ""
+source_repo: "fixture"
+created_at: "2026-09-09T00:00:00Z"
+bound_at: "2026-09-09T00:00:00Z"
+notes:
+  - "Resolver compatibility fixture."

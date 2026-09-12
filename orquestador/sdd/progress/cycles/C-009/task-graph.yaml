@@ -1,0 +1,63 @@
+schema: hebrinex.task_graph
+version: "0.6"
+cycle_id: C-009
+slice_id: P05-COMPLETE-T01-T08
+waves:
+  - wave_id: W-001
+    type: sequential
+    tasks:
+      - { task_id: P05-T01, title: "Define content-addressed legacy classification and baseline", depends_on: [P04-T08], role: executor, profile: worker, execution_mode: simulated, status: done }
+      - { task_id: P05-T02, title: "Implement pure immutable migration plan", depends_on: [P05-T01], role: executor, profile: worker, execution_mode: simulated, status: done }
+      - { task_id: P05-T03, title: "Represent explicit conflict decisions", depends_on: [P05-T02], role: leader, profile: none, execution_mode: simulated, status: done }
+      - { task_id: P05-T04, title: "Implement external verified snapshot", depends_on: [P05-T03], role: executor, profile: worker, execution_mode: simulated, status: done }
+      - { task_id: P05-T05, title: "Build and validate lightweight instance in staging", depends_on: [P05-T04], role: executor, profile: worker, execution_mode: simulated, status: done }
+      - { task_id: P05-T06, title: "Publish with P02 lock journal and P04 catalog", depends_on: [P05-T05], role: executor, profile: worker, execution_mode: simulated, status: done }
+      - { task_id: P05-T07, title: "Implement integrity and post-change aware restore", depends_on: [P05-T06], role: executor, profile: worker, execution_mode: simulated, status: done }
+      - { task_id: P05-V01-V08, title: "Run isolated migration and failure matrix", depends_on: [P05-T07], role: executor, profile: worker, execution_mode: simulated, status: done }
+      - { task_id: P05-T08, title: "Review semantics preservation and recovery", depends_on: [P05-V01-V08], role: reviewer, profile: none, execution_mode: simulated, status: done }
+limits:
+  max_active_agents_total: 5
+  leader_slot_reserved: true
+  max_subagents_active: 4
+ownership:
+  owned_files:
+    - scripts/lib/legacy-migration-service.psm1
+    - scripts/migrate-harness.ps1
+    - scripts/hebrinex-central.ps1
+    - scripts/hebrinex.ps1
+    - scripts/validate-legacy-migration.ps1
+    - scripts/validate-migration.ps1
+    - scripts/validate-bound-backups.ps1
+    - scripts/validate-bound-restore.ps1
+    - scripts/validate-bound-update.ps1
+    - scripts/validate-project-service.ps1
+    - scripts/validate-harness.ps1
+    - scripts/validate-mcp.ps1
+    - mcp/server.mjs
+    - mcp/smoke.mjs
+    - mcp/README.md
+    - orquestador/runtime/schemas/legacy-migration-*.json
+    - orquestador/runtime/templates/legacy-migration-*.json
+    - orquestador/testing/fixtures/legacy-migration/
+    - orquestador/migration/migration-registry.yaml
+    - orquestador/runtime/legacy-migration-central1.md
+    - orquestador/runtime/project-service-central1.md
+    - orquestador/runtime/README.md
+    - migracion/fases/P05-migracion-legacy.md
+    - migracion/operacion/state.json
+    - migracion/VALIDACION.md
+    - orquestador/sdd/progress/cycles/C-009/
+    - orquestador/sdd/progress/evidence/P05*
+    - orquestador/sdd/progress/state.yaml
+    - orquestador/sdd/progress/registry.yaml
+  readonly_files:
+    - PROJECT_BINDING.yaml
+    - HARNESS_VERSION
+    - SHARED_MANIFEST.yaml
+    - orquestador/harness-manifest.txt
+    - migracion/ARQUITECTURA-CONTRATOS.md
+    - migracion/REQUISITOS.md
+    - migracion/FUENTES-DECISIONES.md
+completion:
+  result: accepted_local_with_pilot_packaging_and_host_blockers
+  evidence: [orquestador/sdd/progress/evidence/P05-T01-T07-implementation.md, orquestador/sdd/progress/evidence/P05-T08-review.md, orquestador/sdd/progress/evidence/P05-T08-final-handoff.md]

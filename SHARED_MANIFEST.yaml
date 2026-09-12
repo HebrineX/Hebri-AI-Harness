@@ -6,6 +6,9 @@ contract:
   authority: harness
   consumer_rule: "Consumers must read this manifest instead of hardcoding shared directories."
   path_base: ".hebrinex"
+  runtime_layout: "packaging/runtime-layout.json"
+  central_authority: runtime_layout
+  legacy_projection: true
 shared_dirs:
   - agents
   - mcp
@@ -18,6 +21,7 @@ shared_dirs:
   - orquestador/integrations
   - orquestador/method
   - orquestador/migration/contracts
+  - orquestador/migration/baselines
   - orquestador/migration/versions
   - orquestador/policies
   - orquestador/portability

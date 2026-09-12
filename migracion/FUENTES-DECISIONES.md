@@ -1,6 +1,6 @@
 # Fuentes, decisiones e inventario de cambios
 
-Estado: propuesta revisada; implementación pendiente · Fecha de corte: 2026-09-08. Separar evidencia observada, inferencia y decisión propuesta. Las referencias locales describen la base inspeccionada `0.17.1`; deben revalidarse al comenzar P00 y después de cambios. No se ejecutaron pruebas runtime del producto.
+Estado: implementación y evidencia local hasta P06 · Fecha de corte: 2026-09-11. Separar evidencia observada, inferencia y decisión. Las pruebas de instalación/VM siguen pendientes.
 
 ## 1. Evidencia local
 
@@ -29,6 +29,13 @@ Estado: propuesta revisada; implementación pendiente · Fecha de corte: 2026-09
 Inventario estático de la auditoría: 397 archivos del manifest y 1.049.826 bytes. Kernel `first_message`: estimación 1.603 tokens por caracteres/4; una suma de 2.065 incluía el contrato visible, fuera de ese scope. No comparar ambas cuentas como regresión. P00 debe capturar comandos, inputs y hashes reproducibles antes de usarlos como baseline de aceptación.
 
 Búsqueda de packaging: nombres de archivos visibles, incluidos ocultos y excluidos `.git`, `.codex`, dependencias, memoria completa y material personal; patrones de directorios packaging/installer/setup y extensiones MSI/WiX. Además, búsqueda de términos MSI/WiX/msiexec/repair/uninstall/offline en `scripts`, `mcp` y `.github`. No se encontraron archivos de packaging MSI/WiX en ese alcance. Esto no afirma ausencia de instaladores fuera del repositorio ni de archivos ignorados/excluidos no inspeccionados.
+
+Evidencia P06 posterior: `packaging/` contiene layout, metadata, toolchain lock,
+launcher C# y authoring WiX; `scripts/validate-packaging.ps1` pasó 43 checks. El
+payload central tiene más de 400 archivos y excluye estado, approvals, locks,
+evidencia, backups, dependencias Node y material personal. Los tags locales
+produjeron baselines de 346 (`v0.10.11`) y 391 (`v0.16.0`) archivos. WiX ICE,
+Harness PS7/PS5 y MCP/Node pasaron localmente; no hubo instalación ni red.
 
 La búsqueda dirigida de código en scripts/MCP/init/CI no encontró paths personales fijos relevantes. No implica una auditoría universal de secretos; los campos, payload y logs requieren sus pruebas propias.
 
@@ -62,9 +69,9 @@ Todas son propuestas del plan hasta revisión y aprobación de su implementació
 | D05 | Approvals vinculados a hash/identidad/scope y separación de roles con deny por defecto. | No aceptar texto SI en artefactos ni confiar en `role` enviado por cliente. | P02, P03 |
 | D06 | Contexto por tarea, evidencia incremental y handoff verificable sin chat. | Cargar todo el repo/transcript o usar caché como autoridad. No exigir embeddings/vector DB. | P03 |
 | D07 | Una versión activa por línea API compatible; minimum engine + schemas probados. | Pins exactos/side-by-side automático no comprometidos. Incompatibilidad bloquea sin tocar datos; futura coexistencia mayor requiere diseño propio. | P00, P06, P07 |
-| D08 | Base Windows sin Bash; versión/runtime PowerShell a fijar; MCP/Node opcional. | No asumir `pwsh` preinstalado ni descargar al instalar/repair. Resolver inclusión versus prerequisito con offline/licencias. | P06, pendiente |
-| D09 | MSI por máquina, launcher estable y componentes declarativos; no migrar datos de proyectos desde MSI. | Instalación por usuario o custom actions necesitan justificación y revisión aparte. | P06, P07 |
-| D10 | Build fijado, inventario/hashes, firma según política y matriz de VM. | Aceptar un MSI sólo porque se compiló o usar runner CI como sustituto de Windows limpio. | P06–P09 |
+| D08 | Candidato Windows x64 sin Bash; núcleo sobre Windows PowerShell 5.1 por ruta de sistema; MCP/Node ausente falla cerrado. | No redistribuir `pwsh`/Node de desarrollo ni descargar al instalar. Node/MCP offline sigue pendiente. | P06 implementado local; P08 aceptación host |
+| D09 | MSI por máquina, launcher x64 .NET Framework 4.8 y componentes declarativos; no migrar datos de proyectos desde MSI. | Instalación por usuario o custom actions necesitan justificación y revisión aparte. | P06 implementado; P07 lifecycle |
+| D10 | WiX 5.0.2 y Roslyn 5.3 fijados; inventario/hashes de payload reproducibles; MSI unsigned con ICE. | Bytes MSI no idénticos, firma y matriz VM pendientes; compilar no equivale a aceptar instalación. | P06 local; P07–P09 release |
 | D11 | Benchmark con calidad/gates primero; umbrales candidatos congelados antes de medir. | No prometer 90% de ahorro ni equivalencia entre modelos. No ajustar criterios después de ver resultados. | P03, P08 |
 
 Pendientes bloqueantes para implementación/release según fase: resolver discrepancia binding/memoria; fijar schema y línea API; definir Windows/arquitecturas/PowerShell soportados; decidir packaging/redistribución Node; revisar licencias WiX/runtimes; fijar versión exacta de toolchain; elegir launcher mínimo que preserve quoting; definir firma y custodia de credenciales; acordar corpus/costo/umbrales de benchmark; publicar matriz de adaptadores real. Cada pendiente debe tener decisión, evidencia y responsable, no sólo una casilla cerrada.

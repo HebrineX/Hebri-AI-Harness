@@ -1,0 +1,17 @@
+{
+  "schema": "hebrinex.operation_journal",
+  "contract_version": "1.0.0",
+  "runtime_api": "1",
+  "operation_id": "OP-REPLACE",
+  "project_id": "PROJECT-REPLACE",
+  "descriptor_hash": "REPLACE_WITH_SHA256",
+  "approval_id": "APR2-REPLACE",
+  "lock_path": "REPLACE_WITH_INSTANCE_LOCK_PATH",
+  "state": "prepared",
+  "stage": "prepared",
+  "resources": [],
+  "history": [
+    { "state": "prepared", "at": "1970-01-01T00:00:00Z", "evidence": "descriptor, approval and lock validated" }
+  ],
+  "updated_at": "1970-01-01T00:00:00Z"
+}

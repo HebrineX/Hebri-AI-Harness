@@ -1,0 +1,11 @@
+schema: hebrinex.project_binding
+version: "0.1"
+harness_version: "0.16.0"
+binding_mode: source_template
+harness_instance_id: "SOURCE-TEMPLATE"
+project_name: ""
+project_root: ""
+repo_remote: ""
+source_repo: "fixture"
+created_at: ""
+bound_at: ""

@@ -1,0 +1,128 @@
+schema: hebrinex.task_graph
+version: "0.6"
+cycle_id: C-004
+slice_id: P02-T01-T08
+waves:
+  - wave_id: W-001
+    type: sequential
+    tasks:
+      - task_id: P02-T01
+        title: "Inventory every state writer and classify central-runtime bypasses"
+        depends_on: [P01-T08]
+        role: executor
+        profile: worker
+        execution_mode: simulated
+        status: done
+      - task_id: P02-T02
+        title: "Implement project-scoped operation descriptors and approvals"
+        depends_on: [P02-T01]
+        role: executor
+        profile: worker
+        execution_mode: simulated
+        status: done
+      - task_id: P02-T03
+        title: "Implement canonical operation journal transitions"
+        depends_on: [P02-T02]
+        role: executor
+        profile: worker
+        execution_mode: simulated
+        status: done
+      - task_id: P02-T04
+        title: "Implement atomic overlapping-resource locks with process identity"
+        depends_on: [P02-T03]
+        role: executor
+        profile: worker
+        execution_mode: simulated
+        status: done
+      - task_id: P02-T05
+        title: "Implement safe file publication and precondition revalidation"
+        depends_on: [P02-T04]
+        role: executor
+        profile: worker
+        execution_mode: simulated
+        status: done
+      - task_id: P02-T06
+        title: "Integrate or explicitly block all known runtime writers"
+        depends_on: [P02-T05]
+        role: executor
+        profile: worker
+        execution_mode: simulated
+        status: done
+      - task_id: P02-T07
+        title: "Implement deterministic interrupted-operation recovery"
+        depends_on: [P02-T06]
+        role: executor
+        profile: worker
+        execution_mode: simulated
+        status: done
+      - task_id: P02-T08
+        title: "Run adversarial concurrency, failure and read-purity review"
+        depends_on: [P02-T07]
+        role: reviewer
+        profile: none
+        execution_mode: simulated
+        status: done
+limits:
+  max_active_agents_total: 5
+  leader_slot_reserved: true
+  max_subagents_active: 4
+ownership:
+  owned_files:
+    - scripts/lib/hebri-common.psm1
+    - scripts/command-gateway.ps1
+    - scripts/state-machine.ps1
+    - scripts/hebrinex.ps1
+    - scripts/migrate-harness.ps1
+    - scripts/build-instructions.ps1
+    - scripts/claude-reentry.ps1
+    - scripts/install-claude-hooks.ps1
+    - scripts/install-host-integrations.ps1
+    - scripts/regularize-state.ps1
+    - scripts/regularize-registry.ps1
+    - scripts/validate-operation-safety.ps1
+    - scripts/validate-harness.ps1
+    - packaging/runtime-layout.json
+    - orquestador/runtime/schemas/
+    - orquestador/runtime/templates/
+    - orquestador/testing/fixtures/operation-safety/
+    - orquestador/security/
+    - orquestador/sdd/progress/cycles/C-004/
+    - orquestador/sdd/progress/evidence/P02-T01-writer-inventory.md
+    - orquestador/sdd/progress/evidence/P02-T02-operation-approval.md
+    - orquestador/sdd/progress/evidence/P02-T03-journal.md
+    - orquestador/sdd/progress/evidence/P02-T04-locking.md
+    - orquestador/sdd/progress/evidence/P02-T05-safe-publication.md
+    - orquestador/sdd/progress/evidence/P02-T06-writer-integration.md
+    - orquestador/sdd/progress/evidence/P02-T07-recovery.md
+    - orquestador/sdd/progress/evidence/P02-T08-final-handoff.md
+    - orquestador/sdd/progress/state.yaml
+    - orquestador/sdd/progress/registry.yaml
+    - migracion/operacion/state.json
+  readonly_files:
+    - migracion/fases/P02-estado-aprobaciones-y-aislamiento.md
+    - migracion/ARQUITECTURA-CONTRATOS.md
+    - migracion/REQUISITOS.md
+    - migracion/VALIDACION.md
+    - mcp/server.mjs
+    - orquestador/harness-manifest.txt
+blockers:
+  - id: P02-B01
+    status: open
+    summary: "P03/P04 must select central_instance from a verified binding and carry operation context through CLI/MCP launch paths."
+  - id: P02-B02
+    status: open
+    summary: "P06 must include P02 runtime artifacts in the executable payload manifest."
+  - id: P02-B03
+    status: open
+    summary: "P06/P08 must enforce store ACLs and validate the installed boundary on clean and offline hosts."
+completion:
+  result: accepted_with_future_host_and_packaging_blockers
+  evidence:
+    - orquestador/sdd/progress/evidence/P02-T01-writer-inventory.md
+    - orquestador/sdd/progress/evidence/P02-T02-operation-approval.md
+    - orquestador/sdd/progress/evidence/P02-T03-journal.md
+    - orquestador/sdd/progress/evidence/P02-T04-locking.md
+    - orquestador/sdd/progress/evidence/P02-T05-safe-publication.md
+    - orquestador/sdd/progress/evidence/P02-T06-writer-integration.md
+    - orquestador/sdd/progress/evidence/P02-T07-recovery.md
+    - orquestador/sdd/progress/evidence/P02-T08-final-handoff.md

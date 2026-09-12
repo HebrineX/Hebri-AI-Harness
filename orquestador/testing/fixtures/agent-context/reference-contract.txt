@@ -1,0 +1,1 @@
+This fixture is inert data used to verify declared-path loading and SHA-256 provenance.

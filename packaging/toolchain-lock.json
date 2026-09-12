@@ -1,0 +1,45 @@
+{
+  "$schema": "../orquestador/runtime/schemas/toolchain-lock.schema.json",
+  "schema": "hebrinex.packaging_toolchain",
+  "schema_version": 1,
+  "platform": "windows-x64",
+  "components": [
+    {
+      "id": "wix",
+      "version": "5.0.2",
+      "purpose": "msi_build_and_validation",
+      "redistributed": false,
+      "license_expression": "MS-RL",
+      "evidence": "local_tool_metadata"
+    },
+    {
+      "id": "roslyn",
+      "version": "5.3.0-2.26230.114",
+      "purpose": "deterministic_launcher_compilation_from_dotnet_sdk_10.0.204",
+      "redistributed": false,
+      "evidence": "local_tool_metadata"
+    },
+    {
+      "id": "csc",
+      "version": "4.8.9221.0",
+      "purpose": "dotnet_framework_target_reference_assemblies",
+      "redistributed": false,
+      "evidence": "windows_platform"
+    },
+    {
+      "id": "windows-powershell",
+      "version": "5.1",
+      "purpose": "core_runtime_engine",
+      "redistributed": false,
+      "evidence": "windows_platform"
+    },
+    {
+      "id": "node",
+      "version": "unavailable",
+      "purpose": "optional_mcp_runtime",
+      "redistributed": false,
+      "evidence": "not_available"
+    }
+  ],
+  "release_decision": "local_build_only_network_review_pending"
+}

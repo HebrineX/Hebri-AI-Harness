@@ -1,0 +1,16 @@
+schema: hebrinex.approval_envelope
+version: "0.1"
+approval_id: APR-20260910T193035Z-41c635
+status: consumed
+human_decision: approved
+approved_text: "SI"
+action_type: run_command
+exact_action: "P06-PREFLIGHT-027: leer P06, handoff P05, packaging, SHARED_MANIFEST, launcher, scripts y validadores relacionados; preparar preflight unico P06-COMPLETE; sin implementar, red, Git write/remoto, instalacion, elevacion, MSI ni consumidor real."
+command: "P06-PREFLIGHT-027: leer P06, handoff P05, packaging, SHARED_MANIFEST, launcher, scripts y validadores relacionados; preparar preflight unico P06-COMPLETE; sin implementar, red, Git write/remoto, instalacion, elevacion, MSI ni consumidor real."
+command_sha256: 25d2605bae78103488a648316c75c5edd78aea955c565007990678106c048b8d
+purpose: ""
+risk: bajo
+created_at: 2026-09-10T19:30:35.0693055Z
+expires_at: 2026-09-10T20:30:35.0693055Z
+harness_version: "0.17.1"
+consumed_at: 2026-09-11T13:12:30.0000000Z

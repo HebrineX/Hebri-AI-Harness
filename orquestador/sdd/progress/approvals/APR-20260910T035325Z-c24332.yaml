@@ -1,0 +1,15 @@
+schema: hebrinex.approval_envelope
+version: "0.1"
+approval_id: APR-20260910T035325Z-c24332
+status: approved
+human_decision: approved
+approved_text: "SI"
+action_type: run_command
+exact_action: "P03-CODEX-ONLY-024: crear y congelar experimento V2 solo Codex antes de resultados, autenticar codex con cuenta ChatGPT existente sin API key de pago, implementar runner, ejecutar hasta 140 llamadas totales del corpus sintetico en read-only, revisar T08 y cerrar P03 solo si cumple umbrales; detener ante gasto adicional, login fallido, telemetria insuficiente, salida malformada persistente o rate limit."
+command: "P03-CODEX-ONLY-024: crear y congelar experimento V2 solo Codex antes de resultados, autenticar codex con cuenta ChatGPT existente sin API key de pago, implementar runner, ejecutar hasta 140 llamadas totales del corpus sintetico en read-only, revisar T08 y cerrar P03 solo si cumple umbrales; detener ante gasto adicional, login fallido, telemetria insuficiente, salida malformada persistente o rate limit."
+command_sha256: 773242ceef31293a026b8bc00e7a2bb5fa27f81d7a181fc98180297afd721ffe
+purpose: "Completar P03-T07, P03-V04 y P03-T08 con Codex y cuota existente"
+risk: alto
+created_at: 2026-09-10T03:53:25.3296374Z
+expires_at: 2026-09-11T03:53:25.3296374Z
+harness_version: "0.17.1"

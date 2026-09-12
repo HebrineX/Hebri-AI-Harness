@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Hebrinex Central Project Binding",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "schema_version", "project_id", "instance_id", "project_root", "layout", "instance_relative_path", "required_engine", "state_schema_version", "created_at", "updated_at"],
+  "properties": {
+    "schema": { "const": "hebrinex.binding" },
+    "schema_version": { "const": 1 },
+    "project_id": { "type": "string", "pattern": "^PRJ-[a-f0-9]{32}$" },
+    "instance_id": { "type": "string", "pattern": "^INST-[a-f0-9]{32}$" },
+    "project_root": { "type": "string", "minLength": 1 },
+    "layout": { "const": "central_instance" },
+    "instance_relative_path": { "const": ".hebrinex/instance" },
+    "required_engine": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["api_line", "minimum_engine_version"],
+      "properties": {
+        "api_line": { "const": "1" },
+        "minimum_engine_version": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$" }
+      }
+    },
+    "state_schema_version": { "const": 1 },
+    "last_verified_engine_version": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$" },
+    "created_at": { "type": "string", "format": "date-time" },
+    "updated_at": { "type": "string", "format": "date-time" }
+  }
+}

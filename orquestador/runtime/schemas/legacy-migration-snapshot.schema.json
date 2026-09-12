@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Hebrinex Legacy Migration Snapshot",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "schema_version", "operation_id", "project_id", "source_version", "source_tree_sha256", "created_at", "files"],
+  "properties": {
+    "schema": { "const": "hebrinex.legacy_migration_snapshot" },
+    "schema_version": { "const": 1 },
+    "operation_id": { "type": "string", "pattern": "^OP-[a-f0-9]{32}$" },
+    "project_id": { "type": "string", "pattern": "^PRJ-[a-f0-9]{32}$" },
+    "source_version": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$" },
+    "source_tree_sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "post_migration_tree_sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "created_at": { "type": "string", "format": "date-time" },
+    "files": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["path", "sha256", "size"],
+        "properties": {
+          "path": { "type": "string", "minLength": 1 },
+          "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+          "size": { "type": "integer", "minimum": 0 }
+        }
+      }
+    }
+  }
+}

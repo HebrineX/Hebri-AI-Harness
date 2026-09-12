@@ -1,0 +1,75 @@
+schema: hebrinex.task_graph
+version: "0.6"
+cycle_id: C-007
+slice_id: P03-CODEX-ONLY-T07-T08
+waves:
+  - wave_id: W-001
+    type: sequential
+    tasks:
+      - task_id: P03-RF01
+        title: "Refreeze unchanged P03 corpus and thresholds for Codex-only host feasibility"
+        depends_on: [P03-T06, P03-PF01]
+        role: leader
+        profile: none
+        execution_mode: simulated
+        status: done
+      - task_id: P03-AUTH01
+        title: "Authenticate Codex through existing ChatGPT quota"
+        depends_on: [P03-RF01]
+        role: executor
+        profile: worker
+        execution_mode: simulated
+        status: blocked_operator_cancelled
+      - task_id: P03-T07
+        title: "Implement runner and execute frozen Codex corpus"
+        depends_on: [P03-AUTH01]
+        role: executor
+        profile: worker
+        execution_mode: simulated
+        status: blocked_not_started
+      - task_id: P03-V04
+        title: "Compare baseline and candidate against frozen thresholds"
+        depends_on: [P03-T07]
+        role: executor
+        profile: worker
+        execution_mode: simulated
+        status: not_run
+      - task_id: P03-T08
+        title: "Review results and issue task-class recommendation"
+        depends_on: [P03-V04]
+        role: reviewer
+        profile: none
+        execution_mode: simulated
+        status: blocked_no_results
+limits:
+  max_active_agents_total: 5
+  leader_slot_reserved: true
+  max_subagents_active: 4
+  provider_call_limit: 140
+ownership:
+  owned_files:
+    - scripts/run-provider-evaluation.mjs
+    - orquestador/evaluation/P03/
+    - orquestador/agents/provider-capability-matrix.json
+    - orquestador/sdd/progress/cycles/C-007/
+    - orquestador/sdd/progress/evidence/P03-T07-codex-evaluation.md
+    - orquestador/sdd/progress/evidence/P03-T08-provider-review.md
+    - orquestador/sdd/progress/evidence/P03-final-handoff.md
+    - orquestador/sdd/progress/state.yaml
+    - orquestador/sdd/progress/registry.yaml
+    - migracion/operacion/state.json
+  readonly_files:
+    - migracion/fases/P03-agentes-contexto-y-proveedores.md
+    - mcp/agent-backends.mjs
+    - mcp/agents-backend.yaml
+    - orquestador/evaluation/P03/corpus-v1.json
+    - orquestador/evaluation/P03/experiment-plan-v1.json
+blockers:
+  - id: P03-B05
+    status: active
+    summary: "Operator clarification required: use standalone Codex CLI with reproducible telemetry or keep live provider V04 not_run."
+completion:
+  result: blocked_operator_clarification
+  evidence:
+    - orquestador/evaluation/P03/experiment-plan-v2-codex-only.json
+    - orquestador/sdd/progress/cycles/C-007/blocked-handoff.md

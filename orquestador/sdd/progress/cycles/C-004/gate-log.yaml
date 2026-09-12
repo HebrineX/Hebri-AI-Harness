@@ -1,0 +1,89 @@
+schema: hebrinex.gate_log
+version: "0.1"
+cycle_id: C-004
+gates:
+  - gate: G0_session_contract
+    result: pass
+    responsible: leader
+    evidence: [orquestador/sdd/progress/state.yaml]
+    next_action: "Complete P02-T01 through P02-T08 under one approved phase chain."
+  - gate: G0A_memory_registry_loaded
+    result: pass_with_formal_precedence
+    responsible: leader
+    evidence: [PROJECT_BINDING.yaml, orquestador/sdd/progress/state.yaml]
+    next_action: "Preserve source-template authority despite stale memory metadata."
+  - gate: G1_context_ready
+    result: pass
+    responsible: leader
+    evidence: [migracion/fases/P02-estado-aprobaciones-y-aislamiento.md, orquestador/sdd/progress/evidence/P01-T08-final-handoff.md]
+    next_action: "Load only writer and safety-contract symbols."
+  - gate: G1A_clarification_complete
+    result: pass_with_conditions
+    responsible: auditor
+    evidence: [orquestador/sdd/progress/cycles/C-004/detractor-senior-P02-complete.md]
+    next_action: "Preserve versioned legacy interfaces and fail closed."
+  - gate: G1B_analysis_complete
+    result: pass
+    responsible: leader
+    evidence: [migracion/fases/P02-estado-aprobaciones-y-aislamiento.md]
+    next_action: "Complete and publish the writer inventory before runtime closure."
+  - gate: G1C_blast_radius_declared
+    result: pass
+    responsible: leader
+    evidence: [P02-COMPLETE-021, APR-20260909T150307Z-6dd2d0]
+    next_action: "Stop before Git, network, elevation, install, real consumers, MCP or manifest edits."
+  - gate: G2_dispatch_ready
+    result: pass
+    responsible: leader
+    evidence: [orquestador/sdd/progress/registry.yaml]
+    next_action: "Use explicit simulated roles with one writer."
+  - gate: G2A_task_graph_ready
+    result: pass
+    responsible: leader
+    evidence: [orquestador/sdd/progress/cycles/C-004/task-graph.yaml]
+    next_action: "Execute T01-T08 sequentially."
+  - gate: G3_locks_acquired
+    result: pass
+    responsible: leader
+    evidence: [orquestador/sdd/progress/locks/L-20260909T150713Z-2f9864.lock.md]
+    next_action: "Release the C-004 lock only after final tracking writes."
+  - gate: G3A_detractor_senior_pre_implementation
+    result: pass_with_conditions
+    responsible: auditor
+    evidence: [orquestador/sdd/progress/cycles/C-004/detractor-senior-P02-complete.md]
+    next_action: "Implement one stdlib-only versioned safety primitive and real adversarial tests."
+  - gate: G4_execution_complete
+    result: pass
+    responsible: executor
+    evidence: [orquestador/sdd/progress/evidence/P02-T01-writer-inventory.md, orquestador/sdd/progress/evidence/P02-T02-operation-approval.md, orquestador/sdd/progress/evidence/P02-T03-journal.md, orquestador/sdd/progress/evidence/P02-T04-locking.md, orquestador/sdd/progress/evidence/P02-T05-safe-publication.md, orquestador/sdd/progress/evidence/P02-T06-writer-integration.md, orquestador/sdd/progress/evidence/P02-T07-recovery.md]
+    next_action: "Consume the accepted interface through separately approved P03/P04 integration."
+  - gate: G5_review_or_validation
+    result: pass_with_known_p01_platform_warning
+    responsible: reviewer
+    evidence: [scripts/validate-operation-safety.ps1, orquestador/sdd/progress/evidence/P02-T08-final-handoff.md]
+    next_action: "Repeat the inherited P01 symlink oracle on a capable P08 host; no P02 finding remains open."
+  - gate: G5A_detractor_pass_complete
+    result: pass
+    responsible: auditor
+    evidence: [orquestador/sdd/progress/cycles/C-004/detractor-senior-P02-complete.md]
+    next_action: "Repeat only if scope expands."
+  - gate: G5B_release_reconstruction_complete
+    result: not_applicable
+    responsible: leader
+    evidence: [migracion/fases/P02-estado-aprobaciones-y-aislamiento.md]
+    next_action: "P02 is not release acceptance."
+  - gate: G5I_memory_consistency_complete
+    result: pass_with_formal_precedence
+    responsible: leader
+    evidence: [PROJECT_BINDING.yaml, orquestador/sdd/progress/state.yaml]
+    next_action: "Do not alter stale memory metadata outside scope."
+  - gate: G6_agent_closure_complete
+    result: pass
+    responsible: leader
+    evidence: [orquestador/sdd/progress/registry.yaml, orquestador/sdd/progress/cycles/C-004/audit.jsonl]
+    next_action: "No C-004 simulated role remains open."
+  - gate: G7_handoff_complete
+    result: pass
+    responsible: leader
+    evidence: [orquestador/sdd/progress/evidence/P02-T08-final-handoff.md]
+    next_action: "Prepare a separate P03 preflight; do not infer approval from P02."

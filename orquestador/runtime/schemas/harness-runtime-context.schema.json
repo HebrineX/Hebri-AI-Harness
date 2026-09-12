@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "hebrinex.runtime.context",
+  "title": "Hebri Runtime Context",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "contract_version", "runtime_api", "install_root", "project_root", "instance_root", "catalog_root", "project_id", "deployment_mode", "binding_path", "harness_version", "layout_sha256", "trusted_install_source"],
+  "properties": {
+    "schema": { "const": "hebrinex.runtime.context" },
+    "contract_version": { "const": "1.0.0" },
+    "runtime_api": { "const": "1" },
+    "install_root": { "type": "string", "minLength": 1 },
+    "project_root": { "type": "string", "minLength": 1 },
+    "instance_root": { "type": "string", "minLength": 1 },
+    "catalog_root": { "type": "string", "minLength": 1 },
+    "project_id": { "type": "string", "minLength": 1 },
+    "deployment_mode": { "enum": ["source_template", "legacy_bound", "central_instance"] },
+    "binding_path": { "type": ["string", "null"] },
+    "harness_version": { "type": "string", "minLength": 1 },
+    "layout_sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "trusted_install_source": { "const": "launcher_input" }
+  }
+}

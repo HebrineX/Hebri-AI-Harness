@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Hebri Scoped Approval",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "contract_version", "runtime_api", "approval_id", "status", "human_decision", "approved_text", "human_evidence_id", "operation_id", "project_id", "operation", "descriptor_hash", "plan_hash", "roots_hash", "write_set_hash", "code_version", "retry_scope", "created_at", "expires_at"],
+  "properties": {
+    "schema": { "const": "hebrinex.scoped_approval" },
+    "contract_version": { "const": "1.0.0" },
+    "runtime_api": { "const": "1" },
+    "approval_id": { "type": "string", "pattern": "^APR2-[A-Za-z0-9][A-Za-z0-9._-]{0,127}$" },
+    "status": { "enum": ["approved", "rejected", "consumed", "expired"] },
+    "human_decision": { "enum": ["approved", "rejected"] },
+    "approved_text": { "type": "string", "minLength": 1 },
+    "human_evidence_id": { "type": "string", "minLength": 1 },
+    "operation_id": { "type": "string" },
+    "project_id": { "type": "string" },
+    "operation": { "type": "string" },
+    "descriptor_hash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "plan_hash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "roots_hash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "write_set_hash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "code_version": { "type": "string" },
+    "retry_scope": { "const": "same_operation_id" },
+    "created_at": { "type": "string", "format": "date-time" },
+    "expires_at": { "type": "string", "format": "date-time" },
+    "consumed_at": { "type": "string", "format": "date-time" }
+  }
+}

@@ -1,0 +1,114 @@
+schema: hebrinex.task_graph
+version: "0.6"
+cycle_id: C-003
+slice_id: P01-T02-T08
+waves:
+  - wave_id: W-001
+    type: sequential
+    tasks:
+      - task_id: P01-T02
+        title: "Implement versioned runtime context contract"
+        depends_on: [P01-T01]
+        role: executor
+        profile: worker
+        execution_mode: simulated
+        status: done
+      - task_id: P01-T03
+        title: "Implement separated read and write resolution results"
+        depends_on: [P01-T02]
+        role: executor
+        profile: worker
+        execution_mode: simulated
+        status: done
+      - task_id: P01-T04
+        title: "Implement normalization, containment and reparse rejection"
+        depends_on: [P01-T03]
+        role: executor
+        profile: worker
+        execution_mode: simulated
+        status: done
+      - task_id: P01-T05
+        title: "Implement trusted install discovery boundary and integrity checks"
+        depends_on: [P01-T04]
+        role: executor
+        profile: worker
+        execution_mode: simulated
+        status: done
+      - task_id: P01-T06
+        title: "Implement explicit legacy mode and binding conflict detection"
+        depends_on: [P01-T05]
+        role: executor
+        profile: worker
+        execution_mode: simulated
+        status: done
+      - task_id: P01-T07
+        title: "Execute resolver matrix and review PowerShell/CLI/MCP interfaces"
+        depends_on: [P01-T06]
+        role: reviewer
+        profile: none
+        execution_mode: simulated
+        status: done
+      - task_id: P01-T08
+        title: "Version interface and publish P01 handoff"
+        depends_on: [P01-T07]
+        role: leader
+        profile: none
+        execution_mode: simulated
+        status: done
+limits:
+  max_active_agents_total: 5
+  leader_slot_reserved: true
+  max_subagents_active: 4
+ownership:
+  owned_files:
+    - scripts/lib/hebri-common.psm1
+    - SHARED_MANIFEST.yaml
+    - packaging/runtime-layout.json
+    - orquestador/runtime/schemas/
+    - scripts/validate-root-resolver.ps1
+    - scripts/validate-harness.ps1
+    - orquestador/testing/fixtures/root-resolver/
+    - orquestador/sdd/progress/cycles/C-003/
+    - orquestador/sdd/progress/evidence/P01-T02-context-contract.md
+    - orquestador/sdd/progress/evidence/P01-T03-resolution-contract.md
+    - orquestador/sdd/progress/evidence/P01-T04-containment.md
+    - orquestador/sdd/progress/evidence/P01-T05-discovery-integrity.md
+    - orquestador/sdd/progress/evidence/P01-T06-legacy-mode.md
+    - orquestador/sdd/progress/evidence/P01-T07-resolver-review.md
+    - orquestador/sdd/progress/evidence/P01-T08-final-handoff.md
+    - orquestador/sdd/progress/state.yaml
+    - orquestador/sdd/progress/registry.yaml
+    - migracion/operacion/state.json
+  readonly_files:
+    - migracion/fases/P01-layout-y-resolucion.md
+    - migracion/ARQUITECTURA-CONTRATOS.md
+    - migracion/REQUISITOS.md
+    - migracion/FUENTES-DECISIONES.md
+    - orquestador/harness-manifest.txt
+    - scripts/hebrinex.ps1
+    - mcp/server.mjs
+    - orquestador/sdd/progress/evidence/P01-T01-path-classification.md
+    - orquestador/sdd/progress/evidence/P01-T01-review.md
+blockers:
+  - id: P01-C03-B01
+    status: open
+    summary: "Windows registry/MSI discovery remains P06-owned; P01 implements the trusted launcher input and integrity boundary only."
+  - id: P01-C03-B02
+    status: open
+    summary: "CLI and MCP continue using legacy local resolvers until P03/P04 integration."
+  - id: P01-C03-B03
+    status: open
+    summary: "Structural manifest packaging of new central artifacts remains P06-owned and is outside this exact write-set."
+  - id: P01-C03-B04
+    status: open
+    summary: "Real symlink creation is blocked by host privilege; junction rejection passed, but symlink rejection must be repeated on a capable release-validation host."
+completion:
+  result: accepted_with_open_platform_and_future_integration_blockers
+  evidence:
+    - orquestador/sdd/progress/evidence/P01-T02-context-contract.md
+    - orquestador/sdd/progress/evidence/P01-T03-resolution-contract.md
+    - orquestador/sdd/progress/evidence/P01-T04-containment.md
+    - orquestador/sdd/progress/evidence/P01-T05-discovery-integrity.md
+    - orquestador/sdd/progress/evidence/P01-T06-legacy-mode.md
+    - orquestador/sdd/progress/evidence/P01-T07-resolver-review.md
+    - orquestador/sdd/progress/evidence/P01-T08-final-handoff.md

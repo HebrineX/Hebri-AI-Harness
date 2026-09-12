@@ -1,10 +1,17 @@
 param(
   [string]$Root = (Split-Path -Parent $PSScriptRoot),
   [string]$StatePath = "",
-  [switch]$Apply
+  [switch]$Apply,
+  [ValidateSet('source_template','legacy_bound','central_instance')][string]$RuntimeMode = 'source_template',
+  [string]$OperationDescriptorPath = '',
+  [string]$ScopedApprovalStoreRoot = '',
+  [string]$ScopedApprovalId = '',
+  [string]$OperationLockPath = '',
+  [string]$OperationJournalPath = ''
 )
 
 $ErrorActionPreference = 'Stop'
+Import-Module (Join-Path $PSScriptRoot 'lib/hebri-common.psm1') -Force -DisableNameChecking -Prefix 'Op' -Scope Local
 $Root = (Resolve-Path -LiteralPath $Root).Path
 if ([string]::IsNullOrWhiteSpace($StatePath)) { $StatePath = Join-Path $Root 'orquestador/sdd/progress/state.yaml' }
 if (-not (Test-Path -LiteralPath $StatePath)) { Write-Error "state.yaml missing: $StatePath" }
@@ -100,6 +107,7 @@ if (-not $Apply) {
 }
 
 $backup = $StatePath + '.bak'
+[void](Assert-OpOperationMutationAuthorized -RuntimeMode $RuntimeMode -ExpectedOperation 'regularize-state:apply' -WritePaths @($StatePath,$backup) -DescriptorPath $OperationDescriptorPath -ApprovalStoreRoot $ScopedApprovalStoreRoot -ApprovalId $ScopedApprovalId -LockPath $OperationLockPath -JournalPath $OperationJournalPath)
 Copy-Item -LiteralPath $StatePath -Destination $backup -Force
 [IO.File]::WriteAllText($StatePath, (($text -replace "`r`n", "`n") -replace "`r", "`n"), [Text.UTF8Encoding]::new($false))
 Write-Host "OK. state.yaml regularized. Backup: $backup"

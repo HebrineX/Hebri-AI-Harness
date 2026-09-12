@@ -1,0 +1,119 @@
+schema: hebrinex.gate_log
+version: "0.1"
+cycle_id: C-001
+gates:
+  - gate: G0_session_contract
+    result: pass
+    responsible: leader
+    evidence: [orquestador/sdd/progress/evidence/P00-T01-session-contract.md, orquestador/sdd/progress/evidence/P00-T08-final-handoff.md]
+    next_action: "Declare a new contract before P01 effects."
+  - gate: G0A_memory_registry_loaded
+    result: pass_with_formal_precedence
+    responsible: leader
+    evidence: [orquestador/memory/memory-registry.yaml, orquestador/sdd/progress/evidence/P00-T08-final-handoff.md]
+    next_action: "P00-D21 selects source-template authority; correct stale memory metadata only under a later approval."
+  - gate: G1_context_ready
+    result: pass
+    responsible: leader
+    evidence: [orquestador/context-budget.yaml, orquestador/sdd/progress/evidence/P00-T07-independent-review.md, orquestador/sdd/progress/evidence/P00-T08-final-handoff.md]
+    next_action: "Start P01 with a fresh task-scoped context profile."
+  - gate: G1A_clarification_complete
+    result: pass_with_documented_blockers
+    responsible: leader
+    evidence: [orquestador/sdd/progress/evidence/P00-T05-blocking-decisions.md, orquestador/sdd/progress/evidence/P00-T07-independent-review.md, orquestador/sdd/progress/evidence/P00-T08-final-handoff.md]
+    next_action: "Carry unresolved implementation questions to their named owner phases."
+  - gate: G1B_analysis_complete
+    result: pass
+    responsible: leader
+    evidence: [orquestador/sdd/progress/evidence/P00-T01-session-contract.md, orquestador/sdd/progress/evidence/P00-T02-resource-inventory.md, orquestador/sdd/progress/evidence/P00-T03-cli-baseline.md, orquestador/sdd/progress/evidence/P00-T04-service-topology-decision.md, orquestador/sdd/progress/evidence/P00-T05-blocking-decisions.md, orquestador/sdd/progress/evidence/P00-T06-fixture-design.md, orquestador/sdd/progress/evidence/P00-T07-independent-review.md, orquestador/sdd/progress/evidence/P00-T08-final-handoff.md]
+    next_action: "Use the final report as P01 input; do not reopen P00 without material drift."
+  - gate: G1C_blast_radius_declared
+    result: pass
+    responsible: leader
+    evidence: [P00-T01-WRITE-011, P00-T02-EXEC-012, P00-T03-EXEC-013, P00-T04-EXEC-014, P00-T05-EXEC-015, P00-T06-EXEC-016, P00-T07-EXEC-017, P00-CLOSE-018]
+    next_action: "Require a new exact approval for P01, Git, network, dependencies or installer effects."
+  - gate: G2_dispatch_ready
+    result: pass
+    responsible: leader
+    evidence: [orquestador/sdd/progress/registry.yaml, orquestador/sdd/progress/cycles/C-001/audit.jsonl]
+    next_action: "C-001 is closed; a future P01 cycle needs a fresh dispatch."
+  - gate: G2A_task_graph_ready
+    result: pass
+    responsible: leader
+    evidence: [orquestador/sdd/progress/cycles/C-001/task-graph.yaml]
+    next_action: "All P00 tasks T01-T08 are sequential and done."
+  - gate: G3_locks_acquired
+    result: pass
+    responsible: leader
+    evidence: [orquestador/sdd/progress/state.yaml]
+    next_action: "No operational locks remain at P00 closure."
+  - gate: G3A_detractor_senior_pre_implementation
+    result: pass
+    responsible: auditor
+    evidence: [orquestador/sdd/progress/cycles/C-001/detractor-senior.md, orquestador/sdd/progress/cycles/C-001/detractor-senior-P00-T02.md, orquestador/sdd/progress/cycles/C-001/detractor-senior-P00-T03.md, orquestador/sdd/progress/cycles/C-001/detractor-senior-P00-T04.md, orquestador/sdd/progress/cycles/C-001/detractor-senior-P00-T05.md, orquestador/sdd/progress/cycles/C-001/detractor-senior-P00-T06.md, orquestador/sdd/progress/cycles/C-001/detractor-senior-P00-T07.md, orquestador/sdd/progress/cycles/C-001/detractor-senior-P00-T08.md]
+    next_action: "Run a new detractor pass before any P01 implementation write."
+  - gate: G4_execution_complete
+    result: pass_documentary
+    responsible: leader
+    evidence: [orquestador/sdd/progress/cycles/C-001/task-graph.yaml, orquestador/sdd/progress/evidence/P00-T08-final-handoff.md]
+    next_action: "P00 documentary execution is complete; product implementation remains not_started."
+  - gate: G5_review_or_validation
+    result: pass_with_findings
+    responsible: reviewer
+    evidence: [orquestador/sdd/progress/evidence/P00-T07-independent-review.md, orquestador/sdd/progress/evidence/P00-T08-final-handoff.md]
+    next_action: "Preserve T07 findings and obtain independent-process review before release acceptance."
+  - gate: G5A_detractor_pass_complete
+    result: pass
+    responsible: auditor
+    evidence: [orquestador/sdd/progress/cycles/C-001/detractor-senior-P00-T08.md]
+    next_action: "T08 closure scope accepted only as documentary completion with blockers."
+  - gate: G5B_release_reconstruction_complete
+    result: pass_documentary
+    responsible: leader
+    evidence: [orquestador/sdd/progress/evidence/P00-T01-session-contract.md, orquestador/sdd/progress/evidence/P00-T03-cli-baseline.md, orquestador/sdd/progress/evidence/P00-T05-blocking-decisions.md, orquestador/sdd/progress/evidence/P00-T08-final-handoff.md]
+    next_action: "Baseline HEAD/version/CLI/platform candidates are reconstructed; this is not release approval."
+  - gate: G5I_memory_consistency_complete
+    result: pass_with_formal_precedence
+    responsible: leader
+    evidence: [orquestador/sdd/progress/evidence/P00-T01-session-contract.md, orquestador/sdd/progress/evidence/P00-T07-independent-review.md, orquestador/sdd/progress/evidence/P00-T08-final-handoff.md]
+    next_action: "P00-D21 prevents stale bound metadata from overriding source-template authority."
+  - gate: G6_agent_closure_complete
+    result: pass
+    responsible: leader
+    evidence: [orquestador/sdd/progress/state.yaml, orquestador/sdd/progress/registry.yaml, orquestador/sdd/progress/cycles/C-001/audit.jsonl]
+    next_action: "All simulated P00 roles are closed and open_agents is empty."
+  - gate: G7_handoff_complete
+    result: pass
+    responsible: leader
+    evidence: [orquestador/sdd/progress/evidence/P00-T08-final-handoff.md]
+    next_action: "Prepare a new exact preflight for P01-T01; do not execute it under P00 approvals."
+  - gate: G5C_deploy_migration_complete
+    result: not_applicable
+    responsible: leader
+    evidence: [orquestador/sdd/progress/evidence/P00-T08-final-handoff.md]
+    next_action: "P00 performed no deployment or product migration."
+  - gate: G5D_reference_drift_complete
+    result: pass_with_findings
+    responsible: reviewer
+    evidence: [orquestador/sdd/progress/evidence/P00-T02-resource-inventory.md, orquestador/sdd/progress/evidence/P00-T07-independent-review.md, orquestador/sdd/progress/evidence/P00-T08-final-handoff.md]
+    next_action: "Resolve classified manifest, map and schema drift in the assigned later phases."
+  - gate: G5E_ci_pipeline_history_complete
+    result: not_applicable
+    responsible: leader
+    evidence: [orquestador/sdd/progress/evidence/P00-T08-final-handoff.md]
+    next_action: "P00 did not modify CI or require pipeline-history acceptance."
+  - gate: G5F_backlog_classification_complete
+    result: pass
+    responsible: leader
+    evidence: [orquestador/sdd/progress/cycles/C-001/task-graph.yaml, orquestador/sdd/progress/evidence/P00-T08-final-handoff.md]
+    next_action: "B02-B15 have downstream owners; B01 is resolved for P00 by formal precedence."
+  - gate: G5G_audit_report_contract_complete
+    result: pass
+    responsible: auditor
+    evidence: [orquestador/sdd/progress/cycles/C-001/audit.jsonl, orquestador/sdd/progress/evidence/P00-T08-final-handoff.md]
+    next_action: "Retain JSONL audit chronology and final report hash as C-001 evidence."
+  - gate: G5H_final_report_crosslink_complete
+    result: pass
+    responsible: leader
+    evidence: [orquestador/sdd/progress/state.yaml, orquestador/sdd/progress/registry.yaml, orquestador/sdd/progress/cycles/C-001/gate-log.yaml, orquestador/sdd/progress/cycles/C-001/task-graph.yaml, orquestador/sdd/progress/cycles/C-001/audit.jsonl, orquestador/sdd/progress/evidence/P00-T08-final-handoff.md]
+    next_action: "C-001 closure records crosslink the final report and P01 handoff."

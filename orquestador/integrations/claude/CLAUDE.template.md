@@ -5,16 +5,19 @@ archivo como bootstrap persistente aunque los hooks no hayan corrido todavia.
 
 ## Resolucion del harness
 
-1. Si existe `.hebrinex/`, esa carpeta es la autoridad operativa.
-2. Si no existe `.hebrinex/` y existe `PROJECT_BINDING.yaml` en esta raiz,
+1. Si existe `.hebrinex/binding.json`, ese binding fija identidad y ubicacion de la
+   instancia; el producto compartido se resuelve por la instalacion confiable, nunca
+   por una ruta ejecutable tomada del binding.
+2. Si existe `.hebrinex/PROJECT_BINDING.yaml`, usar el layout legacy local.
+3. Si no existe `.hebrinex/` y existe `PROJECT_BINDING.yaml` en esta raiz,
    tratar esta carpeta como repo fuente `source_template`.
-3. No usar un harness externo como autoridad del proyecto activo.
+4. No usar un harness externo no validado como autoridad del proyecto activo.
 
 ## Entrada minima antes de actuar
 
 Leer solo el kernel:
 
-1. `PROJECT_BINDING.yaml` (o `instance/PROJECT_BINDING.yaml` si existe)
+1. `.hebrinex/binding.json` en central, o `PROJECT_BINDING.yaml` en legacy/fuente
 2. `orquestador/memory/local/session-pin.md`
 3. `orquestador/memory/memory-registry.yaml`
 4. `orquestador/memory/memory-routing.yaml`
@@ -38,14 +41,18 @@ Despues declarar contrato de sesion con hechos observados, no inferencias.
 
 ## Reentry brief
 
-Si existe, usar el brief generado:
+Si existe en modo legacy, usar el brief generado:
 
-- bound project: `.hebrinex/orquestador/runtime/claude/reentry-brief.md`
+- legacy bound project: `.hebrinex/orquestador/runtime/claude/reentry-brief.md`
 - source template: `orquestador/runtime/claude/reentry-brief.md`
 
-Si no existe o esta viejo, proponer ejecutar el reentry script que corresponda:
+En `central_instance`, el hook calcula el brief sin escribir. Si el binding no se
+resuelve, ejecutar primero `scripts/hebrinex-central.ps1 status` y proponer
+`reconcile`; no buscar scripts dentro del proyecto.
 
-- bound project: `.hebrinex/scripts/claude-reentry.ps1`
+En modo legacy/fuente, si no existe o esta viejo, proponer ejecutar:
+
+- legacy bound project: `.hebrinex/scripts/claude-reentry.ps1`
 - source template: `scripts/claude-reentry.ps1`
 
 El brief ayuda, pero no reemplaza este contrato minimo.

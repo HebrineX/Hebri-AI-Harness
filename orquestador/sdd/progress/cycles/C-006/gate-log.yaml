@@ -1,0 +1,89 @@
+schema: hebrinex.gate_log
+version: "0.1"
+cycle_id: C-006
+gates:
+  - gate: G0_session_contract
+    result: pass
+    responsible: leader
+    evidence: [PROJECT_BINDING.yaml, orquestador/sdd/progress/state.yaml]
+    next_action: "Use source-template authority and the approved zero-spend boundary."
+  - gate: G0A_memory_registry_loaded
+    result: pass_with_formal_precedence
+    responsible: leader
+    evidence: [orquestador/memory/memory-registry.yaml, PROJECT_BINDING.yaml]
+    next_action: "Treat state and provider evidence as authoritative."
+  - gate: G1_context_ready
+    result: pass
+    responsible: leader
+    evidence: [migracion/fases/P03-agentes-contexto-y-proveedores.md, orquestador/evaluation/P03/experiment-plan-v1.json]
+    next_action: "Preserve the frozen corpus and thresholds."
+  - gate: G1A_clarification_complete
+    result: pass_with_stop_conditions
+    responsible: auditor
+    evidence: [orquestador/sdd/progress/cycles/C-006/detractor-senior-P03-provider.md]
+    next_action: "Require both providers through existing authenticated quota."
+  - gate: G1B_analysis_complete
+    result: pass
+    responsible: leader
+    evidence: [orquestador/evaluation/P03/provider-preflight-2026-09-09.json]
+    next_action: "Do not build an unexecutable runner."
+  - gate: G1C_blast_radius_declared
+    result: pass
+    responsible: leader
+    evidence: [P03-PROVIDER-EVAL-023, APR-20260909T203107Z-a08f2e]
+    next_action: "No installation, login, purchase, billing, Git or secrets."
+  - gate: G2_dispatch_ready
+    result: pass
+    responsible: leader
+    evidence: [orquestador/sdd/progress/registry.yaml]
+    next_action: "Use explicit simulated roles."
+  - gate: G2A_task_graph_ready
+    result: pass
+    responsible: leader
+    evidence: [orquestador/sdd/progress/cycles/C-006/task-graph.yaml]
+    next_action: "Stop downstream tasks when provider preflight blocks."
+  - gate: G3_locks_acquired
+    result: pass
+    responsible: leader
+    evidence: [orquestador/sdd/progress/locks/L-20260909T203241Z-f07b07.lock.md]
+    next_action: "Release after tracking and validation."
+  - gate: G3A_detractor_senior_pre_implementation
+    result: pass_with_stop_conditions
+    responsible: auditor
+    evidence: [orquestador/sdd/progress/cycles/C-006/detractor-senior-P03-provider.md]
+    next_action: "No new dependencies or partial benchmark claims."
+  - gate: G4_execution_complete
+    result: blocked_before_implementation
+    responsible: executor
+    evidence: [orquestador/evaluation/P03/provider-preflight-2026-09-09.json]
+    next_action: "Provide both authenticated provider sessions without added spend."
+  - gate: G5_review_or_validation
+    result: pass_local_validation_with_p03_v04_blocked
+    responsible: reviewer
+    evidence: [scripts/validate-agent-context.ps1, scripts/validate-harness.ps1, orquestador/sdd/progress/evidence/P03-provider-evaluation-blocked.md]
+    next_action: "Do not infer provider quality from CLI presence."
+  - gate: G5A_detractor_pass_complete
+    result: pass
+    responsible: auditor
+    evidence: [orquestador/sdd/progress/cycles/C-006/detractor-senior-P03-provider.md]
+    next_action: "Repeat if provider enablement changes the effect boundary."
+  - gate: G5B_release_reconstruction_complete
+    result: not_applicable
+    responsible: leader
+    evidence: [migracion/fases/P03-agentes-contexto-y-proveedores.md]
+    next_action: "P03 evaluation is not release acceptance."
+  - gate: G5I_memory_consistency_complete
+    result: pass_with_formal_precedence
+    responsible: leader
+    evidence: [PROJECT_BINDING.yaml, orquestador/sdd/progress/state.yaml]
+    next_action: "Memory does not replace current host evidence."
+  - gate: G6_agent_closure_complete
+    result: pass
+    responsible: leader
+    evidence: [orquestador/sdd/progress/cycles/C-006/agent-closure.md, orquestador/sdd/progress/registry.yaml]
+    next_action: "No C-006 simulated role remains active."
+  - gate: G7_handoff_complete
+    result: pass_blocked_handoff
+    responsible: leader
+    evidence: [orquestador/sdd/progress/evidence/P03-provider-evaluation-blocked.md]
+    next_action: "Request a separate provider-enablement approval or explicitly revise the experiment."

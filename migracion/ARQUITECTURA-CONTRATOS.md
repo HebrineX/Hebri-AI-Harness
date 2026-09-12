@@ -1,6 +1,6 @@
 # Arquitectura y contratos propuestos
 
-Estado: propuesta revisada; implementación pendiente. Este documento define el objetivo de P01–P07; no describe interfaces ya implementadas. Se conserva la CLI estable existente hasta que exista una transición compatible y probada. Los ejemplos JSON son sintácticamente completos, contienen identidades ficticias y no constituyen approvals ni evidencia runtime.
+Estado: implementación local hasta P06; lifecycle instalado P07-P08 pendiente. Este documento distingue contratos ya implementados de objetivos futuros. La CLI estable legacy se conserva junto a `central1`. Los ejemplos JSON contienen identidades ficticias y no constituyen approvals ni evidencia runtime.
 
 ## 1. Tres raíces y autoridad
 
@@ -205,7 +205,7 @@ P06 fija versiones soportadas de Windows/arquitectura/PowerShell y decide prereq
 - **Uninstall:** retira sólo recursos administrados; preserva proyectos, `.hebrinex`, evidencia y backups. Limpieza de datos es una acción distinta y explícita.
 - **Rollback de producto:** comportamiento de Windows Installer probado con fallas inyectadas. Volver a una versión anterior requiere compatibilidad y autorización; no equivale a restaurar estado de una instancia.
 
-La reproducibilidad distingue payload sin firma (inventario/contenido determinista) del artefacto firmado con timestamp, cuyos bytes pueden variar. Toolchain fijada, logs, hashes y procedencia se conservan. Licencia de WiX, distribución de runtimes y firma permanecen decisiones abiertas hasta resolverlas en P06.
+La reproducibilidad distingue payload sin firma (inventario/contenido determinista) del MSI y del artefacto firmado con timestamp, cuyos bytes pueden variar. P06 fijó WiX 5.0.2, Roslyn 5.3 del SDK 10.0.204, target .NET Framework 4.8 y Windows PowerShell 5.1 para el candidato local x64. El payload fue reproducible; los dos MSI tuvieron contenido lógico equivalente pero bytes distintos. Firma, revisión externa de distribución/licencia, Node/MCP redistribuible y aceptación en VM permanecen abiertas para P07-P09.
 
 ## 9. Límites y criterio de simplicidad
 

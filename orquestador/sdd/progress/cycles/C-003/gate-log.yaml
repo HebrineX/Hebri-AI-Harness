@@ -1,0 +1,89 @@
+schema: hebrinex.gate_log
+version: "0.1"
+cycle_id: C-003
+gates:
+  - gate: G0_session_contract
+    result: pass
+    responsible: leader
+    evidence: [orquestador/sdd/progress/state.yaml]
+    next_action: "Complete only P01-T02 through P01-T08."
+  - gate: G0A_memory_registry_loaded
+    result: pass_with_formal_precedence
+    responsible: leader
+    evidence: [orquestador/sdd/progress/evidence/P00-T08-final-handoff.md]
+    next_action: "Preserve source-template authority."
+  - gate: G1_context_ready
+    result: pass
+    responsible: leader
+    evidence: [migracion/fases/P01-layout-y-resolucion.md, orquestador/sdd/progress/evidence/P01-T01-path-classification.md]
+    next_action: "Use task-scoped code symbols and contracts."
+  - gate: G1A_clarification_complete
+    result: pass_with_conditions
+    responsible: auditor
+    evidence: [orquestador/sdd/progress/cycles/C-003/detractor-senior-P01-complete.md]
+    next_action: "Keep trusted discovery injectable and legacy API stable."
+  - gate: G1B_analysis_complete
+    result: pass
+    responsible: leader
+    evidence: [orquestador/sdd/progress/evidence/P01-T01-path-classification.md, orquestador/sdd/progress/evidence/P01-T01-review.md]
+    next_action: "Implement the accepted classification."
+  - gate: G1C_blast_radius_declared
+    result: pass
+    responsible: leader
+    evidence: [P01-COMPLETE-020, APR-20260909T133916Z-fdf13c]
+    next_action: "Stop before any unlisted file or external effect."
+  - gate: G2_dispatch_ready
+    result: pass
+    responsible: leader
+    evidence: [orquestador/sdd/progress/registry.yaml]
+    next_action: "Use explicit simulated roles."
+  - gate: G2A_task_graph_ready
+    result: pass
+    responsible: leader
+    evidence: [orquestador/sdd/progress/cycles/C-003/task-graph.yaml]
+    next_action: "Execute T02-T08 sequentially."
+  - gate: G3_locks_acquired
+    result: pass_single_writer
+    responsible: leader
+    evidence: [orquestador/sdd/progress/state.yaml]
+    next_action: "One writer owns the approved write-set."
+  - gate: G3A_detractor_senior_pre_implementation
+    result: pass_with_conditions
+    responsible: auditor
+    evidence: [orquestador/sdd/progress/cycles/C-003/detractor-senior-P01-complete.md]
+    next_action: "No second framework, hidden fallback or fabricated test PASS."
+  - gate: G4_execution_complete
+    result: pass
+    responsible: executor
+    evidence: [orquestador/sdd/progress/evidence/P01-T02-context-contract.md, orquestador/sdd/progress/evidence/P01-T03-resolution-contract.md, orquestador/sdd/progress/evidence/P01-T04-containment.md, orquestador/sdd/progress/evidence/P01-T05-discovery-integrity.md, orquestador/sdd/progress/evidence/P01-T06-legacy-mode.md]
+    next_action: "Implementation is complete; consume only through later approved integrations."
+  - gate: G5_review_or_validation
+    result: pass_with_platform_blocker
+    responsible: reviewer
+    evidence: [orquestador/sdd/progress/evidence/P01-T07-resolver-review.md]
+    next_action: "Repeat the real symlink oracle on a capable release-validation host."
+  - gate: G5A_detractor_pass_complete
+    result: pass
+    responsible: auditor
+    evidence: [orquestador/sdd/progress/cycles/C-003/detractor-senior-P01-complete.md]
+    next_action: "Repeat if scope expands."
+  - gate: G5B_release_reconstruction_complete
+    result: not_applicable
+    responsible: leader
+    evidence: [orquestador/sdd/progress/evidence/P00-T08-final-handoff.md]
+    next_action: "P01 is not release acceptance."
+  - gate: G5I_memory_consistency_complete
+    result: pass_with_formal_precedence
+    responsible: leader
+    evidence: [orquestador/sdd/progress/evidence/P00-T08-final-handoff.md]
+    next_action: "Do not change binding authority silently."
+  - gate: G6_agent_closure_complete
+    result: pass
+    responsible: leader
+    evidence: [orquestador/sdd/progress/registry.yaml, orquestador/sdd/progress/evidence/P01-T08-final-handoff.md]
+    next_action: "No C-003 agents remain open."
+  - gate: G7_handoff_complete
+    result: pass
+    responsible: leader
+    evidence: [orquestador/sdd/progress/evidence/P01-T08-final-handoff.md]
+    next_action: "Prepare a separate P02 preflight; do not infer approval from P01."

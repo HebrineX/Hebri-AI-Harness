@@ -1,0 +1,20 @@
+{
+  "schema": "hebrinex.release",
+  "schema_version": 1,
+  "product": "Hebri-AI-Harness",
+  "product_version": "0.17.1",
+  "runtime_api": "1",
+  "architecture": "x64",
+  "install_scope": "perMachine",
+  "install_root": "%ProgramFiles%\\Hebri-AI-Harness",
+  "launcher": {
+    "path": "bin/hebrinex.exe",
+    "framework": ".NET Framework 4.8",
+    "engine": "Windows PowerShell 5.1"
+  },
+  "features": {
+    "core": "included",
+    "mcp": "optional_feature_missing"
+  },
+  "support_status": "unsigned_local_engineering_candidate"
+}

@@ -1,0 +1,82 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Hebri Provider Capability Matrix",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "contract_version", "runtime_api", "harness_version", "default_policy", "allowed_statuses", "providers"],
+  "properties": {
+    "schema": { "const": "hebrinex.provider_capability_matrix" },
+    "contract_version": { "const": "1.0.0" },
+    "runtime_api": { "const": "1" },
+    "harness_version": { "type": "string" },
+    "default_policy": { "const": "deny" },
+    "allowed_statuses": { "const": ["enforced", "advisory", "unsupported", "not_tested"] },
+    "providers": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "host", "adapter", "model", "execution_mode", "network_required", "availability", "dimension_capabilities", "capabilities", "enforcement", "evidence"],
+        "properties": {
+          "id": { "type": "string", "minLength": 1 },
+          "host": { "type": "string", "minLength": 1 },
+          "adapter": { "type": "string", "minLength": 1 },
+          "model": { "type": "string", "minLength": 1 },
+          "execution_mode": { "enum": ["real_agent", "simulated_roles"] },
+          "network_required": { "type": "boolean" },
+          "availability": { "enum": ["available", "unavailable", "not_tested"] },
+          "dimension_capabilities": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["host", "adapter", "model"],
+            "properties": {
+              "host": { "$ref": "#/$defs/dimension" },
+              "adapter": { "$ref": "#/$defs/dimension" },
+              "model": { "$ref": "#/$defs/dimension" }
+            }
+          },
+          "capabilities": {
+            "type": "object",
+            "additionalProperties": { "enum": ["enforced", "advisory", "unsupported", "not_tested"] }
+          },
+          "enforcement": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["filesystem", "network", "process", "provider_output_authority"],
+            "properties": {
+              "filesystem": { "enum": ["enforced", "advisory", "unsupported", "not_tested"] },
+              "network": { "enum": ["enforced", "advisory", "unsupported", "not_tested"] },
+              "process": { "enum": ["enforced", "advisory", "unsupported", "not_tested"] },
+              "provider_output_authority": { "const": false }
+            }
+          },
+          "evidence": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["status", "validated_at", "source"],
+            "properties": {
+              "status": { "enum": ["local_fixture", "not_run"] },
+              "validated_at": { "type": ["string", "null"], "format": "date-time" },
+              "source": { "type": "string" }
+            }
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "dimension": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "capabilities"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "capabilities": {
+          "type": "object",
+          "additionalProperties": { "enum": ["enforced", "advisory", "unsupported", "not_tested"] }
+        }
+      }
+    }
+  }
+}

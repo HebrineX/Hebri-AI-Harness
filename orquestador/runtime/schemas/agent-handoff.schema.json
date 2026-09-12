@@ -1,0 +1,61 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Hebri Agent Handoff",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "contract_version", "runtime_api", "handoff_id", "task_id", "project_id", "from_actor_id", "to_role_id", "execution_mode", "state", "result_ref", "source_refs", "approval_refs", "journal_refs", "effects_to_execute", "next_action"],
+  "properties": {
+    "schema": { "const": "hebrinex.agent_handoff" },
+    "contract_version": { "const": "1.0.0" },
+    "runtime_api": { "const": "1" },
+    "handoff_id": { "type": "string", "minLength": 1 },
+    "task_id": { "type": "string", "minLength": 1 },
+    "project_id": { "type": "string", "minLength": 1 },
+    "from_actor_id": { "type": "string", "minLength": 1 },
+    "to_role_id": { "type": "string", "minLength": 1 },
+    "execution_mode": { "enum": ["real_agent", "simulated_roles"] },
+    "state": { "enum": ["ready", "blocked"] },
+    "result_ref": { "$ref": "#/$defs/hashRef" },
+    "source_refs": { "type": "array", "items": { "$ref": "#/$defs/hashRef" } },
+    "approval_refs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["path", "sha256", "approval_id", "required"],
+        "properties": {
+          "path": { "type": "string", "minLength": 1 },
+          "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+          "approval_id": { "type": "string", "minLength": 1 },
+          "required": { "type": "boolean" }
+        }
+      }
+    },
+    "journal_refs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["path", "sha256", "effect_id"],
+        "properties": {
+          "path": { "type": "string", "minLength": 1 },
+          "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+          "effect_id": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "effects_to_execute": { "type": "array", "uniqueItems": true, "items": { "type": "string", "minLength": 1 } },
+    "next_action": { "type": "string", "minLength": 1 }
+  },
+  "$defs": {
+    "hashRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "sha256"],
+      "properties": {
+        "path": { "type": "string", "minLength": 1 },
+        "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+      }
+    }
+  }
+}

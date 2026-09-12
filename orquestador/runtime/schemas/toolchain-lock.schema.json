@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Hebrinex Packaging Toolchain Lock",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "schema_version", "platform", "components", "release_decision"],
+  "properties": {
+    "$schema": { "type": "string", "minLength": 1 },
+    "schema": { "const": "hebrinex.packaging_toolchain" },
+    "schema_version": { "const": 1 },
+    "platform": { "const": "windows-x64" },
+    "components": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "version", "purpose", "redistributed", "evidence"],
+        "properties": {
+          "id": { "enum": ["wix", "roslyn", "csc", "windows-powershell", "node"] },
+          "version": { "type": "string", "minLength": 1 },
+          "purpose": { "type": "string", "minLength": 1 },
+          "redistributed": { "type": "boolean" },
+          "license_expression": { "type": "string", "minLength": 1 },
+          "evidence": { "enum": ["local_tool_metadata", "windows_platform", "not_available"] }
+        }
+      }
+    },
+    "release_decision": { "const": "local_build_only_network_review_pending" }
+  }
+}

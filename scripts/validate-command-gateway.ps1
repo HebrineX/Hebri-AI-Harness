@@ -106,8 +106,8 @@ function Assert-GatewayApplyAllows([string]$CommandText) {
   if ($result.ExitCode -ne 0 -or $result.Text -notmatch 'decision=allow') {
     Add-Failure "gateway Apply should allow read-only command: $CommandText"
   }
-  if ($result.Text -notmatch 'mode=Apply' -or $result.Text -notmatch 'executes=true' -or $result.Text -notmatch 'writes=false') {
-    Add-Failure "gateway Apply must execute only read-only without writes: $CommandText"
+  if ($result.Text -notmatch 'mode=Apply' -or $result.Text -notmatch 'executes=true' -or $result.Text -notmatch 'writes=true') {
+    Add-Failure "gateway Apply must declare its rate-state write: $CommandText"
   }
   if ($result.Text -notmatch 'execution_attempted=true' -or $result.Text -notmatch 'execution_exit_code=0') {
     Add-Failure "gateway Apply must capture successful execution evidence: $CommandText"
@@ -141,13 +141,15 @@ Assert-File 'orquestador/testing/fixtures/negative/command-unknown.txt'
 Assert-File 'orquestador/testing/fixtures/negative/command-secret-bearing.txt'
 Assert-File 'orquestador/testing/fixtures/negative/command-risk-mismatch.txt'
 Assert-File 'orquestador/runtime/schemas/command-gateway-result.schema.json'
+Assert-File 'orquestador/runtime/schemas/command-gateway-result-v0.5.schema.json'
 Assert-File 'orquestador/runtime/templates/command-gateway-result.template.json'
 
 Assert-Contains 'scripts/command-gateway.ps1' 'Command Gateway' 'command gateway must expose marker'
 Assert-Contains 'scripts/command-gateway.ps1' 'Invoke-ApplyPlan' 'command gateway must execute Apply through controlled plan only'
 Assert-Contains 'scripts/command-gateway.ps1' 'path_outside_root_not_allowed' 'command gateway Apply must block path traversal outside root'
 Assert-Contains 'scripts/command-gateway.ps1' 'hebrinex.command_gateway.result' 'command gateway must emit structured result schema'
-Assert-Contains 'orquestador/runtime/schemas/command-gateway-result.schema.json' '"version": \{ "const": "0\.4" \}' 'command gateway schema must declare result version 0.4'
+Assert-Contains 'orquestador/runtime/schemas/command-gateway-result.schema.json' '"version": \{ "const": "0\.4" \}' 'legacy command gateway schema 0.4 must remain available'
+Assert-Contains 'orquestador/runtime/schemas/command-gateway-result-v0.5.schema.json' '"version": \{ "const": "0\.5" \}' 'current command gateway schema must declare result version 0.5'
 Assert-Contains 'orquestador/runtime/schemas/command-gateway-result.schema.json' '"approval_status"' 'command gateway schema must expose approval status'
 Assert-Contains 'scripts/command-gateway.ps1' 'symlink_not_allowed_in_apply' 'command gateway Apply must reject reparse points'
 Assert-Contains 'scripts/command-gateway.ps1' 'Stop-ProcessTree' 'command gateway must kill the full process tree on timeout'
@@ -187,8 +189,8 @@ $allowedJson = Invoke-GatewayJson 'Get-Content README.md'
 if ($allowedJson.ExitCode -ne 0 -or $allowedJson.Json.decision -ne 'allow') {
   Add-Failure 'gateway JSON should allow read-only command'
 }
-if ($allowedJson.Json.schema -ne 'hebrinex.command_gateway.result' -or $allowedJson.Json.executes -ne $false -or $allowedJson.Json.version -ne '0.4') {
-  Add-Failure 'gateway JSON must expose schema, version 0.4 and executes=false for CheckOnly'
+if ($allowedJson.Json.schema -ne 'hebrinex.command_gateway.result' -or $allowedJson.Json.executes -ne $false -or $allowedJson.Json.writes -ne $false -or $allowedJson.Json.version -ne '0.5') {
+  Add-Failure 'gateway JSON must expose schema, version 0.5 and remain pure for CheckOnly'
 }
 if ($allowedJson.Json.approval_status -ne 'not_provided') {
   Add-Failure 'gateway JSON must report approval_status=not_provided when no approval id is passed'
@@ -198,8 +200,8 @@ $applyJson = Invoke-GatewayJson 'Test-Path README.md' '' 'Apply'
 if ($applyJson.ExitCode -ne 0 -or $applyJson.Json.decision -ne 'allow' -or $applyJson.Json.mode -ne 'Apply') {
   Add-Failure 'gateway JSON Apply should allow read-only command'
 }
-if ($applyJson.Json.executes -ne $true -or $applyJson.Json.writes -ne $false -or $applyJson.Json.execution.attempted -ne $true -or $applyJson.Json.execution.exit_code -ne 0) {
-  Add-Failure 'gateway JSON Apply must execute read-only and capture evidence without writes'
+if ($applyJson.Json.executes -ne $true -or $applyJson.Json.writes -ne $true -or $applyJson.Json.execution.attempted -ne $true -or $applyJson.Json.execution.exit_code -ne 0) {
+  Add-Failure 'gateway JSON Apply must execute read-only and declare its rate-state write'
 }
 if ($applyJson.Json.execution.stdout -notmatch 'True') {
   Add-Failure 'gateway JSON Apply should capture stdout evidence'

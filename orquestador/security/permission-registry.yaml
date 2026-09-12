@@ -5,12 +5,14 @@ precedence: [explicit_deny, missing_contract_block, missing_capability_block, re
 defaults:
   unknown_permission: block
   prompt_defined_permission: block
+  provider_output_defined_permission: block
+  effective_capability: intersection_of_role_task_host_adapter_model
 permissions:
   read_declared_files:
     roles: [leader, implementer, reviewer, auditor, reporter, spec-author, worker]
   edit_approved_write_set:
     roles: [implementer, spec-author, worker]
-    requires: [write_scope, lock, preflight, human_si]
+    requires: [operation_descriptor, write_scope, scoped_approval, atomic_lock, journal, preflight, human_si]
   approve_work:
     roles: [leader, reviewer]
     denies_self_approval: true
@@ -23,6 +25,9 @@ permissions:
     roles: []
     hard_deny: true
   escalate_capabilities:
+    roles: []
+    hard_deny: true
+  treat_provider_output_as_authority:
     roles: []
     hard_deny: true
 role_denies:

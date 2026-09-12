@@ -55,21 +55,29 @@ function Resolve-PowerShellExecutable() {
 function Invoke-Cli([string[]]$Arguments) {
   $scriptPath = Resolve-HarnessPath 'scripts/hebrinex.ps1'
   $ps = Resolve-PowerShellExecutable
-  $global:LASTEXITCODE = 0
-  $output = @()
-  $exitCode = 0
-  try {
-    $output = & $ps -NoProfile -ExecutionPolicy Bypass -File $scriptPath @Arguments -Root $Root 2>&1
-    $exitCode = $LASTEXITCODE
-    if ($null -eq $exitCode) { $exitCode = 0 }
-  }
-  catch {
-    $output += $_.Exception.Message
-    $exitCode = 1
-  }
+  $allArguments = @('-NoProfile','-NonInteractive','-ExecutionPolicy','Bypass','-File',$scriptPath) + @($Arguments) + @('-Root',$Root)
+  $quotedArguments = @($allArguments | ForEach-Object {
+    $value = [string]$_
+    '"' + ($value.Replace('\','\').Replace('"','\"')) + '"'
+  })
+  $startInfo = New-Object Diagnostics.ProcessStartInfo
+  $startInfo.FileName = $ps
+  $startInfo.Arguments = $quotedArguments -join ' '
+  $startInfo.UseShellExecute = $false
+  $startInfo.RedirectStandardOutput = $true
+  $startInfo.RedirectStandardError = $true
+  $startInfo.CreateNoWindow = $true
+  $startInfo.WorkingDirectory = $Root
+  $process = New-Object Diagnostics.Process
+  $process.StartInfo = $startInfo
+  [void]$process.Start()
+  $stdoutTask = $process.StandardOutput.ReadToEndAsync()
+  $stderrTask = $process.StandardError.ReadToEndAsync()
+  $process.WaitForExit()
+  $textParts = @($stdoutTask.Result.TrimEnd(), $stderrTask.Result.TrimEnd() | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
   return @{
-    ExitCode = $exitCode
-    Text = ($output -join "`n")
+    ExitCode = $process.ExitCode
+    Text = ($textParts -join "`n")
   }
 }
 
@@ -189,7 +197,7 @@ $approveCheck = Assert-CliSuccess -Name 'approve CheckOnly' -Arguments @('approv
 Assert-OutputContains $approveCheck 'writes=false' 'approve CheckOnly must declare writes=false'
 Assert-OutputContains $approveCheck 'apply_available=true' 'approve CheckOnly must declare apply availability'
 
-$approveApply = Assert-CliSuccess -Name 'approve Apply' -Arguments @('approve','-Apply','-CommandText','Get-Content README.md','-Purpose','validate-cli approval roundtrip','-TtlMinutes','5')
+$approveApply = Assert-CliSuccess -Name 'approve Apply' -Arguments @('approve','-Apply','-CommandText','Get-Content README.md','-Purpose','validate-cli approval roundtrip','-Risk','high','-TtlMinutes','5')
 Assert-OutputContains $approveApply 'approval_id=APR-' 'approve Apply must emit approval id'
 Assert-OutputContains $approveApply 'expires_at=' 'approve Apply must emit expiry'
 Assert-OutputContains $approveApply 'writes=true' 'approve Apply must declare writes=true'
@@ -201,6 +209,7 @@ if ($approvalIdMatch.Success) {
   $fakeApproval = Assert-CliFailure -Name 'command with fake approval' -Arguments @('command','-CheckOnly','-CommandText','Get-Content README.md','-ApprovalId','APR-FAKE-DOES-NOT-EXIST') -ExpectedPattern 'approval_not_found'
   Assert-OutputContains $fakeApproval 'approval_status=invalid' 'gateway must reject a fake approval id'
   $approvalFile = Resolve-HarnessPath ('orquestador/sdd/progress/approvals/' + $roundtripId + '.yaml')
+  Assert-OutputContains @{ Text = [IO.File]::ReadAllText($approvalFile) } 'risk: high' 'approve Apply must persist the declared risk'
   if (Test-Path -LiteralPath $approvalFile) { Remove-Item -LiteralPath $approvalFile -Force }
 }
 else {
@@ -216,7 +225,7 @@ catch {
 }
 if ($null -ne $parsedCommand) {
   if ($parsedCommand.schema -ne 'hebrinex.command_gateway.result') { Add-Failure 'CLI command JSON must expose command gateway schema' }
-  if ($parsedCommand.version -ne '0.4') { Add-Failure 'CLI command JSON must expose gateway result version 0.4' }
+  if ($parsedCommand.version -ne '0.5') { Add-Failure 'CLI command JSON must expose gateway result version 0.5' }
   if ($parsedCommand.mode -ne 'CheckOnly') { Add-Failure 'CLI command JSON must preserve CheckOnly mode' }
   if ($parsedCommand.executes -ne $false) { Add-Failure 'CLI command CheckOnly must not execute command text' }
 }

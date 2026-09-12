@@ -1,0 +1,12 @@
+{
+  "schema": "hebrinex.payload_manifest",
+  "schema_version": 1,
+  "harness_version": "0.17.1",
+  "runtime_api": "1",
+  "architecture": "x64",
+  "source_manifest_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+  "layout_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+  "tree_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+  "features": { "core": true, "mcp": false },
+  "files": []
+}

@@ -1,0 +1,8 @@
+{
+  "schema": "hebrinex.project_registration",
+  "schema_version": 1,
+  "project_id": "PRJ-00000000000000000000000000000000",
+  "status": "pending",
+  "catalog_entry_relative_path": "projects/PRJ-00000000000000000000000000000000.json",
+  "updated_at": "1970-01-01T00:00:00.0000000Z"
+}

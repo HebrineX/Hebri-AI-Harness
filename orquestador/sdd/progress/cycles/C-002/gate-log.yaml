@@ -1,0 +1,119 @@
+schema: hebrinex.gate_log
+version: "0.1"
+cycle_id: C-002
+gates:
+  - gate: G0_session_contract
+    result: pass
+    responsible: leader
+    evidence: [orquestador/sdd/progress/state.yaml]
+    next_action: "Keep P01-T01 within the approved documentary scope."
+  - gate: G0A_memory_registry_loaded
+    result: pass_with_formal_precedence
+    responsible: leader
+    evidence: [orquestador/sdd/progress/evidence/P00-T08-final-handoff.md]
+    next_action: "Use source-template authority fixed by P00-D21."
+  - gate: G1_context_ready
+    result: pass
+    responsible: leader
+    evidence: [migracion/fases/P01-layout-y-resolucion.md, orquestador/sdd/progress/evidence/P00-T02-resource-inventory.md]
+    next_action: "Do not load prompts or historical memory for path classification."
+  - gate: G1A_clarification_complete
+    result: pass
+    responsible: leader
+    evidence: [orquestador/sdd/progress/cycles/C-002/detractor-senior-P01-T01.md]
+    next_action: "Use canonical classes plus purpose metadata; do not create competing enums."
+  - gate: G1B_analysis_complete
+    result: pass
+    responsible: executor
+    evidence: [orquestador/sdd/progress/evidence/P01-T01-path-classification.md, orquestador/sdd/progress/evidence/P01-T01-review.md]
+    next_action: "Carry the accepted classes and findings to P01-T02."
+  - gate: G1C_blast_radius_declared
+    result: pass
+    responsible: leader
+    evidence: [P01-T01-LAYOUT-019, APR-20260909T052210Z-5eec12]
+    next_action: "No product, consumer, Git, network or installer effects."
+  - gate: G2_dispatch_ready
+    result: pass
+    responsible: leader
+    evidence: [orquestador/sdd/progress/registry.yaml]
+    next_action: "Use explicit simulated roles."
+  - gate: G2A_task_graph_ready
+    result: pass
+    responsible: leader
+    evidence: [orquestador/sdd/progress/cycles/C-002/task-graph.yaml]
+    next_action: "T01 authoring precedes review and closure."
+  - gate: G3_locks_acquired
+    result: pass_single_writer
+    responsible: leader
+    evidence: [orquestador/sdd/progress/state.yaml]
+    next_action: "One approved writer owns the complete T01 write-set."
+  - gate: G3A_detractor_senior_pre_implementation
+    result: pass_with_conditions
+    responsible: auditor
+    evidence: [orquestador/sdd/progress/cycles/C-002/detractor-senior-P01-T01.md]
+    next_action: "Keep T01 documentary and preserve all runtime tests as not_run."
+  - gate: G4_execution_complete
+    result: pass_documentary
+    responsible: executor
+    evidence: [orquestador/sdd/progress/evidence/P01-T01-path-classification.md]
+    next_action: "T01 classification is complete; resolver implementation remains not_run."
+  - gate: G5_review_or_validation
+    result: accepted_with_findings
+    responsible: reviewer
+    evidence: [orquestador/sdd/progress/evidence/P01-T01-review.md]
+    next_action: "Preserve P01-F01 through P01-F06 and the simulated-review limitation."
+  - gate: G5A_detractor_pass_complete
+    result: pass
+    responsible: auditor
+    evidence: [orquestador/sdd/progress/cycles/C-002/detractor-senior-P01-T01.md]
+    next_action: "Repeat if scope expands."
+  - gate: G5B_release_reconstruction_complete
+    result: not_applicable
+    responsible: leader
+    evidence: [orquestador/sdd/progress/evidence/P00-T08-final-handoff.md]
+    next_action: "T01 is not a release operation."
+  - gate: G5I_memory_consistency_complete
+    result: pass_with_formal_precedence
+    responsible: leader
+    evidence: [orquestador/sdd/progress/evidence/P00-T08-final-handoff.md]
+    next_action: "Do not change binding authority in T01."
+  - gate: G6_agent_closure_complete
+    result: pass
+    responsible: leader
+    evidence: [orquestador/sdd/progress/state.yaml, orquestador/sdd/progress/registry.yaml, orquestador/sdd/progress/cycles/C-002/audit.jsonl]
+    next_action: "All P01-T01 simulated roles are closed."
+  - gate: G7_handoff_complete
+    result: pass
+    responsible: leader
+    evidence: [orquestador/sdd/progress/evidence/P01-T01-path-classification.md, orquestador/sdd/progress/evidence/P01-T01-review.md]
+    next_action: "Prepare a new exact preflight for P01-T02; do not execute it under T01 approval."
+  - gate: G5C_deploy_migration_complete
+    result: not_applicable
+    responsible: leader
+    evidence: [orquestador/sdd/progress/evidence/P01-T01-review.md]
+    next_action: "T01 performs no deployment or migration."
+  - gate: G5D_reference_drift_complete
+    result: pass_documentary_with_findings
+    responsible: reviewer
+    evidence: [orquestador/sdd/progress/evidence/P01-T01-path-classification.md, orquestador/sdd/progress/evidence/P01-T01-review.md]
+    next_action: "The 36 gaps are classified; executable map drift remains downstream work."
+  - gate: G5E_ci_pipeline_history_complete
+    result: not_applicable
+    responsible: leader
+    evidence: [orquestador/sdd/progress/evidence/P01-T01-review.md]
+    next_action: "T01 does not modify CI."
+  - gate: G5F_backlog_classification_complete
+    result: pass
+    responsible: leader
+    evidence: [orquestador/sdd/progress/cycles/C-002/task-graph.yaml, orquestador/sdd/progress/evidence/P01-T01-review.md]
+    next_action: "Executable implementation and test gaps have named P01/P06 owners."
+  - gate: G5G_audit_report_contract_complete
+    result: pass
+    responsible: auditor
+    evidence: [orquestador/sdd/progress/cycles/C-002/audit.jsonl, orquestador/sdd/progress/evidence/P01-T01-review.md]
+    next_action: "Retain input hashes, recalculated counts and review limits."
+  - gate: G5H_final_report_crosslink_complete
+    result: pass
+    responsible: leader
+    evidence: [orquestador/sdd/progress/state.yaml, orquestador/sdd/progress/registry.yaml, orquestador/sdd/progress/cycles/C-002/task-graph.yaml, orquestador/sdd/progress/cycles/C-002/gate-log.yaml, orquestador/sdd/progress/cycles/C-002/audit.jsonl, orquestador/sdd/progress/evidence/P01-T01-path-classification.md, orquestador/sdd/progress/evidence/P01-T01-review.md]
+    next_action: "T01 closure is crosslinked; P01-T02 needs a separate approval."

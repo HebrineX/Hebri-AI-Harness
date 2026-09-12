@@ -1,0 +1,58 @@
+{
+  "schema": "hebrinex.legacy_migration_plan",
+  "schema_version": 1,
+  "action": "migrate",
+  "project_id": "PRJ-00000000000000000000000000000000",
+  "instance_id": "INST-00000000000000000000000000000000",
+  "legacy_instance_id": "LEGACY-INSTANCE",
+  "source_version": "0.16.0",
+  "target_version": "0.17.1",
+  "baseline_path": "<absolute-baseline-path>",
+  "baseline_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+  "baseline_source_ref": "v0.16.0",
+  "paths": {
+    "legacy_root": "<project-root>/.hebrinex",
+    "stage_root": "<project-root>/.hebrinex-stage-OP-00000000000000000000000000000000",
+    "operation_root": "<project-root>/.hebrinex-migration/OP-00000000000000000000000000000000",
+    "control_root": "<project-root>/.hebrinex-migration/OP-00000000000000000000000000000000/control",
+    "snapshot_path": "<project-root>/.hebrinex-migration/OP-00000000000000000000000000000000/snapshot",
+    "snapshot_manifest_path": "<project-root>/.hebrinex-migration/OP-00000000000000000000000000000000/snapshot-manifest.json",
+    "prior_backups_path": "<project-root>/.hebrinex-migration/OP-00000000000000000000000000000000/prior-backups",
+    "prior_backups_manifest_path": "<project-root>/.hebrinex-migration/OP-00000000000000000000000000000000/prior-backups-manifest.json",
+    "catalog_path": "<catalog-root>/projects/PRJ-00000000000000000000000000000000.json"
+  },
+  "source_tree_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+  "source_file_count": 1,
+  "snapshot_tree_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+  "snapshot_file_count": 1,
+  "prior_backup_tree_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e40bde673925f560355691e",
+  "prior_backup_file_count": 0,
+  "space": { "required_bytes": 0, "available_bytes": 0 },
+  "decisions_hash": "",
+  "files": [{
+    "path": "shared.txt",
+    "path_token": "",
+    "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+    "size": 0,
+    "baseline_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+    "classification": "intact",
+    "disposition": "central_reference",
+    "destination": ""
+  }],
+  "documents": {
+    "binding": { "schema": "hebrinex.binding", "project_id": "PRJ-00000000000000000000000000000000", "instance_id": "INST-00000000000000000000000000000000", "project_root": "<project-root>" },
+    "instance": { "schema": "hebrinex.project_instance", "project_id": "PRJ-00000000000000000000000000000000", "instance_id": "INST-00000000000000000000000000000000" },
+    "registration": { "schema": "hebrinex.project_registration", "project_id": "PRJ-00000000000000000000000000000000", "status": "pending" },
+    "catalog": { "schema": "hebrinex.project_catalog_entry", "project_id": "PRJ-00000000000000000000000000000000", "instance_id": "INST-00000000000000000000000000000000" },
+    "origin": { "schema": "hebrinex.legacy_migration_origin", "project_id": "PRJ-00000000000000000000000000000000" }
+  },
+  "stages": ["validate_preconditions", "acquire_lock", "stage_instance", "relocate_legacy_snapshot", "separate_prior_backups", "verify_snapshots", "publish_instance", "register_catalog", "commit_journal"],
+  "rollback": {
+    "before_publication": "restore_prior_backups_then_legacy_snapshot_and_remove_owned_stage",
+    "after_publication": "recovery_required_preserve_instance_and_snapshots",
+    "deletes_backups": false
+  },
+  "approval": { "required": true, "type": "APR2", "bound_to": "descriptor_hash", "single_use": true },
+  "fixture_mode": false,
+  "failure_point": ""
+}

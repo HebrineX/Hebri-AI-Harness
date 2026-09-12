@@ -1,6 +1,6 @@
 # Matriz de validación y evidencia
 
-Estado: propuesta revisada; implementación pendiente. **Todos los tests de producto de este documento están `not_run`.** La inspección del código y la validación de enlaces/JSON del plan no son ejecución del Harness, construcción de MSI ni prueba runtime.
+Estado: ejecución incremental. **T06/P06 tiene implementación y candidato MSI local; instalación/VM continúa bloqueada.** Las suites no ejecutadas conservan `not_run`.
 
 ## 1. Organización y trazabilidad
 
@@ -19,7 +19,7 @@ Los IDs **Pxx-Vnn de los archivos de fase son los identificadores normativos de 
 | T08 | P08-V01, P08-V02, P08-V03, P08-V04, P08-V05, P08-V06, P08-V07, P08-V08 | 8 |
 | T09 | P09-V01, P09-V02, P09-V03, P09-V04, P09-V05, P09-V06 | 6 |
 
-Son 67 casos propuestos, todos `not_run`. La enumeración demuestra trazabilidad documental, no cobertura runtime ni PASS. Cada caso se ejecuta con las variantes/precondiciones/criterios de su fase y los escenarios aplicables que se describen a continuación.
+Son 67 casos normativos. La enumeración demuestra trazabilidad documental; el estado se acredita por suite y evidencia, sin inferir cobertura para casos no ejecutados. Cada caso se ejecuta con las variantes/precondiciones/criterios de su fase y los escenarios aplicables que se describen a continuación.
 
 | Suite | Fase | Requisitos cubiertos | Estado inicial |
 |---|---|---|---|
@@ -28,15 +28,29 @@ Son 67 casos propuestos, todos `not_run`. La enumeración demuestra trazabilidad
 | T02 | [P02](fases/P02-estado-aprobaciones-y-aislamiento.md) | R02, R03, R04, R06, R07, R16, R17 | not_run |
 | T03 | [P03](fases/P03-agentes-contexto-y-proveedores.md) | R08, R09, R10, R11, R12 | not_run |
 | T04 | [P04](fases/P04-cli-binding-y-registro.md) | R01, R03, R04, R06, R11, R17 | not_run |
-| T05 | [P05](fases/P05-migracion-legacy.md) | R03, R05, R07, R16 | not_run |
-| T06 | [P06](fases/P06-payload-launcher-y-msi.md) | R01, R13, R14, R16 | not_run |
+| T05 | [P05](fases/P05-migracion-legacy.md) | R03, R05, R07, R16 | pass_local_ps7_ps5 |
+| T06 | [P06](fases/P06-payload-launcher-y-msi.md) | R01, R13, R14, R16 | partial_local_candidate |
 | T07 | [P07](fases/P07-upgrade-repair-y-uninstall.md) | R03, R05, R07, R15, R16 | not_run |
 | T08 | [P08](fases/P08-validacion-integral.md) | R01–R18 | not_run |
 | T09 | [P09](fases/P09-release-y-operacion.md) | R13, R14, R15, R17, R18 | not_run |
 
 ## 2. Casos y resultados esperados
 
-Cada fila hereda estado `not_run`. `PASS` requiere resultado observado y evidencia disponible. Los escenarios de error deben invocar la implementación real en un fixture; comparar strings fabricados con regex no demuestra rechazo.
+Las filas sin evidencia ejecutada conservan `not_run`. `PASS` requiere resultado observado y evidencia disponible. Los escenarios de error deben invocar la implementación real en un fixture; comparar strings fabricados con regex no demuestra rechazo.
+
+T05 fue ejecutada sobre la implementación real en fixtures aislados. P05-V01..V08
+pasan en PowerShell 7 y Windows PowerShell 5.1; la matriz local de tags agrega
+`v0.10.11` y `v0.16.0`. Los comandos, resultados, hashes y límites están en
+[evidencia P05](../orquestador/sdd/progress/evidence/P05-T08-final-handoff.md).
+No se declara piloto real, payload instalado ni soporte para versiones no listadas.
+
+P06 construyó el payload tres veces durante la matriz final y dos inventarios
+aislados coincidieron en rutas, tamaños y SHA-256. El launcher ejecutó el núcleo
+con Windows PowerShell 5.1, preservó argumentos y códigos, rechazó tamper y
+devolvió `OPTIONAL_FEATURE_MISSING` para MCP. Dos MSI pasaron ICE y tuvieron el
+mismo contenido lógico; sus bytes no fueron idénticos y no se declara
+reproducibilidad binaria MSI. P06-V03/V04/V05/V07 pasan, V06 queda parcial y
+V01/V02 bloqueados. Evidencia: [handoff P06](../orquestador/sdd/progress/evidence/P06-T08-final-handoff.md).
 
 | Caso | Ejecución propuesta | Resultado / evidencia mínima |
 |---|---|---|

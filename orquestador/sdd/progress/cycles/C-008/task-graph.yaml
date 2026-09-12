@@ -1,0 +1,63 @@
+schema: hebrinex.task_graph
+version: "0.6"
+cycle_id: C-008
+slice_id: P04-COMPLETE-T01-T08
+waves:
+  - wave_id: W-001
+    type: sequential
+    tasks:
+      - { task_id: P04-T01, title: "Define central1 CLI grammar beside stable0.5", depends_on: [P03-T08], role: executor, profile: worker, execution_mode: simulated, status: done }
+      - { task_id: P04-T02, title: "Implement authoritative binding JSON contract", depends_on: [P04-T01], role: executor, profile: worker, execution_mode: simulated, status: done }
+      - { task_id: P04-T03, title: "Implement transactional minimal init", depends_on: [P04-T02], role: executor, profile: worker, execution_mode: simulated, status: done }
+      - { task_id: P04-T04, title: "Implement recoverable per-project catalog", depends_on: [P04-T03], role: executor, profile: worker, execution_mode: simulated, status: done }
+      - { task_id: P04-T05, title: "Implement pure status list and doctor checks", depends_on: [P04-T04], role: executor, profile: worker, execution_mode: simulated, status: done }
+      - { task_id: P04-T06, title: "Implement move missing and duplicate reconciliation", depends_on: [P04-T05], role: executor, profile: worker, execution_mode: simulated, status: done }
+      - { task_id: P04-T07, title: "Implement conservative unbind and central hook resolution", depends_on: [P04-T06], role: executor, profile: worker, execution_mode: simulated, status: done }
+      - { task_id: P04-V01-V07, title: "Run isolated positive and adversarial fixture matrix", depends_on: [P04-T07], role: executor, profile: worker, execution_mode: simulated, status: done }
+      - { task_id: P04-T08, title: "Review semantics effects and operator experience", depends_on: [P04-V01-V07], role: reviewer, profile: none, execution_mode: simulated, status: done }
+limits:
+  max_active_agents_total: 5
+  leader_slot_reserved: true
+  max_subagents_active: 4
+ownership:
+  owned_files:
+    - scripts/hebrinex-central.ps1
+    - scripts/validate-project-service.ps1
+    - scripts/validate-harness.ps1
+    - scripts/validate-mcp.ps1
+    - scripts/claude-reentry.ps1
+    - scripts/install-claude-hooks.ps1
+    - scripts/install-host-integrations.ps1
+    - mcp/server.mjs
+    - mcp/smoke.mjs
+    - mcp/README.md
+    - packaging/runtime-layout.json
+    - orquestador/runtime/schemas/
+    - orquestador/runtime/templates/
+    - orquestador/runtime/project-service-central1.md
+    - orquestador/integrations/claude/
+    - orquestador/testing/fixtures/project-service/
+    - orquestador/security/
+    - orquestador/sdd/progress/cycles/C-008/
+    - orquestador/sdd/progress/evidence/P04*
+    - orquestador/sdd/progress/state.yaml
+    - orquestador/sdd/progress/registry.yaml
+    - migracion/operacion/state.json
+    - migracion/fases/P04-cli-binding-y-registro.md
+  readonly_files:
+    - scripts/hebrinex.ps1
+    - scripts/lib/hebri-common.psm1
+    - migracion/ARQUITECTURA-CONTRATOS.md
+    - migracion/REQUISITOS.md
+    - migracion/VALIDACION.md
+    - orquestador/harness-manifest.txt
+blockers:
+  - { id: P04-B01, status: open, owner_phase: P06, summary: "Publish central1 scripts, schemas and templates through the executable payload/manifest and trusted launcher." }
+  - { id: P04-B02, status: open, owner_phase: P08, summary: "Validate installed ACLs, clean/offline host, symlink-capable host and release-grade independent external review." }
+  - { id: P04-B03, status: open, owner_phase: P05-P07, summary: "Implement legacy migrate and upgrade/repair; central1 currently returns PHASE_NOT_IMPLEMENTED." }
+completion:
+  result: accepted_with_future_packaging_and_host_blockers
+  evidence:
+    - orquestador/sdd/progress/evidence/P04-T01-T07-implementation.md
+    - orquestador/sdd/progress/evidence/P04-T08-review.md
+    - orquestador/sdd/progress/evidence/P04-T08-final-handoff.md

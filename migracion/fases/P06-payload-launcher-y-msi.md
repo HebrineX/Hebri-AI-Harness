@@ -1,6 +1,21 @@
 # P06 — Payload, launcher e instalación MSI
 
-Estado: **plan propuesto; no ejecutado**. Owner: leader de distribución. Requisitos R01, R02, R03, R11, R13, R14, R16, R17, R18. Dependencias: P01–P04 aceptadas; P05 aceptada antes de certificar distribución utilizable por consumidores legacy. Referencias: [arquitectura](../ARQUITECTURA-CONTRATOS.md), [decisiones](../FUENTES-DECISIONES.md), [validación](../VALIDACION.md).
+Estado: **implementación local completa; candidato unsigned, gate de instalación bloqueado**. Owner: leader de distribución. Requisitos R01, R02, R03, R11, R13, R14, R16, R17, R18. Dependencias: P01–P05 aceptadas localmente. Referencias: [arquitectura](../ARQUITECTURA-CONTRATOS.md), [decisiones](../FUENTES-DECISIONES.md), [validación](../VALIDACION.md).
+
+## Resultado ejecutado en C-010
+
+P06-T01..T08 produjeron un payload central allowlisted, launcher nativo x64 y
+MSI WiX 5.0.2 por máquina. El payload incluye baselines `0.10.11` y `0.16.0`
+derivados exclusivamente del manifest de cada tag, metadata de release y
+manifest de integridad. `scripts/validate-packaging.ps1` pasa 43 checks:
+payload reproducible, quoting/Unicode/metacaracteres, CWD hostil, tamper,
+feature MCP ausente, decompilación e ICE del MSI.
+
+La matriz local pasa P06-V03, V04, V05 y V07. P06-V06 es parcial: núcleo PASS y
+MCP ausente falla cerrado; MCP presente no se ejecutó. P06-V01 y V02 siguen
+`blocked` porque esta aprobación excluyó instalación, elevación, PATH/registro
+reales, ACL/usuario estándar y VM limpia/offline. El MSI es por ello un
+candidato para P07, no una release aceptada.
 
 ## Objetivo y exclusiones
 
@@ -56,6 +71,12 @@ La familia registrada resuelve `api_line` y versión efectiva. Binding requiere 
 Separar authoring, descarga/build, firma, instalación VM y publicación. Preflight de instalación describe elevación, filesystem, registry y PATH; no incluye consumidores reales. Auditor detractor revisa launcher/dependencias y rechaza servicio residente sin requisito probado. Reviewer inspecciona MSI y ejecuta pruebas, no valida únicamente archivos WiX.
 
 Gate de salida: instalación limpia offline, usuario estándar, payload íntegro y ausencia de scripts proyecto elevados. Un test con red habilitada no demuestra offline; un build en máquina del autor no demuestra entorno limpio. Si no hay VM disponible, marcar pruebas bloqueadas y conservar candidato sin declarar aceptación.
+
+Resultado C-010: el gate de implementación/build local pasa y el gate de
+instalación permanece bloqueado conforme a la última oración anterior. La
+validación ICE se ejecutó fuera del sandbox sin instalar; el primer intento
+dentro del sandbox no pudo acceder al servicio Windows Installer y se conservó
+en el log de artefactos.
 
 ## Fallos y handoff
 

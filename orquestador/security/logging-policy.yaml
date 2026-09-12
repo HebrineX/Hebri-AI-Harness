@@ -8,11 +8,25 @@ defaults:
   include_approval_id: true
   include_scope: true
   include_validator_status: true
+  include_execution_mode: true
+  include_host_adapter_model: true
+  provider_output_instruction_authority: false
 forbidden_output:
   - secrets
   - raw_tokens
   - private_keys
   - credentials
+provider_output:
+  trust: untrusted_data
+  preserve_raw_verdict_boundary: true
+  may_expand_authority: false
 backup_evidence:
   required_fields: [backup_path, created_at, file_count, manifest_or_checksum, recovery_instructions]
   fail_if_missing: true
+operation_journal:
+  states: [prepared, applying, committed, rolling_back, rolled_back, recovery_required]
+  approval_is_separate_precondition: true
+  redact_before_write: true
+  forbid_full_sensitive_command: true
+  retain_failure_until_review: true
+  status_reads_may_persist_access: false

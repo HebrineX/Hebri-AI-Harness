@@ -1,0 +1,56 @@
+schema: hebrinex.task_graph
+version: "0.6"
+cycle_id: C-010
+slice_id: P06-COMPLETE-T01-T08
+waves:
+  - wave_id: W-001
+    type: sequential
+    tasks:
+      - { task_id: P06-T01, title: "Freeze local platform, engine and toolchain decision", depends_on: [P05-T08], role: leader, profile: none, execution_mode: simulated, status: done }
+      - { task_id: P06-T02, title: "Build exact allowlisted deterministic payload", depends_on: [P06-T01], role: executor, profile: worker, execution_mode: simulated, status: done }
+      - { task_id: P06-T03, title: "Implement trusted native launcher", depends_on: [P06-T02], role: executor, profile: worker, execution_mode: simulated, status: done }
+      - { task_id: P06-T04, title: "Author per-machine declarative MSI", depends_on: [P06-T03], role: executor, profile: worker, execution_mode: simulated, status: done }
+      - { task_id: P06-T05, title: "Build candidate and integrity manifests", depends_on: [P06-T04], role: executor, profile: worker, execution_mode: simulated, status: done }
+      - { task_id: P06-T06, title: "Fail closed for unavailable optional MCP payload", depends_on: [P06-T05], role: executor, profile: worker, execution_mode: simulated, status: done }
+      - { task_id: P06-T07, title: "Run local packaging and regression matrix", depends_on: [P06-T06], role: reviewer, profile: none, execution_mode: simulated, status: done }
+      - { task_id: P06-T08, title: "Register unsigned local candidate and blockers", depends_on: [P06-T07], role: leader, profile: none, execution_mode: simulated, status: done }
+limits:
+  max_active_agents_total: 5
+  leader_slot_reserved: true
+  max_subagents_active: 4
+ownership:
+  owned_files:
+    - packaging/
+    - scripts/build-payload.ps1
+    - scripts/build-launcher.ps1
+    - scripts/build-msi.ps1
+    - scripts/validate-packaging.ps1
+    - scripts/lib/legacy-migration-service.psm1
+    - scripts/validate-legacy-migration.ps1
+    - scripts/validate-harness.ps1
+    - SHARED_MANIFEST.yaml
+    - orquestador/harness-manifest.txt
+    - orquestador/migration/baselines/
+    - orquestador/migration/migration-registry.yaml
+    - orquestador/runtime/schemas/
+    - orquestador/runtime/templates/
+    - mcp/package.json
+    - mcp/package-lock.json
+    - .gitignore
+    - migracion/fases/P06-payload-launcher-y-msi.md
+    - migracion/VALIDACION.md
+    - migracion/operacion/state.json
+    - migracion/ARQUITECTURA-CONTRATOS.md
+    - migracion/FUENTES-DECISIONES.md
+    - orquestador/sdd/progress/cycles/C-010/
+    - orquestador/sdd/progress/evidence/P06*
+    - orquestador/sdd/progress/state.yaml
+    - orquestador/sdd/progress/registry.yaml
+  readonly_files:
+    - PROJECT_BINDING.yaml
+    - HARNESS_VERSION
+    - .github/workflows/ci.yml
+    - mcp/node_modules/
+completion:
+  result: implemented_local_candidate_with_installation_and_mcp_present_blockers
+  evidence: [orquestador/sdd/progress/evidence/P06-T01-T06-implementation.md, orquestador/sdd/progress/evidence/P06-T07-review.md, orquestador/sdd/progress/evidence/P06-T08-final-handoff.md]

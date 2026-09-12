@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "hebrinex.runtime.path_request",
+  "title": "Hebri Runtime Path Request",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "contract_version", "runtime_api", "resource", "access", "allow_missing", "context"],
+  "properties": {
+    "schema": { "const": "hebrinex.runtime.path_request" },
+    "contract_version": { "const": "1.0.0" },
+    "runtime_api": { "const": "1" },
+    "resource": { "type": "string", "minLength": 1 },
+    "access": { "enum": ["read", "write"] },
+    "allow_missing": { "type": "boolean" },
+    "context": { "$ref": "harness-runtime-context.schema.json" }
+  }
+}

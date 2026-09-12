@@ -1,0 +1,15 @@
+schema: hebrinex.approval_envelope
+version: "0.1"
+approval_id: APR-20260909T183629Z-47534e
+status: approved
+human_decision: approved
+approved_text: "SI"
+action_type: run_command
+exact_action: "Implement P03-T01 through P03-T06, prepare offline P03-V04, run P03-V01 V02 V03 V05 V06, review and close the local slice without network, Git, providers, installation or real consumers"
+command: "Implement P03-T01 through P03-T06, prepare offline P03-V04, run P03-V01 V02 V03 V05 V06, review and close the local slice without network, Git, providers, installation or real consumers"
+command_sha256: c5f4e8b1b0fe41663f20f1fe658fc9d9c89c014611550d3ca39579dcadb06662
+purpose: "P03-LOCAL-022 approved local implementation, validation and closure"
+risk: high
+created_at: 2026-09-09T18:36:29.0798417Z
+expires_at: 2026-09-09T22:36:29.0798417Z
+harness_version: "0.17.1"

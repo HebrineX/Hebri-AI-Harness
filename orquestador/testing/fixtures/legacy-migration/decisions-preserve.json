@@ -1,0 +1,7 @@
+{
+  "schema": "hebrinex.legacy_migration_decisions",
+  "schema_version": 1,
+  "decisions": [
+    { "path": "shared.txt", "action": "preserve" }
+  ]
+}

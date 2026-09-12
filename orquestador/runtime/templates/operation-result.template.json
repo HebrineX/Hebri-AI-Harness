@@ -1,0 +1,10 @@
+{
+  "schema": "hebrinex.operation_result",
+  "contract_version": "1.0.0",
+  "runtime_api": "1",
+  "operation_id": "OP-REPLACE",
+  "final_state": "committed",
+  "changed_resources": [],
+  "evidence_path": "REPLACE_WITH_JOURNAL_PATH",
+  "recovery_required": false
+}

@@ -1,22 +1,22 @@
 schema: hebrinex.progress.state
 version: "0.2"
-updated_at: ""
+updated_at: "2026-09-11"
 mode: automatico
 project_binding:
   status: source_template
   source: "PROJECT_BINDING.yaml"
-  project_root: ""
-  harness_path: ""
+  project_root: "C:/Ordenado_Hebri/01_Proyectos/Harness_Tools/Hebri-Ai-Harness"
+  harness_path: "C:/Ordenado_Hebri/01_Proyectos/Harness_Tools/Hebri-Ai-Harness"
 session_contract:
-  status: pending
+  status: active
   source: "orquestador/method/session-contract.md"
   chat_role: interpreter
-  leader_visible: false
+  leader_visible: true
 active_cycle:
-  cycle_id: ""
-  phase_id: ""
-  slice_id: ""
-  status: pending
+  cycle_id: "C-010"
+  phase_id: "P06"
+  slice_id: "P06-COMPLETE-T01-T08"
+  status: done
   allowed_statuses: [pending, spec_ready, approved, in_progress, review, done, blocked]
 required_gates: [G0_session_contract, G0A_memory_registry_loaded, G1_context_ready, G1A_clarification_complete, G1B_analysis_complete, G1C_blast_radius_declared, G2_dispatch_ready, G2A_task_graph_ready, G3_locks_acquired, G3A_detractor_senior_pre_implementation, G4_execution_complete, G5_review_or_validation, G5A_detractor_pass_complete, G5B_release_reconstruction_complete, G5I_memory_consistency_complete, G6_agent_closure_complete, G7_handoff_complete]
 conditional_gates: [G5C_deploy_migration_complete, G5D_reference_drift_complete, G5E_ci_pipeline_history_complete, G5F_backlog_classification_complete, G5G_audit_report_contract_complete, G5H_final_report_crosslink_complete]
@@ -24,9 +24,13 @@ approvals:
   required_for: [edit_files, run_commands, spawn_write_agents, network, git_remote, change_sdd_state, full_context_load]
   active_approval_id: ""
 verification:
-  command: "./init.sh"
-  status: passed
-  evidence_ref: "orquestador/sdd/progress/evidence/mcp-dogfood-fase8.md"
+  command: "validate-packaging.ps1 PS7+PS5; P04/P05 regressions; validate-mcp.ps1 -NoGit; validate-harness.ps1 -RunNegativeTests -NoGit"
+  status: pass_local_candidate_with_installation_blockers
+  evidence_ref: "orquestador/sdd/progress/evidence/P06-T07-review.md"
+last_final_report: "orquestador/sdd/progress/evidence/P06-T08-final-handoff.md"
+last_final_report_metadata:
+  phase_id: P06
+  status: implemented_local_candidate_with_installation_and_mcp_present_blockers
+  evidence_ref: "orquestador/sdd/progress/evidence/P06-T08-final-handoff.md"
 open_locks: []
 open_agents: []
-last_final_report: "orquestador/sdd/progress/evidence/mcp-dogfood-fase8.md"

@@ -1,0 +1,41 @@
+{
+  "schema": "hebrinex.agent_task_pack",
+  "contract_version": "1.0.0",
+  "runtime_api": "1",
+  "task_id": "TASK-ID",
+  "phase": "PHASE-ID",
+  "project_id": "PROJECT-ID",
+  "actor_id": "ACTOR-ID",
+  "role_id": "auditor",
+  "execution_mode": "simulated_roles",
+  "status": "ready",
+  "objective": "Describe one bounded objective.",
+  "requirements": ["State the required outcome."],
+  "invariants": ["Do not exceed declared authority."],
+  "capabilities": {
+    "operations": ["read_declared_files"],
+    "read_paths": ["orquestador/runtime/README.md"],
+    "write_paths": [],
+    "network": false,
+    "process_execution": false,
+    "elevation": false
+  },
+  "context": {
+    "selection_policy": "declared_only",
+    "cache_authority": false,
+    "references": []
+  },
+  "budget": {
+    "context_window_tokens": null,
+    "host_reserved_tokens": 0,
+    "max_task_input_tokens": 2000,
+    "max_output_tokens": 1000,
+    "safety_margin_tokens": 500,
+    "estimated_input_tokens": 0,
+    "estimation_method": "unknown"
+  },
+  "approval": { "required": false, "approval_id": null, "expires_at": null },
+  "tests": ["Runtime accepts only the declared read capability."],
+  "stop_conditions": ["Stop when any required input is absent or stale."],
+  "expected_output": { "schema": "hebrinex.agent_result", "path": "instance/runtime/agent-results/TASK-ID.json", "format": "json" }
+}

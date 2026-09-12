@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Hebri Operation Descriptor",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "contract_version", "runtime_api", "operation_id", "project_id", "operation", "roots", "write_set", "code_version", "plan", "plan_hash", "preconditions", "descriptor_hash"],
+  "properties": {
+    "schema": { "const": "hebrinex.operation_descriptor" },
+    "contract_version": { "const": "1.0.0" },
+    "runtime_api": { "const": "1" },
+    "operation_id": { "type": "string", "pattern": "^OP-[A-Za-z0-9][A-Za-z0-9._-]{0,127}$" },
+    "project_id": { "type": "string", "minLength": 1 },
+    "operation": { "type": "string", "minLength": 1 },
+    "roots": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["install_root", "project_root", "instance_root", "catalog_root"],
+      "properties": {
+        "install_root": { "type": "string", "minLength": 1 },
+        "project_root": { "type": "string", "minLength": 1 },
+        "instance_root": { "type": "string", "minLength": 1 },
+        "catalog_root": { "type": "string", "minLength": 1 }
+      }
+    },
+    "write_set": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "type": "string", "minLength": 1 } },
+    "code_version": { "type": "string", "minLength": 1 },
+    "plan": { "type": "object" },
+    "plan_hash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "preconditions": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["path", "sha256"],
+        "properties": {
+          "path": { "type": "string", "minLength": 1 },
+          "sha256": { "oneOf": [{ "const": "__MISSING__" }, { "type": "string", "pattern": "^[a-f0-9]{64}$" }] }
+        }
+      }
+    },
+    "descriptor_hash": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+  }
+}

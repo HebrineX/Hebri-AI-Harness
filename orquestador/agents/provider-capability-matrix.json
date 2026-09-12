@@ -1,0 +1,181 @@
+{
+  "schema": "hebrinex.provider_capability_matrix",
+  "contract_version": "1.0.0",
+  "runtime_api": "1",
+  "harness_version": "0.17.1",
+  "default_policy": "deny",
+  "allowed_statuses": ["enforced", "advisory", "unsupported", "not_tested"],
+  "providers": [
+    {
+      "id": "offline-fixture",
+      "host": "powershell-local",
+      "adapter": "deterministic-fixture",
+      "model": "none",
+      "execution_mode": "simulated_roles",
+      "network_required": false,
+      "availability": "available",
+      "dimension_capabilities": {
+        "host": {
+          "id": "powershell-local",
+          "capabilities": {
+            "read_declared_files": "enforced",
+            "inspect_diff": "enforced",
+            "run_readonly_audit": "enforced",
+            "block_work": "enforced",
+            "summarize_evidence": "enforced"
+          }
+        },
+        "adapter": {
+          "id": "deterministic-fixture",
+          "capabilities": {
+            "read_declared_files": "enforced",
+            "inspect_diff": "enforced",
+            "run_readonly_audit": "enforced",
+            "block_work": "enforced",
+            "summarize_evidence": "enforced"
+          }
+        },
+        "model": {
+          "id": "none",
+          "capabilities": {
+            "read_declared_files": "enforced",
+            "inspect_diff": "enforced",
+            "run_readonly_audit": "enforced",
+            "block_work": "enforced",
+            "summarize_evidence": "enforced"
+          }
+        }
+      },
+      "capabilities": {
+        "read_declared_files": "enforced",
+        "inspect_diff": "enforced",
+        "run_readonly_audit": "enforced",
+        "block_work": "enforced",
+        "summarize_evidence": "enforced",
+        "edit_approved_write_set": "unsupported",
+        "use_network": "unsupported"
+      },
+      "enforcement": {
+        "filesystem": "enforced",
+        "network": "enforced",
+        "process": "enforced",
+        "provider_output_authority": false
+      },
+      "evidence": {
+        "status": "local_fixture",
+        "validated_at": "2026-09-09T00:00:00Z",
+        "source": "scripts/validate-agent-context.ps1"
+      }
+    },
+    {
+      "id": "claude-cli",
+      "host": "local-cli",
+      "adapter": "claude-code",
+      "model": "host-selected",
+      "execution_mode": "real_agent",
+      "network_required": true,
+      "availability": "not_tested",
+      "dimension_capabilities": {
+        "host": {
+          "id": "local-cli",
+          "capabilities": {
+            "read_declared_files": "not_tested",
+            "inspect_diff": "not_tested",
+            "run_readonly_audit": "not_tested",
+            "block_work": "not_tested",
+            "summarize_evidence": "not_tested"
+          }
+        },
+        "adapter": {
+          "id": "claude-code",
+          "capabilities": {
+            "read_declared_files": "not_tested",
+            "inspect_diff": "not_tested",
+            "run_readonly_audit": "not_tested",
+            "block_work": "not_tested",
+            "summarize_evidence": "not_tested"
+          }
+        },
+        "model": {
+          "id": "host-selected",
+          "capabilities": {
+            "read_declared_files": "not_tested",
+            "inspect_diff": "not_tested",
+            "run_readonly_audit": "not_tested",
+            "block_work": "not_tested",
+            "summarize_evidence": "not_tested"
+          }
+        }
+      },
+      "capabilities": {
+        "read_declared_files": "not_tested",
+        "inspect_diff": "not_tested",
+        "run_readonly_audit": "not_tested",
+        "block_work": "not_tested",
+        "summarize_evidence": "not_tested"
+      },
+      "enforcement": {
+        "filesystem": "not_tested",
+        "network": "not_tested",
+        "process": "not_tested",
+        "provider_output_authority": false
+      },
+      "evidence": { "status": "not_run", "validated_at": null, "source": "P03-V04 requires separate approval" }
+    },
+    {
+      "id": "codex-cli",
+      "host": "local-cli",
+      "adapter": "codex",
+      "model": "host-selected",
+      "execution_mode": "real_agent",
+      "network_required": true,
+      "availability": "not_tested",
+      "dimension_capabilities": {
+        "host": {
+          "id": "local-cli",
+          "capabilities": {
+            "read_declared_files": "not_tested",
+            "inspect_diff": "not_tested",
+            "run_readonly_audit": "not_tested",
+            "block_work": "not_tested",
+            "summarize_evidence": "not_tested"
+          }
+        },
+        "adapter": {
+          "id": "codex",
+          "capabilities": {
+            "read_declared_files": "not_tested",
+            "inspect_diff": "not_tested",
+            "run_readonly_audit": "not_tested",
+            "block_work": "not_tested",
+            "summarize_evidence": "not_tested"
+          }
+        },
+        "model": {
+          "id": "host-selected",
+          "capabilities": {
+            "read_declared_files": "not_tested",
+            "inspect_diff": "not_tested",
+            "run_readonly_audit": "not_tested",
+            "block_work": "not_tested",
+            "summarize_evidence": "not_tested"
+          }
+        }
+      },
+      "capabilities": {
+        "read_declared_files": "not_tested",
+        "inspect_diff": "not_tested",
+        "run_readonly_audit": "not_tested",
+        "block_work": "not_tested",
+        "summarize_evidence": "not_tested"
+      },
+      "enforcement": {
+        "filesystem": "not_tested",
+        "network": "not_tested",
+        "process": "not_tested",
+        "provider_output_authority": false
+      },
+      "evidence": { "status": "not_run", "validated_at": null, "source": "P03-V04 requires separate approval" }
+    }
+  ]
+}

@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Hebri Context Load Report",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "contract_version", "runtime_api", "task_id", "decision", "reason", "budget_status", "estimated_input_tokens", "repack_threshold_tokens", "sources", "cache_authority", "writes"],
+  "properties": {
+    "schema": { "const": "hebrinex.context_load_report" },
+    "contract_version": { "const": "1.0.0" },
+    "runtime_api": { "const": "1" },
+    "task_id": { "type": "string" },
+    "decision": { "enum": ["allow", "block"] },
+    "reason": { "type": "string" },
+    "budget_status": { "enum": ["known_within_budget", "unknown", "repack_required", "exceeded"] },
+    "estimated_input_tokens": { "type": "integer", "minimum": 0 },
+    "repack_threshold_tokens": { "type": "integer", "minimum": 0 },
+    "sources": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["path", "sha256", "reason", "trust", "required", "chars", "estimated_tokens", "instruction_authority"],
+        "properties": {
+          "path": { "type": "string" },
+          "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+          "reason": { "type": "string" },
+          "trust": { "enum": ["harness_authority", "project_declared", "external_data", "provider_output"] },
+          "required": { "type": "boolean" },
+          "chars": { "type": "integer", "minimum": 0 },
+          "estimated_tokens": { "type": "integer", "minimum": 0 },
+          "instruction_authority": { "type": "boolean" }
+        }
+      }
+    },
+    "cache_authority": { "const": false },
+    "writes": { "const": false }
+  }
+}

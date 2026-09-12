@@ -7,3 +7,4 @@ instance/runtime/gateway-rate.json
 mcp/node_modules/
 mcp/agents-backend.local.yaml
 instance/mcp/agents-backend.local.yaml
+artifacts/
