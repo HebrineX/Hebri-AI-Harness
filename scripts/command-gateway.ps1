@@ -130,8 +130,19 @@ function New-ApplyPlan([string]$Text) {
   }
 
   if ($commandName -eq 'get-content') {
-    if ($tokens.Count -ne 2) { throw 'apply_requires_strict_readonly_allowlist' }
-    return [ordered]@{ kind = 'get_content'; path = (Resolve-ReadOnlyPath $tokens[1]); pattern = '' }
+    $raw = $false
+    if ($tokens.Count -eq 2 -and -not $tokens[1].StartsWith('-')) {
+      $pathArg = $tokens[1]
+    }
+    elseif ($tokens.Count -eq 3 -and $tokens[1] -ieq '-LiteralPath' -and -not $tokens[2].StartsWith('-')) {
+      $pathArg = $tokens[2]
+    }
+    elseif ($tokens.Count -eq 4 -and $tokens[1] -ieq '-Raw' -and $tokens[2] -ieq '-LiteralPath' -and -not $tokens[3].StartsWith('-')) {
+      $pathArg = $tokens[3]
+      $raw = $true
+    }
+    else { throw 'apply_requires_strict_readonly_allowlist' }
+    return [ordered]@{ kind = 'get_content'; path = (Resolve-ReadOnlyPath $pathArg); pattern = ''; raw = $raw }
   }
 
   if ($commandName -eq 'test-path') {
@@ -191,7 +202,10 @@ try {
   $stdout = ''
   $code = 0
   switch ($kind) {
-    'get_content' { $stdout = (Get-Content -LiteralPath $path -ErrorAction Stop | Out-String).TrimEnd() }
+    'get_content' {
+      if ($plan.raw) { $stdout = [string](Get-Content -Raw -LiteralPath $path -ErrorAction Stop) }
+      else { $stdout = (Get-Content -LiteralPath $path -ErrorAction Stop | Out-String).TrimEnd() }
+    }
     'test_path' { $stdout = [string](Test-Path -LiteralPath $path) }
     'get_childitem' { $stdout = (Get-ChildItem -LiteralPath $path -Force -ErrorAction Stop | Select-Object Name,Mode,Length | Out-String).TrimEnd() }
     'select_string' { $stdout = (Select-String -LiteralPath $path -Pattern $pattern -ErrorAction Stop | Out-String).TrimEnd() }
@@ -217,6 +231,7 @@ function Invoke-ApplyPlan([hashtable]$Plan) {
     kind = [string]$Plan['kind']
     path = [string]$Plan['path']
     pattern = [string]$Plan['pattern']
+    raw = [bool]$Plan['raw']
     root = $Root
   }
   $planBase64 = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes(($planPayload | ConvertTo-Json -Compress)))
@@ -418,9 +433,22 @@ if (-not [string]::IsNullOrWhiteSpace($ApprovalId)) {
   }
 }
 
-if ($Apply -and $decision -eq 'allow') {
+# Both modes validate the same plan; only Apply executes and records rate state.
+$plan = $null
+if ($decision -eq 'allow') {
   try {
     $plan = New-ApplyPlan $command
+  }
+  catch {
+    $decision = 'block'
+    $reason = $_.Exception.Message
+    $requiresPreflight = $true
+    $requiresSi = $true
+  }
+}
+
+if ($Apply -and $decision -eq 'allow') {
+  try {
     $ratePath = Resolve-HarnessPath -Root $Root -RelativePath 'orquestador/runtime/gateway-rate.json'
     $mutation = Assert-OperationMutationAuthorized -RuntimeMode $RuntimeMode -ExpectedOperation 'command-gateway:apply' -WritePaths @($ratePath) -DescriptorPath $OperationDescriptorPath -ApprovalStoreRoot $ScopedApprovalStoreRoot -ApprovalId $ScopedApprovalId -LockPath $OperationLockPath -JournalPath $OperationJournalPath
     $mutationContract = if ($RuntimeMode -eq 'central_instance') { 'operation-safety/1' } else { 'source_or_legacy_explicit_exception' }
