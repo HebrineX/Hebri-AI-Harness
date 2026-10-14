@@ -1,6 +1,6 @@
 # Agent Portability
 
-Version: 0.17.1
+Version: 0.17.2
 
 La portabilidad separa el contrato operativo core de las superficies especificas de cada IA.
 

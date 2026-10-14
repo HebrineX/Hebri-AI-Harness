@@ -1,4 +1,4 @@
-# How To Use - Hebri-AI-Harness 0.17.1
+# How To Use - Hebri-AI-Harness 0.17.2
 
 Esta guia es la entrada practica para usar el harness sin leer todo el arbol.
 La autoridad operativa sigue siendo `.hebrinex/` cuando existe en un proyecto

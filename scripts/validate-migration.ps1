@@ -274,7 +274,8 @@ Assert-Contains 'orquestador/migration/versions/0.16.0-to-0.17.0.yaml' 'instance
 
 Assert-Contains 'orquestador/migration/reports/migration-report.template.yaml' 'wrote_files:\s*false' 'report template must represent CheckOnly no-write'
 Assert-Contains 'orquestador/migration/reports/migration-report.template.yaml' 'backup:' 'report template must include backup section'
-Assert-Contains 'SHARED_MANIFEST.yaml' 'harness_version:\s*"0[.]17[.]1"' 'shared manifest must target 0.17.1'
+$currentSourceVersion = (Read-HarnessText 'HARNESS_VERSION').Trim()
+Assert-Contains 'SHARED_MANIFEST.yaml' ('harness_version:\s*"' + [regex]::Escape($currentSourceVersion) + '"') "shared manifest must target $currentSourceVersion"
 Assert-Contains 'SHARED_MANIFEST.yaml' 'shared_dirs:' 'shared manifest must declare shared_dirs'
 Assert-Contains 'SHARED_MANIFEST.yaml' 'instance_dirs:' 'shared manifest must declare instance_dirs'
 Assert-Contains 'SHARED_MANIFEST.yaml' 'instance_path_map:' 'shared manifest must declare instance path map'

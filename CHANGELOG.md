@@ -2,6 +2,18 @@
 
 ## [Unreleased]
 
+## [0.17.2] - 2026-10-14
+
+### Fixed
+- Command Gateway valida la misma gramatica de lectura en CheckOnly y Apply.
+- Get-Content admite ruta posicional, -LiteralPath y -Raw -LiteralPath; Raw conserva espacios y saltos de linea dentro de las politicas de redaccion y limite de salida.
+- Pruebas de regresion para opciones no soportadas, traversal y contenido Raw en PowerShell 5.1 y 7.
+
+### Distribution
+- Publicacion Git/source mediante tag v0.17.2. No incluye MSI nuevo ni amplia el perimetro de lectura al consumidor.
+- Los metadatos de packaging y el baseline del motor central siguen en 0.17.1; no representan un instalador 0.17.2 validado.
+- MCP conserva su version de componente 0.17.1. Las rutas historicas de migrate y los trabajos de migracion 1.0 pendientes no se modifican; este tag no agrega una ruta migrate a 0.17.2.
+
 ## [0.17.1] - 2026-08-07
 
 ### Fixed

@@ -2,7 +2,7 @@
   "schema": "hebrinex.provider_capability_matrix",
   "contract_version": "1.0.0",
   "runtime_api": "1",
-  "harness_version": "0.17.1",
+  "harness_version": "0.17.2",
   "default_policy": "deny",
   "allowed_statuses": ["enforced", "advisory", "unsupported", "not_tested"],
   "providers": [

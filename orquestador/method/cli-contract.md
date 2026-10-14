@@ -1,6 +1,6 @@
 # CLI Contract
 
-Version: 0.17.1
+Version: 0.17.2
 Contract version: 0.5
 Status: stable
 
