@@ -18,7 +18,13 @@
       "type": "object",
       "additionalProperties": false,
       "required": ["pid", "process_start_utc", "process_name", "machine_name"],
+      "dependentRequired": {
+        "linux_start_ticks": ["linux_boot_id"],
+        "linux_boot_id": ["linux_start_ticks"]
+      },
       "properties": {
+        "linux_start_ticks": { "type": "string", "pattern": "^[0-9]+$" },
+        "linux_boot_id": { "type": "string", "pattern": "^[a-f0-9]{8}(-[a-f0-9]{4}){3}-[a-f0-9]{12}$" },
         "pid": { "type": "integer", "minimum": 1 },
         "process_start_utc": { "type": "string", "format": "date-time" },
         "process_name": { "type": "string", "minLength": 1 },

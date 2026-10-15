@@ -1,6 +1,6 @@
 schema: hebrinex.project_binding
 version: "0.1"
-harness_version: "0.17.1"
+harness_version: "{{HARNESS_VERSION}}"
 binding_mode: bound
 harness_instance_id: "{{INSTANCE_ID}}"
 project_name: "{{PROJECT_ID}}"

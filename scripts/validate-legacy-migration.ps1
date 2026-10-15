@@ -143,6 +143,18 @@ function Invoke-TagMatrix {
 }
 
 try {
+  $runtimeModule = (Get-Command New-HebriLegacyMigrationPlan -ErrorAction Stop).Module
+  $versionFixture = Join-Path $tempRoot 'runtime-version'
+  foreach ($candidate in @('0.17.1','0.17.2','0.17.0','0.18.0','invalid')) {
+    Write-TestText (Join-Path $versionFixture 'HARNESS_VERSION') $candidate
+    $observed = ''
+    try { $observed = & $runtimeModule { param($path) Get-LegacyRuntimeVersion -InstallRoot $path } $versionFixture }
+    catch {
+      Assert-P05 ($_.Exception.Message -like 'RUNTIME_NOT_INSTALLED:*') 'unexpected engine-version rejection'
+    }
+    $expected = if ($candidate -in @('0.17.1','0.17.2')) { $candidate } else { '' }
+    Assert-P05 ($observed -ceq $expected) "engine compatibility mismatch for $candidate"
+  }
   [void][IO.Directory]::CreateDirectory($tempRoot)
   foreach ($required in @($fixtureSource,$decisionFixture)) { Assert-P05 (Test-Path -LiteralPath $required) "fixture missing: $required" }
   $baselinePath = Join-Path $tempRoot 'baseline-0.16.0.json'

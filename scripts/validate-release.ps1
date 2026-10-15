@@ -64,6 +64,12 @@ $bindingMode = Get-ScalarValue $binding 'binding_mode'
 if ($bindingVersion -ne $version) {
   Add-Failure "PROJECT_BINDING.yaml harness_version must be $version"
 }
+if (Test-Path -LiteralPath (Join-Path $Root 'packaging/runtime-layout.json')) {
+  $runtimeLayout = Read-HarnessText 'packaging/runtime-layout.json' | ConvertFrom-Json
+  if ($runtimeLayout.harness_version -ne $version) {
+    Add-Failure "runtime layout harness_version must be $version"
+  }
+}
 
 Assert-ContainsText 'README.md' ('Referencia operativa actual:\s+\*\*' + [regex]::Escape($version) + '\*\*') "README.md must declare current version $version"
 Assert-ContainsText 'AGENTS.md' ('Version operativa esperada:\s+' + [regex]::Escape($version)) "AGENTS.md must declare expected version $version"

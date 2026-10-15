@@ -1318,14 +1318,39 @@ function Get-HebriOperationLockRoot {
   return (Join-Path ([string](Get-HebriMemberValue (Get-HebriMemberValue $Descriptor 'roots') 'instance_root')) 'runtime/locks')
 }
 
+function ConvertFrom-HebriLinuxProcessStat {
+  param([Parameter(Mandatory = $true)][string]$Stat)
+  # comm may contain spaces and parentheses; field 3 follows the last closing parenthesis.
+  $end = $Stat.LastIndexOf(')')
+  if ($end -lt 0) { throw 'Invalid Linux process stat' }
+  $fields = $Stat.Substring($end + 1).Trim() -split '\s+'
+  if ($fields.Count -lt 20 -or $fields[19] -cnotmatch '^[0-9]+$') { throw 'Invalid Linux process start ticks' }
+  return [string]$fields[19]
+}
+
+function Get-HebriLinuxProcessIdentity {
+  param([Parameter(Mandatory = $true)][int]$ProcessId)
+  $ticks = ConvertFrom-HebriLinuxProcessStat ([IO.File]::ReadAllText("/proc/$ProcessId/stat"))
+  $boot = [IO.File]::ReadAllText('/proc/sys/kernel/random/boot_id').Trim()
+  if ($boot -cnotmatch '^[a-f0-9]{8}(-[a-f0-9]{4}){3}-[a-f0-9]{12}$') { throw 'Invalid Linux boot identity' }
+  return @{ linux_start_ticks = $ticks; linux_boot_id = $boot }
+}
+
 function Get-HebriCurrentProcessIdentity {
   $process = Get-Process -Id $PID
-  return [ordered]@{
+  $identity = [ordered]@{
     pid = $PID
     process_start_utc = $process.StartTime.ToUniversalTime().ToString('o')
     process_name = $process.ProcessName
     machine_name = [Environment]::MachineName
   }
+  if (Get-Variable -Name IsLinux -ValueOnly -ErrorAction SilentlyContinue) {
+    try { $native = Get-HebriLinuxProcessIdentity -ProcessId $PID }
+    catch { Throw-HebriRuntimeError 'LOCK_OWNER_UNVERIFIED' 'cannot obtain native Linux process identity' }
+    $identity.linux_start_ticks = $native.linux_start_ticks
+    $identity.linux_boot_id = $native.linux_boot_id
+  }
+  return $identity
 }
 
 function Get-HebriLockOwnerStatus {
@@ -1339,6 +1364,23 @@ function Get-HebriLockOwnerStatus {
   elseif (-not [datetime]::TryParse([string]$recordedStartValue, [Globalization.CultureInfo]::InvariantCulture, [Globalization.DateTimeStyles]::AdjustToUniversal -bor [Globalization.DateTimeStyles]::AssumeUniversal, [ref]$recordedStart)) { return 'unverifiable' }
   try { $process = Get-Process -Id $ownerPid -ErrorAction Stop }
   catch { return 'dead' }
+  if ([string](Get-HebriMemberValue $owner 'machine_name') -ne [Environment]::MachineName) { return 'unverifiable' }
+  $ticks = Get-HebriMemberValue $owner 'linux_start_ticks'
+  $boot = Get-HebriMemberValue $owner 'linux_boot_id'
+  $hasNative = if ($owner -is [Collections.IDictionary]) {
+    $owner.Contains('linux_start_ticks') -or $owner.Contains('linux_boot_id')
+  } else {
+    $null -ne $owner.PSObject.Properties['linux_start_ticks'] -or $null -ne $owner.PSObject.Properties['linux_boot_id']
+  }
+  if ($hasNative) {
+    if (-not (Get-Variable -Name IsLinux -ValueOnly -ErrorAction SilentlyContinue)) { return 'unverifiable' }
+    if ($ticks -isnot [string] -or $ticks -cnotmatch '^[0-9]+$' -or
+        $boot -isnot [string] -or $boot -cnotmatch '^[a-f0-9]{8}(-[a-f0-9]{4}){3}-[a-f0-9]{12}$') { return 'unverifiable' }
+    try { $native = Get-HebriLinuxProcessIdentity -ProcessId $ownerPid }
+    catch { return 'unverifiable' }
+    if ($native.linux_start_ticks -cne $ticks -or $native.linux_boot_id -cne $boot) { return 'reused' }
+    return 'live'
+  }
   try { $actualStart = $process.StartTime.ToUniversalTime() }
   catch { return 'unverifiable' }
   if ($actualStart.Ticks -ne $recordedStart.ToUniversalTime().Ticks) { return 'reused' }

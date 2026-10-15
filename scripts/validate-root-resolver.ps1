@@ -92,6 +92,7 @@ function Write-LegacyBinding {
   param([string]$HarnessRoot, [string]$ProjectRoot, [string]$ProjectId, [string]$InstanceId)
   $templatePath = Join-Path $Root 'orquestador/testing/fixtures/root-resolver/binding.legacy.template.yaml'
   $text = [IO.File]::ReadAllText($templatePath)
+  $text = $text.Replace('{{HARNESS_VERSION}}', [IO.File]::ReadAllText((Join-Path $Root 'HARNESS_VERSION')).Trim())
   $text = $text.Replace('{{PROJECT_ROOT}}', ([IO.Path]::GetFullPath($ProjectRoot) -replace '\\', '/'))
   $text = $text.Replace('{{PROJECT_ID}}', $ProjectId).Replace('{{INSTANCE_ID}}', $InstanceId)
   Write-TestText (Join-Path $HarnessRoot 'PROJECT_BINDING.yaml') $text
@@ -271,17 +272,22 @@ try {
   $contextDirectory = Join-Path $contextA.instance_root 'context'
   [void][IO.Directory]::CreateDirectory($contextDirectory)
   $junctionPath = Join-Path $contextDirectory 'junction-out'
-  try {
-    [void](New-Item -ItemType Junction -Path $junctionPath -Target $externalRoot -ErrorAction Stop)
-    [void]$script:ReparsePaths.Add($junctionPath)
-    Assert-ThrowsCode 'P01-V04-JUNCTION' 'REPARSE_POINT_UNSUPPORTED' { Resolve-HebriResourcePath -Context $contextA -LogicalPath 'orquestador/context/junction-out/file.txt' -Access write }
+  if ([Environment]::OSVersion.Platform -eq [PlatformID]::Win32NT) {
+    try {
+      [void](New-Item -ItemType Junction -Path $junctionPath -Target $externalRoot -ErrorAction Stop)
+      [void]$script:ReparsePaths.Add($junctionPath)
+      Assert-ThrowsCode 'P01-V04-JUNCTION' 'REPARSE_POINT_UNSUPPORTED' { Resolve-HebriResourcePath -Context $contextA -LogicalPath 'orquestador/context/junction-out/file.txt' -Access write }
+    }
+    catch {
+      Add-Check 'P01-V04-JUNCTION' 'blocked' ('host could not create junction: ' + $_.Exception.Message)
+    }
+    if (Test-Path -LiteralPath $junctionPath) {
+      Remove-TestReparsePath $junctionPath
+      [void]$script:ReparsePaths.Remove($junctionPath)
+    }
   }
-  catch {
-    Add-Check 'P01-V04-JUNCTION' 'blocked' ('host could not create junction: ' + $_.Exception.Message)
-  }
-  if (Test-Path -LiteralPath $junctionPath) {
-    Remove-TestReparsePath $junctionPath
-    [void]$script:ReparsePaths.Remove($junctionPath)
+  else {
+    Add-Check 'P01-V04-JUNCTION' 'not_applicable' 'Windows junction fixture; symbolic-link rejection is tested independently on this host'
   }
   $symlinkPath = Join-Path $contextDirectory 'symlink-out'
   try {
@@ -317,6 +323,11 @@ try {
   Copy-RuntimeFixture $corruptInstall
   $corruptLayoutPath = Join-Path $corruptInstall 'packaging\runtime-layout.json'
   $corruptLayout = [IO.File]::ReadAllText($corruptLayoutPath) | ConvertFrom-Json
+  $originalLayoutVersion = $corruptLayout.harness_version
+  $corruptLayout.harness_version = '99.0.0'
+  Write-TestText $corruptLayoutPath ($corruptLayout | ConvertTo-Json -Depth 20)
+  Assert-ThrowsCode 'P01-V06-VERSION-MISMATCH' 'RUNTIME_INTEGRITY_FAILED' { Resolve-HebriRuntimeContext -InstallRoot $corruptInstall -ProjectRoot $projectA -DeploymentMode central_instance -CatalogRoot $catalogRoot }
+  $corruptLayout.harness_version = $originalLayoutVersion
   $corruptLayout.rules = @()
   Write-TestText $corruptLayoutPath ($corruptLayout | ConvertTo-Json -Depth 12)
   Assert-ThrowsCode 'P01-V06-CORRUPT-LAYOUT' 'RUNTIME_INTEGRITY_FAILED' { Resolve-HebriRuntimeContext -InstallRoot $corruptInstall -ProjectRoot $projectA -DeploymentMode central_instance -CatalogRoot $catalogRoot }

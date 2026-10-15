@@ -131,6 +131,37 @@ $script:PowerShellPath = Get-PowerShellPath
 Import-Module $script:ModulePath -Force -DisableNameChecking -Scope Local
 
 try {
+  # Native identity stays exact across processes; timestamps remain the legacy fallback.
+  $identityModule = (Get-Command Get-HebriLockOwnerStatus -ErrorAction Stop).Module
+  $identity = & $identityModule { Get-HebriCurrentProcessIdentity }
+  Assert-True ((& $identityModule { param($o) Get-HebriLockOwnerStatus @{ owner = $o } } $identity) -eq 'live') 'native owner must be live'
+  $legacy = $identity | ConvertTo-Json | ConvertFrom-Json
+  $legacy.PSObject.Properties.Remove('linux_start_ticks')
+  $legacy.PSObject.Properties.Remove('linux_boot_id')
+  $legacy.process_start_utc = (Get-Date).ToUniversalTime().AddHours(-1).ToString('o')
+  Assert-True ((& $identityModule { param($o) Get-HebriLockOwnerStatus @{ owner = $o } } $legacy) -eq 'reused') 'legacy timestamp mismatch must not be live'
+  $stat = '1 (name with ) parentheses) S ' + ((1..18) -join ' ') + ' 18446744073709551615 0'
+  $ticks = & $identityModule { param($s) ConvertFrom-HebriLinuxProcessStat $s } $stat
+  Assert-True ($ticks -ceq '18446744073709551615') 'proc stat parser must preserve large ticks and comm parentheses'
+  if (Get-Variable -Name IsLinux -ValueOnly -ErrorAction SilentlyContinue) {
+    foreach ($case in @('ticks','boot','partial','malformed','nulls','sentinels','sentinel-partial','foreign','timestamp')) {
+      $owner = $identity | ConvertTo-Json | ConvertFrom-Json
+      switch ($case) {
+        ticks { $owner.linux_start_ticks = '0' + $owner.linux_start_ticks }
+        boot { $owner.linux_boot_id = '00000000-0000-0000-0000-000000000000' }
+        partial { $owner.PSObject.Properties.Remove('linux_boot_id') }
+        malformed { $owner.linux_start_ticks = 'NaN' }
+        nulls { $owner.linux_start_ticks = $null; $owner.linux_boot_id = $null }
+        sentinels { $owner.linux_start_ticks = '__ABSENT__'; $owner.linux_boot_id = '__ABSENT__' }
+        sentinel-partial { $owner.linux_start_ticks = '__ABSENT__'; $owner.PSObject.Properties.Remove('linux_boot_id') }
+        foreign { $owner.machine_name = 'foreign-machine' }
+        timestamp { $owner.process_start_utc = (Get-Date).ToUniversalTime().AddHours(-1).ToString('o') }
+      }
+      $status = & $identityModule { param($o) Get-HebriLockOwnerStatus @{ owner = $o } } $owner
+      $expected = if ($case -eq 'timestamp') { 'live' } elseif ($case -in @('ticks','boot')) { 'reused' } else { 'unverifiable' }
+      Assert-True ($status -eq $expected) "native identity $case expected $expected got $status"
+    }
+  }
   # V01: real-process exclusion for overlapping resources.
   $context = New-TestContext 'v01-project' 'P02-V01'
   $target = Join-Path $context.project_root 'state/value.txt'
@@ -152,9 +183,16 @@ try {
   $workerResults = @((Read-Result $resultAPath),(Read-Result $resultBPath))
   $acquired = @($workerResults | Where-Object { $null -ne $_ -and $_.result -eq 'acquired' }).Count
   $blocked = @($workerResults | Where-Object { $null -ne $_ -and $_.result -eq 'blocked' -and $_.reason -match '^LOCK_BUSY:' }).Count
+  if ($acquired -ne 1 -or $blocked -ne 1) {
+    foreach ($pair in @(@($processA,$resultAPath), @($processB,$resultBPath))) {
+      $workerResult = Read-Result $pair[1]
+      Write-Host ('P02-V01 worker=' + $pair[0].Id + ' exit=' + $pair[0].ExitCode + ' result=' + ($workerResult | ConvertTo-Json -Compress))
+    }
+  }
   Assert-True ($acquired -eq 1 -and $blocked -eq 1) 'P02-V01 expected exactly one acquired and one LOCK_BUSY result'
   Assert-NoActiveOperationLocks $context 'P02-V01 left an active lock'
-  Add-Result 'P02-V01' 'pass' "acquired=$acquired blocked=$blocked"
+  $v01Status = if ($acquired -eq 1 -and $blocked -eq 1) { 'pass' } else { 'fail' }
+  Add-Result 'P02-V01' $v01Status "acquired=$acquired blocked=$blocked"
 
   # V02: separate InstanceRoots do not serialize one another.
   $contextA = New-TestContext 'v02-project-a' 'P02-V02-A'
@@ -252,7 +290,24 @@ try {
   $approval = New-TestApproval $descriptor
   $lock = Enter-HebriOperationLock -Descriptor $descriptor -ApprovalId $approval.Id -ApprovalStoreRoot (Split-Path -Parent $approval.Path)
   $journal = New-HebriOperationJournal -Descriptor $descriptor -ApprovalId $approval.Id -LockPath $lock.Path
-  $forged = Read-HebriJsonDocument $lock.Path; $forged.owner.process_start_utc = (Get-Date).ToUniversalTime().AddHours(-1).ToString('o'); Write-HebriAtomicJsonDocument -Path $lock.Path -Value $forged
+  $forged = Read-HebriJsonDocument $lock.Path
+  if (Get-Command Test-Json -ErrorAction SilentlyContinue) {
+    $schemaPath = Join-Path $Root 'orquestador/runtime/schemas/operation-lock.schema.json'
+    $ownerSchema = ([IO.File]::ReadAllText($schemaPath) | ConvertFrom-Json).properties.owner | ConvertTo-Json -Depth 20
+    Assert-True ($forged.owner | ConvertTo-Json -Depth 20 | Test-Json -Schema $ownerSchema) 'new lock owner must satisfy schema'
+    $legacyLock = $forged | ConvertTo-Json -Depth 20 | ConvertFrom-Json
+    $legacyLock.owner.PSObject.Properties.Remove('linux_start_ticks')
+    $legacyLock.owner.PSObject.Properties.Remove('linux_boot_id')
+    Assert-True ($legacyLock.owner | ConvertTo-Json -Depth 20 | Test-Json -Schema $ownerSchema) 'legacy lock owner must satisfy schema'
+    $legacyLock.owner | Add-Member -NotePropertyName linux_start_ticks -NotePropertyValue '123'
+    $validPartial = $legacyLock.owner | ConvertTo-Json -Depth 20 | Test-Json -Schema $ownerSchema -ErrorAction SilentlyContinue
+    Assert-True (-not $validPartial) 'partial native identity must fail schema'
+  }
+  if (Get-Variable -Name IsLinux -ValueOnly -ErrorAction SilentlyContinue) {
+    $forged.owner.linux_start_ticks = '0' + $forged.owner.linux_start_ticks
+  }
+  else { $forged.owner.process_start_utc = (Get-Date).ToUniversalTime().AddHours(-1).ToString('o') }
+  Write-HebriAtomicJsonDocument -Path $lock.Path -Value $forged
   $contender = New-HebriOperationDescriptor -Context $context -Operation 'fixture:owner-b' -WriteSet @($target) -CodeVersion '0.17.1' -Plan ([ordered]@{ fixture_mode = $true })
   $contenderApproval = New-TestApproval $contender
   Assert-ThrowsCode { Enter-HebriOperationLock -Descriptor $contender -ApprovalId $contenderApproval.Id -ApprovalStoreRoot (Split-Path -Parent $contenderApproval.Path) } 'LOCK_OWNER_UNVERIFIED' 'P02-V05 reused PID lock should not be stolen'
@@ -307,16 +362,21 @@ try {
   [void](Set-HebriOperationJournalState -JournalPath $readJournal.Path -State applying -Evidence 'fixture setup')
   [void](Set-HebriOperationJournalState -JournalPath $readJournal.Path -State committed -Evidence 'fixture setup complete')
   [void](Exit-HebriOperationLock -LockPath $readLock.Path)
+  $reentryRoot = Join-Path $readContext.project_root 'reentry-fixture'
+  Write-TestText (Join-Path $reentryRoot 'PROJECT_BINDING.yaml') "binding_mode: source_template`n"
+  Write-TestText (Join-Path $reentryRoot 'orquestador/runtime/claude/reentry-brief.md') "# Fixture brief`n"
   Start-Sleep -Milliseconds 750
-  $readPaths = @($readContext.instance_root, (Join-Path $Root 'orquestador/runtime/claude'))
+  $readPaths = @($readContext.instance_root, $reentryRoot)
   $inventoryBefore = Get-TreeInventory $readPaths
   [void](Get-HebriOperationStatus -JournalPath $readJournal.Path)
   [void](Get-HebriOperationStatus -JournalPath $readJournal.Path)
   [void](Test-HebriScopedApproval -Descriptor $readDescriptor -ApprovalId $readApproval.Id -StoreRoot (Split-Path -Parent $readApproval.Path))
   [void](Test-HebriScopedApproval -Descriptor $readDescriptor -ApprovalId $readApproval.Id -StoreRoot (Split-Path -Parent $readApproval.Path))
   $reentry = Join-Path $Root 'scripts/claude-reentry.ps1'
-  @(& $script:PowerShellPath -NoProfile -NonInteractive -ExecutionPolicy Bypass -File $reentry -CheckOnly 2>&1) | Out-Null
-  @(& $script:PowerShellPath -NoProfile -NonInteractive -ExecutionPolicy Bypass -File $reentry -CheckOnly 2>&1) | Out-Null
+  @(& $script:PowerShellPath -NoProfile -NonInteractive -ExecutionPolicy Bypass -File $reentry -InstallRoot $reentryRoot -CheckOnly 2>&1) | Out-Null
+  Assert-True ($LASTEXITCODE -eq 0) 'P02-V07 first reentry check failed'
+  @(& $script:PowerShellPath -NoProfile -NonInteractive -ExecutionPolicy Bypass -File $reentry -InstallRoot $reentryRoot -CheckOnly 2>&1) | Out-Null
+  Assert-True ($LASTEXITCODE -eq 0) 'P02-V07 second reentry check failed'
   $inventoryAfter = Get-TreeInventory $readPaths
   if ($inventoryBefore -ne $inventoryAfter) {
     $difference = @(Compare-Object ($inventoryBefore -split "`n") ($inventoryAfter -split "`n") | Select-Object -First 12 | ForEach-Object { $_.SideIndicator + ' ' + $_.InputObject })

@@ -286,7 +286,10 @@ if ($legacyMigrationModule -or $legacyMigrationValidator) {
     Assert-Contains 'scripts/lib/legacy-migration-service.psm1' 'hebrinex[.]legacy_migration_snapshot' 'P05 central migration must write a structured snapshot manifest'
     Assert-Contains 'scripts/validate-legacy-migration.ps1' 'P05-V01[.][.]V08=pass' 'P05 migration validator must exercise the complete fixture matrix'
 }
-Assert-Contains 'orquestador/migration/contracts/post-migration-contract.yaml' 'target_version:\s*"0[.]16[.]0"|target_version:\s*"0[.]17[.]0"|target_version:\s*"0[.]17[.]1"' 'post migration template must target a supported release'
+$contractTarget = Get-Scalar (Read-HarnessText 'orquestador/migration/contracts/post-migration-contract.yaml') 'target_version'
+if ($contractTarget -notin @('0.16.0','0.17.0','0.17.1',$currentSourceVersion)) {
+  Add-Failure 'post migration template must target a supported release'
+}
 $currentHarnessVersion = (Read-HarnessText 'HARNESS_VERSION').Trim()
 $bindingText = Read-HarnessText 'PROJECT_BINDING.yaml'
 $bindingMode = Get-Scalar $bindingText 'binding_mode'

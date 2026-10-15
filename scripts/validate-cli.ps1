@@ -192,6 +192,9 @@ Assert-OutputContains $preflight 'Requiere SI: SI' 'preflight output must requir
 
 $migrate = Assert-CliSuccess -Name 'migrate CheckOnly' -Arguments @('migrate','-CheckOnly')
 Assert-OutputContains $migrate 'writes=false' 'migrate CheckOnly must declare writes=false'
+$releaseVersion = (Read-HarnessText 'HARNESS_VERSION').Trim()
+Assert-OutputContains $migrate ('(?m)^target_version=' + [regex]::Escape($releaseVersion) + '\r?$') 'default migration target must match HARNESS_VERSION'
+Assert-OutputContains $migrate '(?m)^migration_required=false\r?$' 'current release CheckOnly must not require migration'
 
 $approveCheck = Assert-CliSuccess -Name 'approve CheckOnly' -Arguments @('approve','-CheckOnly','-CommandText','Get-Content README.md')
 Assert-OutputContains $approveCheck 'writes=false' 'approve CheckOnly must declare writes=false'
