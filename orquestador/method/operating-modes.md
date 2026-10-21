@@ -9,21 +9,27 @@ Antes de elegir modo se debe cumplir `session-contract.md`. El chat visible arra
 Objetivo: avanzar con fluidez cuando el operador ya aprobo un objetivo, una fase o un slice.
 
 El leader puede hacer sin pedir aprobacion puntual:
-- Leer archivos dentro del workspace permitido si el operador ya aprobo la exploracion del proyecto.
+- Leer archivos sin secretos dentro del proyecto y del perimetro permitido, incluido kernel/bootstrap, mediante tools nativos sin aprobacion adicional.
 - Validar `PROJECT_BINDING.yaml`, `state.yaml`, `registry.yaml` y `PROGRESS.md` en modo read-only.
 - Preparar diagnostico, plan, briefs y asignaciones.
 - Decidir que rol corresponde segun el estado SDD.
 - Detectar gaps, bloqueos y riesgos.
 - Preparar la cola de trabajo antes de proponer acciones.
+- Correr comandos de solo lectura dentro del proyecto (clase `read_only` de `orquestador/security/command-risk-registry.yaml`; 0.17.3).
 
-El leader debe pedir `SI` antes de:
+El leader debe obtener preflight y `SI` para el alcance agrupado antes de:
 - Editar o crear archivos.
-- Correr comandos.
+- Correr comandos con efecto (cualquier clase distinta de `read_only`).
 - Lanzar subagentes con escritura o verificacion.
 - Llamar APIs/modelos pagados o externos.
 - Crear, modificar o liberar locks.
 - Cambiar estado SDD.
-- Hacer git, red, deploy, instalacion de dependencias o acciones destructivas.
+- Hacer git con efecto, red, deploy, instalacion de dependencias o acciones destructivas.
+
+La aprobacion vigente cubre los pasos menores dentro del alcance; solo se renueva
+si cambia el alcance o el riesgo. Lecturas acotadas sin secretos no requieren
+preflight, `SI`, envelope ni Gateway obligatorio. Gateway es opcional y ejecuta
+solo su gramatica restringida de lectura; nunca elude restricciones reales del host.
 
 Formato obligatorio antes de avanzar:
 
@@ -48,11 +54,11 @@ Esperando: SI del operador
 Objetivo: control total del operador.
 
 Reglas:
-- Cada cambio requiere aprobacion previa.
-- Cada comando requiere aprobacion previa.
+- Cada alcance con efectos requiere aprobacion previa agrupada.
+- Los comandos de lectura acotada sin secretos no requieren aprobacion previa.
 - Cada slice se anuncia por separado.
 - Cada handoff entre roles se anuncia por separado.
-- Si una fase tiene 5 slices, se pide `SI` antes de cada slice.
+- Un `SI` puede cubrir varios pasos o slices si el preflight declara su alcance conjunto.
 - El chat solo resume y pide aprobacion; no absorbe coordinacion si hay leader definido.
 
 Formato obligatorio por paso:
@@ -76,7 +82,7 @@ Esperando: SI del operador
 
 ## Seleccion de Modo
 
-Si el operador no define modo, usar `manual` para cualquier tarea con escritura, comandos, subagentes, git, red o cambios SDD. Usar `automatico` solo para exploracion documental de bajo riesgo o cuando el operador lo pida.
+Si el operador no define modo, usar `manual` para cualquier tarea con escritura, comandos con efecto, subagentes, git, red o cambios SDD. Usar `automatico` solo para exploracion documental de bajo riesgo o cuando el operador lo pida.
 
 Cambiar de modo durante una sesion requiere registro en `PROGRESS.md` o en el handoff del ciclo y `SI` del operador.
 

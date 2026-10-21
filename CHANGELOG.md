@@ -2,6 +2,32 @@
 
 ## [Unreleased]
 
+## [0.17.3] - 2026-10-20
+
+### Fixed
+- Gateway admite tambien Get-Content -LiteralPath <ruta> -Raw y distingue bloqueos no autorizables de aprobaciones faltantes; no pide otro SI para sintaxis o politicas no soportadas.
+- update-bound preserva el archivo canonico existente al importar estado legacy; un destino de tipo incompatible falla en lugar de reemplazarse.
+- Seguridad: el hook PreToolUse de Claude ya no aprueba solo con el `allow` del gateway. El gateway valida para su propia ejecucion con `-LiteralPath`, pero el host ejecuta el texto: `Get-ChildItem env:` listaba variables de entorno y `Get-Content README.md,..\..\x` leia fuera del proyecto. Ahora un `allow` del gateway tambien tiene que pasar el clasificador read-only del host.
+- El hook conserva los patrones bloqueados como solicitud de permiso y delega las formas inciertas al host. No ejecuta comandos candidatos ni toma un allow del Gateway como prueba suficiente de seguridad del host.
+
+### Added
+- Descubrimiento Windows acotado de instalaciones con raices y limites ligados a una aprobacion exacta.
+- Migrador de consumidores con CheckOnly estructurado, plan verificable y Apply aprobado por proyecto; guia para agentes en orquestador/method/consumer-migration.md.
+- Pruebas aisladas de preservacion y seguridad. La recuperacion reutiliza restore-bound por overlay: no elimina archivos agregados ni restaura el .gitignore externo.
+- Clasificador conservador read-only del host con AST PowerShell, comandos y opciones explicitos y rutas literales locales comprobadas sin reparse points. Bash, Git, pipelines, comandos compuestos y formas no demostradas se delegan al host; no se autoaprueban por prefijo ni se amplian CheckOnly/Apply del gateway.
+- Pruebas funcionales del hook y regresiones negativas para rutas externas, providers, secretos y sintaxis con efectos.
+- Migrador actualiza solo la version del session-pin efectivo conservando BOM, CRLF y contenido personalizado; informa imports administrativos y verifica identidad, estado canonico preservado e imports despues de Apply.
+- El migrador rechaza exclusiones gitignore contradichas y archivos .hebrinex ya rastreados; verifica tambien aprobaciones canonicas preexistentes. Compatible con arrays JSON vacios de PowerShell 5.1.
+
+### Changed
+- Lectura sin efecto: `AGENTS.md` y `orquestador/method/operating-modes.md` dejan de pedir preflight y `SI` para comandos `read_only` dentro del proyecto, alineados con `command-risk-registry.yaml` (`requires_human_si: false`). Escritura, red, git con efecto, secretos y rutas externas siguen pidiendo `SI`.
+- Hard lock 10 de `AGENTS.md`: el presupuesto de `context-budget.yaml` aplica a la carga del kernel (`scope: kernel_files_only`), no a la lectura de trabajo de la sesion.
+- `orquestador/policies/command-taxonomy.md` y `orquestador/integrations/claude/hooks-policy.md` documentan la diferencia entre la gramatica del gateway y la clasificacion del host.
+
+### Distribution
+- Release Git/source v0.17.3. No MSI nuevo, despliegue central ni migracion automatica de consumidores reales.
+- Packaging central y MCP conservan su baseline de componente 0.17.1; el migrador de consumidores no reemplaza las rutas historicas de migrate ni los trabajos 1.0 pendientes.
+
 ## [0.17.2] - 2026-10-14
 
 ### Fixed

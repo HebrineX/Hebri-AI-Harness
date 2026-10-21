@@ -1,6 +1,6 @@
 schema: hebrinex.portability.core_skills
 version: "0.1"
-harness_version: "0.17.2"
+harness_version: "0.17.3"
 required_core_skills:
   - session_contract
   - harness_resolution

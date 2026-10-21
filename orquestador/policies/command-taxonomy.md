@@ -16,7 +16,28 @@ Todo comando debe clasificarse antes de ejecutarse. Si no encaja, usar `unknown`
 
 ## Regla
 
-La aprobacion cubre solo el comando declarado, el `cwd`, la clase y el alcance. Cualquier cambio requiere nuevo preflight.
+La aprobacion cubre el `cwd`, clase y alcance agrupado declarado, sin repetir `SI`
+por cada paso menor. Ampliar alcance o efectos requiere nuevo preflight. El envelope
+de Gateway conserva su binding al comando exacto cuando se usa ese ejecutor.
+
+## Gateway vs host (0.17.3)
+
+Las lecturas nativas acotadas al proyecto, sin secretos, incluido kernel/bootstrap,
+no requieren preflight, `SI`, envelope ni Gateway obligatorio. Se respetan siempre
+el perimetro real del host y las restricciones de secretos.
+
+Gateway es un ejecutor opcional de lectura restringida, no universal. Su gramatica
+`safe_patterns`, sus envelopes exactos y controles de `-CheckOnly`/`-Apply` no
+se amplian por esta politica.
+
+El hook Claude autoaprueba un subconjunto menor: AST PowerShell con un unico
+`Get-Content`, `Get-ChildItem`, `Test-Path` o `Get-Item`, calificado con
+`Microsoft.PowerShell.Management\`, un `-LiteralPath`
+existente en el proyecto sin reparse ancestors, y solo `Get-Content` permite
+`-Raw`. Alias, flags adicionales, recursion, wildcards, providers, pipelines,
+redirecciones y codigo no se autoaprueban. Bash/Git quedan en defer inicialmente.
+Los patrones peligrosos bloqueados fuerzan ask, incluso como texto citado.
+Defer no equivale a prohibir una lectura nativa ni exige usar Gateway.
 
 ## Runtime Control
 

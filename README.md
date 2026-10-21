@@ -1,6 +1,6 @@
 # Hebri-AI-Harness
 
-Referencia operativa actual: **0.17.2**.
+Referencia operativa actual: **0.17.3**.
 
 Sistema operativo para agentes IA basado en [Hebri-AI-Structure](https://github.com/HebrineX/Hebri-AI-Structure). Objetivo: contrato, trazabilidad y aprobaciones con el minimo contexto — ahorro medido: 90% (hebrinex usage) frente a leer la documentacion operativa completa (`AGENTS.md` + `method/` + `prompts/`).
 

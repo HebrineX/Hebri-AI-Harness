@@ -1,13 +1,19 @@
 # Contrato de Sesion Extendido
 
-Version: 0.17.2
+Version: 0.17.3
 
 Este documento conserva la operacion completa del harness. No se carga por defecto. Usarlo cuando el kernel no alcanza: auditoria global, migracion, drift complejo, cierre de fase, reconstruccion historica o conflicto de reglas.
 
 ## Modos
 
-- `automatico`: el leader decide pasos seguros dentro del scope, pero pide `SI` antes de editar, ejecutar comandos, usar red/git, llamar APIs/modelos, instalar, cambiar estado SDD o abrir trabajo con riesgo.
-- `manual`: el operador aprueba cada paso o slice antes de ejecutarlo.
+- `automatico`: el leader decide pasos dentro del scope aprobado. Efectos de escritura, red/git con efecto, APIs/modelos, instalaciones y cambios SDD requieren preflight y `SI` para el alcance agrupado, sin repetir aprobacion por cada paso menor.
+- `manual`: el operador aprueba el alcance de cada paso o slice con efecto; las lecturas seguras no requieren `SI`.
+
+Lecturas nativas acotadas, sin secretos, incluido kernel/bootstrap: sin preflight,
+envelope ni Gateway obligatorio. Respetar restricciones reales del host y secretos.
+Gateway es un ejecutor opcional de lectura restringida, no universal; su envelope
+exacto sigue siendo obligatorio cuando su contrato lo exige. El presupuesto de
+contexto mide solo kernel (`kernel_files_only`), nunca archivos de trabajo.
 
 ## Handoff
 
@@ -55,7 +61,7 @@ Para changelog, release notes, roadmap, deploy docs o reportes historicos:
 3. Reconstruir hechos desde `git log`, `PROGRESS.md`, registry y ciclos.
 4. Separar hechos, inferencias, contradicciones y gaps.
 5. Completar matriz/checklist aplicable.
-6. Pedir `SI` para escribir.
+6. Confirmar que la escritura esta dentro del alcance aprobado; pedir `SI` si falta o cambia.
 
 ## Controles Condicionales
 

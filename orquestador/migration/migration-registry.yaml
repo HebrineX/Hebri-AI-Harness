@@ -1,6 +1,6 @@
 schema: hebrinex.migration_registry
 version: "0.1"
-harness_version: "0.17.2"
+harness_version: "0.17.3"
 status: active
 authority:
   migration_definition: harness_only
@@ -22,6 +22,17 @@ supported_targets:
   - "0.17.1"
   - "0.12.x"
 routes:
+  - id: "consumer-source-update-0.17.3"
+    source_version: "0.16.0..0.17.3"
+    target_version: "0.17.3"
+    route_file: scripts/migrate-consumer.ps1
+    supported_binding_modes: [bound]
+    check_only: true
+    apply: true
+    platform: windows_fixed_local_drive
+    approval: exact_snapshot_and_overwrite_paths
+    recovery: explicit_restore_bound_overlay
+    guide: orquestador/method/consumer-migration.md
   - id: "0.16.0-to-0.17.0"
     source_version: "0.16.0"
     target_version: "0.17.0"
@@ -133,6 +144,7 @@ required_validators:
   - scripts/validate-bound-update.ps1
   - scripts/validate-bound-backups.ps1
   - scripts/validate-bound-restore.ps1
+  - scripts/validate-consumer-migration.ps1
   - scripts/validate-legacy-migration.ps1
   - scripts/validate-state-machine.ps1
   - scripts/validate-agent-runtime.ps1

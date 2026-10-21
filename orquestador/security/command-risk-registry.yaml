@@ -1,6 +1,6 @@
 schema: hebrinex.security.command_risk_registry
 version: "0.1"
-harness_version: "0.17.2"
+harness_version: "0.17.3"
 defaults:
   unknown_command: block
   string_built_shell_from_untrusted_input: block
@@ -64,3 +64,25 @@ safe_patterns:
   - "Test-Path"
   - "Get-ChildItem"
   - "git status --short"
+# Native scoped nonsecret reads need neither SI, approval envelope nor Gateway.
+# Gateway safe_patterns/rate_limit above remain unchanged and restricted.
+# Hook autoallow is deliberately narrower than the native read-only policy.
+host_read_only:
+  enabled: true
+host_read_only_commands:
+  - "Microsoft.PowerShell.Management\Get-Content"
+  - "Microsoft.PowerShell.Management\Get-ChildItem"
+  - "Microsoft.PowerShell.Management\Test-Path"
+  - "Microsoft.PowerShell.Management\Get-Item"
+# Exact flags are enforced by the platform AST classifier, not prefix matching.
+# Each command requires one -LiteralPath; only Get-Content also accepts -Raw.
+# Bash/Git, aliases, recursion, pipelines, redirections and code constructs defer.
+# Existing paths must remain inside caller ProjectRoot with no reparse ancestor.
+host_read_only_secret_globs:
+  - ".env.*"
+  - "*.p12"
+  - "*.crt"
+  - "*secret*"
+  - "*password*"
+  - "*apikey*"
+  - "*private*"

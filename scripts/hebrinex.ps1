@@ -9,7 +9,7 @@ param(
   [switch]$Acquire,
   [switch]$Release,
   [switch]$List,
-  [string]$TargetVersion = '0.17.2',
+  [string]$TargetVersion = '0.17.3',
   [string]$ProjectRoot = '',
   [string]$BackupId = '',
   [string]$ApprovalId = '',
@@ -377,6 +377,15 @@ function Copy-HarnessManifestToBoundRoot([string]$BoundRoot) {
   return [ordered]@{ directories = $dirCount; files = $fileCount }
 }
 
+function Get-ConsumerHarnessIgnoreState([string]$Text) {
+  $state = 'missing'
+  foreach ($line in ($Text -split '\r?\n')) {
+    if ($line -cmatch '^/?\.hebrinex/?[ \t]*$') { $state = 'ignored' }
+    elseif ($state -eq 'ignored' -and $line.StartsWith('!')) { $state = 'contradictory' }
+  }
+  return $state
+}
+
 function Ensure-ConsumerGitIgnore([string]$ProjectRootPath) {
   $gitignorePath = Join-Path $ProjectRootPath '.gitignore'
   $line = '.hebrinex/'
@@ -385,7 +394,9 @@ function Ensure-ConsumerGitIgnore([string]$ProjectRootPath) {
     return $true
   }
   $text = [IO.File]::ReadAllText($gitignorePath)
-  if ($text -match '(?m)^\.hebrinex/\s*$') { return $false }
+  $ignoreState = Get-ConsumerHarnessIgnoreState $text
+  if ($ignoreState -eq 'contradictory') { throw 'Contradictory gitignore negation after harness exclusion; review rules before migration' }
+  if ($ignoreState -eq 'ignored') { return $false }
   $prefix = $text.TrimEnd("`r","`n")
   if ([string]::IsNullOrWhiteSpace($prefix)) { $prefix = '' }
   else { $prefix += "`n" }
@@ -610,11 +621,17 @@ function Get-HarnessManifestEntries() {
   return $entries
 }
 
-function Get-BoundUpdatePreserveReason([string]$RelativePath) {
+function Get-BoundUpdatePreserveReason([string]$RelativePath, [string]$BoundRoot = '') {
   $norm = ($RelativePath -replace '\\','/').Trim('/')
   if ([string]::IsNullOrWhiteSpace($norm)) { return 'empty_path' }
   if ($norm -eq 'PROJECT_BINDING.yaml') { return 'project_binding' }
   if ($norm -eq 'instance/PROJECT_BINDING.yaml') { return 'project_binding' }
+  if ($norm -eq 'instance/README.md' -and $BoundRoot) {
+    $readme = Join-Path $BoundRoot $norm
+    if (-not (Test-Path -LiteralPath $readme)) { return '' }
+    $item = Get-Item -LiteralPath $readme -Force
+    if ($item.PSIsContainer -or ($item.Attributes -band [IO.FileAttributes]::ReparsePoint)) { throw 'Instance README type conflict' }
+  }
   if ($norm -match '^instance/') { return 'instance_state' }
   if ($norm -match '^orquestador/context/') { return 'project_context' }
   if ($norm -in @('orquestador/sdd/progress/state.yaml','orquestador/sdd/progress/registry.yaml','orquestador/sdd/progress/registry.md','orquestador/sdd/progress/blocked.md','orquestador/sdd/progress/future-p1.md')) { return 'progress_state' }
@@ -632,8 +649,8 @@ function Get-BoundUpdatePreserveReason([string]$RelativePath) {
   return ''
 }
 
-function Test-BoundUpdatePreservedPath([string]$RelativePath) {
-  return -not [string]::IsNullOrWhiteSpace((Get-BoundUpdatePreserveReason $RelativePath))
+function Test-BoundUpdatePreservedPath([string]$RelativePath, [string]$BoundRoot = '') {
+  return -not [string]::IsNullOrWhiteSpace((Get-BoundUpdatePreserveReason $RelativePath $BoundRoot))
 }
 
 function Add-BoundBackupCandidate([System.Collections.Generic.HashSet[string]]$Candidates, [string]$BoundRoot, [string]$RelativePath) {
@@ -710,7 +727,7 @@ function Copy-HarnessManifestToExistingBoundRoot([string]$BoundRoot) {
   foreach ($entry in (Get-HarnessManifestEntries)) {
     $rel = $entry.RelativePath
     if (Test-BootstrapExcludedPath $rel) { continue }
-    if (Test-BoundUpdatePreservedPath $rel) {
+    if (Test-BoundUpdatePreservedPath $rel $BoundRoot) {
       if ($entry.Kind -eq 'file') { $preservedCount++ }
       continue
     }
@@ -735,6 +752,10 @@ function Copy-BoundLegacyFileToCanonical([string]$BoundRoot, [string]$LegacyRela
   if (-not (Test-HarnessLeaf $source)) { return 0 }
   $destination = Join-Path $BoundRoot ($CanonicalRelativePath -replace '/', [IO.Path]::DirectorySeparatorChar)
   if ([IO.Path]::GetFullPath($source) -eq [IO.Path]::GetFullPath($destination)) { return 0 }
+  if (Test-Path -LiteralPath $destination) {
+    if (-not (Test-HarnessLeaf $destination)) { throw "canonical state destination is not a file: $CanonicalRelativePath" }
+    return 0
+  }
   Ensure-Directory (Split-Path -Parent $destination)
   Copy-Item -LiteralPath $source -Destination $destination -Force
   return 1
@@ -755,6 +776,10 @@ function Copy-BoundLegacyTreeToCanonical([string]$BoundRoot, [string]$LegacyRela
     if ($excluded) { continue }
     $destination = Join-Path $BoundRoot (($CanonicalRelativeDir.TrimEnd('/') + '/' + $relNorm) -replace '/', [IO.Path]::DirectorySeparatorChar)
     if ([IO.Path]::GetFullPath($file.FullName) -eq [IO.Path]::GetFullPath($destination)) { continue }
+    if (Test-Path -LiteralPath $destination) {
+      if (-not (Test-HarnessLeaf $destination)) { throw "canonical state destination is not a file: $CanonicalRelativeDir/$relNorm" }
+      continue
+    }
     Ensure-Directory (Split-Path -Parent $destination)
     Copy-Item -LiteralPath $file.FullName -Destination $destination -Force
     $copied++
@@ -762,22 +787,36 @@ function Copy-BoundLegacyTreeToCanonical([string]$BoundRoot, [string]$LegacyRela
   return $copied
 }
 
+function Get-BoundLegacyInstanceMappings() {
+  foreach ($pair in @(
+    @('PROGRESS.md','instance/PROGRESS.md'),
+    @('orquestador/memory/memory-registry.yaml','instance/memory/memory-registry.yaml'),
+    @('orquestador/runtime/gateway-rate.json','instance/runtime/gateway-rate.json'),
+    @('mcp/agents-backend.local.yaml','instance/mcp/agents-backend.local.yaml')
+  )) {
+    [pscustomobject]@{ Kind = 'file'; Source = $pair[0]; Destination = $pair[1]; ExcludeRegex = @() }
+  }
+  [pscustomobject]@{ Kind = 'dir'; Source = 'orquestador/context'; Destination = 'instance/context'; ExcludeRegex = @() }
+  foreach ($layer in @('local','project','cycle','daily','complete')) {
+    [pscustomobject]@{ Kind = 'dir'; Source = "orquestador/memory/$layer"; Destination = "instance/memory/$layer"; ExcludeRegex = @() }
+  }
+  [pscustomobject]@{ Kind = 'dir'; Source = 'orquestador/sdd/progress'; Destination = 'instance/sdd/progress'; ExcludeRegex = @('^schemas/','^templates/','^_README[.]md$') }
+  [pscustomobject]@{ Kind = 'dir'; Source = 'orquestador/sdd/specs'; Destination = 'instance/sdd/specs'; ExcludeRegex = @('^_template/') }
+  [pscustomobject]@{ Kind = 'dir'; Source = 'orquestador/migration/backups'; Destination = 'instance/migration/backups'; ExcludeRegex = @() }
+  [pscustomobject]@{ Kind = 'dir'; Source = 'orquestador/migration/reports'; Destination = 'instance/migration/reports'; ExcludeRegex = @('^migration-report[.]template[.]yaml$') }
+  [pscustomobject]@{ Kind = 'dir'; Source = 'orquestador/runtime/claude'; Destination = 'instance/runtime/claude'; ExcludeRegex = @() }
+}
+
 function Copy-BoundLegacyInstanceStateToCanonical([string]$BoundRoot) {
   $files = 0
-  $files += Copy-BoundLegacyFileToCanonical $BoundRoot 'PROGRESS.md' 'instance/PROGRESS.md'
-  $files += Copy-BoundLegacyFileToCanonical $BoundRoot 'orquestador/memory/memory-registry.yaml' 'instance/memory/memory-registry.yaml'
-  $files += Copy-BoundLegacyFileToCanonical $BoundRoot 'orquestador/runtime/gateway-rate.json' 'instance/runtime/gateway-rate.json'
-  $files += Copy-BoundLegacyFileToCanonical $BoundRoot 'mcp/agents-backend.local.yaml' 'instance/mcp/agents-backend.local.yaml'
-
-  $files += Copy-BoundLegacyTreeToCanonical $BoundRoot 'orquestador/context' 'instance/context'
-  foreach ($layer in @('local','project','cycle','daily','complete')) {
-    $files += Copy-BoundLegacyTreeToCanonical $BoundRoot "orquestador/memory/$layer" "instance/memory/$layer"
+  foreach ($mapping in (Get-BoundLegacyInstanceMappings)) {
+    if ($mapping.Kind -eq 'file') {
+      $files += Copy-BoundLegacyFileToCanonical $BoundRoot $mapping.Source $mapping.Destination
+    }
+    else {
+      $files += Copy-BoundLegacyTreeToCanonical $BoundRoot $mapping.Source $mapping.Destination $mapping.ExcludeRegex
+    }
   }
-  $files += Copy-BoundLegacyTreeToCanonical $BoundRoot 'orquestador/sdd/progress' 'instance/sdd/progress' @('^schemas/','^templates/','^_README[.]md$')
-  $files += Copy-BoundLegacyTreeToCanonical $BoundRoot 'orquestador/sdd/specs' 'instance/sdd/specs' @('^_template/')
-  $files += Copy-BoundLegacyTreeToCanonical $BoundRoot 'orquestador/migration/backups' 'instance/migration/backups'
-  $files += Copy-BoundLegacyTreeToCanonical $BoundRoot 'orquestador/migration/reports' 'instance/migration/reports' @('^migration-report[.]template[.]yaml$')
-  $files += Copy-BoundLegacyTreeToCanonical $BoundRoot 'orquestador/runtime/claude' 'instance/runtime/claude'
   return [ordered]@{ files = $files }
 }
 
@@ -904,6 +943,20 @@ function Resolve-BoundUpdateTarget([string]$SourceRoot, [string]$ProjectRootValu
   return [ordered]@{ ProjectRoot = $projectRootPath; BoundRoot = $boundRoot; Binding = $binding }
 }
 
+function Convert-BoundSessionPinVersion([string]$Text, [string]$SourceVersion, [string]$TargetVersion) {
+  $fields = [regex]::Matches($Text, '(?m)^[ \t]*harness_version:')
+  $pattern = '(?m)^[ \t]*harness_version:[ \t]*(?<quote>["'']?)(?<value>[0-9]+\.[0-9]+\.[0-9]+)\k<quote>[ \t]*(?:#[^\r\n]*)?\r?$'
+  $matches = [regex]::Matches($Text, $pattern)
+  if ($fields.Count -ne 1 -or $matches.Count -ne 1) { throw 'session pin requires one unambiguous harness_version field' }
+  $value = $matches[0].Groups['value']
+  if ($value.Value -notin @($SourceVersion, $TargetVersion)) { throw 'session pin version contradicts effective binding' }
+  return [pscustomobject]@{
+    Text = $Text.Remove($value.Index, $value.Length).Insert($value.Index, $TargetVersion)
+    Changed = $value.Value -ne $TargetVersion
+    FromVersion = $value.Value
+  }
+}
+
 function Invoke-BoundUpdateApply([string]$ProjectRootValue) {
   $sourceBindingText = Read-HarnessText 'PROJECT_BINDING.yaml'
   $sourceMode = Get-Scalar $sourceBindingText 'binding_mode'
@@ -913,12 +966,19 @@ function Invoke-BoundUpdateApply([string]$ProjectRootValue) {
   $targetVersionPath = Join-Path $target.BoundRoot 'HARNESS_VERSION'
   $sourceVersion = if (Test-Path -LiteralPath $targetVersionPath -PathType Leaf) { ([IO.File]::ReadAllText($targetVersionPath)).Trim() } else { Get-Scalar $target.Binding 'harness_version' }
   if ([string]::IsNullOrWhiteSpace($sourceVersion)) { $sourceVersion = 'unknown' }
+  $pinPath = Resolve-BoundHarnessPath $target.BoundRoot 'orquestador/memory/local/session-pin.md'
+  if (-not (Test-HarnessLeaf $pinPath)) { throw 'bound update requires an existing session pin' }
+  # Strict UTF-8 roundtrip preserves BOM, line endings and all non-version bytes.
+  $pinEncoding = [Text.UTF8Encoding]::new($false, $true)
+  $pinUpdate = Convert-BoundSessionPinVersion ($pinEncoding.GetString([IO.File]::ReadAllBytes($pinPath))) $sourceVersion $version
   $startedAt = (Get-Date).ToUniversalTime().ToString('o')
   $updateId = 'migration-bound-update-' + (Get-Date).ToUniversalTime().ToString('yyyyMMddTHHmmssZ') + '-' + ([guid]::NewGuid().ToString('N').Substring(0, 8))
 
   $backup = Create-BoundUpdateBackupRecord $target.BoundRoot $updateId
   $copyResult = Copy-HarnessManifestToExistingBoundRoot $target.BoundRoot
   $instanceCopyResult = Copy-BoundLegacyInstanceStateToCanonical $target.BoundRoot
+  $canonicalPin = Resolve-BoundCanonicalPath $target.BoundRoot 'orquestador/memory/local/session-pin.md'
+  [IO.File]::WriteAllBytes($canonicalPin, $pinEncoding.GetBytes($pinUpdate.Text))
   $gitignoreUpdated = Ensure-ConsumerGitIgnore $target.ProjectRoot
   $bindingInfo = Update-BoundProjectBindingVersion $target.BoundRoot $version
   [void](Set-BoundUpdatePostMigrationContractFile $target.BoundRoot $sourceVersion $version)
@@ -1441,7 +1501,7 @@ function Show-Help() {
   Write-Host '  hebrinex.ps1 approve -CheckOnly|-Apply -CommandText <command> [-Purpose <text>] [-TtlMinutes <1-1440>]'
   Write-Host '  hebrinex.ps1 validate [-RunNegativeTests]'
   Write-Host '  hebrinex.ps1 audit [-RunNegativeTests]'
-  Write-Host '  hebrinex.ps1 migrate -CheckOnly|-Apply [-TargetVersion 0.17.2]'
+  Write-Host '  hebrinex.ps1 migrate -CheckOnly|-Apply [-TargetVersion 0.17.3]'
   Write-Host '  hebrinex.ps1 bootstrap -CheckOnly|-Apply -ProjectRoot <path>'
   Write-Host '  hebrinex.ps1 update-bound -CheckOnly|-Apply -ProjectRoot <path>'
   Write-Host '  hebrinex.ps1 list-bound-backups -CheckOnly -ProjectRoot <path>'

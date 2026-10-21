@@ -176,6 +176,7 @@ foreach ($commandCase in @(
   'Get-Content AGENTS.md',
   'Get-Content -LiteralPath AGENTS.md',
   'Get-Content -Raw -LiteralPath AGENTS.md',
+  'Get-Content -LiteralPath AGENTS.md -Raw',
   'Test-Path AGENTS.md',
   'Get-ChildItem scripts',
   'Select-String AGENTS.md -Pattern Kernel',
@@ -188,7 +189,7 @@ foreach ($commandCase in @(
   'Get-Content -Raw',
   'Get-Content -LiteralPath',
   'Get-Content -Raw AGENTS.md',
-  'Get-Content -LiteralPath AGENTS.md -Raw',
+  'Get-Content -LiteralPath AGENTS.md -Raw -Raw',
   'Get-Content -Raw -Raw -LiteralPath AGENTS.md',
   'Get-Content AGENTS.md -TotalCount 1',
   'Get-ChildItem -Name -Recurse',
@@ -208,12 +209,13 @@ $rawFixture = Join-Path $Root ('gateway raw ' + [guid]::NewGuid().ToString('N') 
 try {
   foreach ($contentCase in @("first`r`nlast  `r`n`r`n", "first`nlast  `n`n", '')) {
     [IO.File]::WriteAllText($rawFixture, $contentCase)
-    $rawCommand = "Get-Content -Raw -LiteralPath '$rawFixture'"
-    Assert-GatewayAllows $rawCommand
-    $rawResult = Invoke-GatewayJson $rawCommand '' 'Apply'
-    if ($rawResult.ExitCode -ne 0 -or $rawResult.Json.execution.exit_code -ne 0 -or
-        -not [string]::Equals([string]$rawResult.Json.execution.stdout, $contentCase, [StringComparison]::Ordinal)) {
-      Add-Failure 'Raw must preserve benign content, trailing spaces and line endings within output limits'
+    foreach ($rawCommand in @("Get-Content -Raw -LiteralPath '$rawFixture'", "Get-Content -LiteralPath '$rawFixture' -Raw")) {
+      Assert-GatewayAllows $rawCommand
+      $rawResult = Invoke-GatewayJson $rawCommand '' 'Apply'
+      if ($rawResult.ExitCode -ne 0 -or $rawResult.Json.execution.exit_code -ne 0 -or
+          -not [string]::Equals([string]$rawResult.Json.execution.stdout, $contentCase, [StringComparison]::Ordinal)) {
+        Add-Failure 'Raw must preserve benign content, trailing spaces and line endings within output limits'
+      }
     }
   }
 }
@@ -258,11 +260,17 @@ if ($applyJson.Json.execution.stdout -notmatch 'True') {
 }
 
 $blockedJson = Invoke-GatewayJson 'git push origin main'
-if ($blockedJson.ExitCode -eq 0 -or $blockedJson.Json.generated_preflight.enabled -ne $true) {
-  Add-Failure 'gateway JSON must generate preflight for blocked commands'
+if ($blockedJson.ExitCode -eq 0 -or $blockedJson.Json.generated_preflight.enabled -ne $false) {
+  Add-Failure 'policy blocks must not generate an unusable approval preflight'
 }
-if ($blockedJson.Json.generated_preflight.requires_si -ne $true -or $blockedJson.Json.risk_class -ne 'git_remote') {
-  Add-Failure 'gateway JSON preflight must require SI for git_remote'
+if ($blockedJson.Json.generated_preflight.requires_si -ne $false -or $blockedJson.Json.risk_class -ne 'git_remote') {
+  Add-Failure 'git_remote stays blocked without an approval retry loop'
+}
+foreach ($blockedCommand in @('Get-ChildItem -Name -Recurse','Get-Content ../outside.txt','Get-Content README.md | Select-Object -First 1')) {
+  $denied = Invoke-GatewayJson $blockedCommand
+  if ($denied.Json.requires_si -or $denied.Json.requires_preflight -or $denied.Json.execution.attempted -or $denied.Json.next_step -notmatch 'another SI cannot') {
+    Add-Failure 'capability blocks must explain that another SI cannot override them'
+  }
 }
 
 $secretJson = Invoke-GatewayJson 'Get-Content .env token=abc123'
@@ -297,9 +305,21 @@ try {
   }
   $fakeApproval = & $gatewayScript -Root $Root -CheckOnly -CommandText 'Get-Content README.md' -ApprovalId 'APR-FAKE-DOES-NOT-EXIST' 2>&1
   $fakeApprovalText = $fakeApproval -join "`n"
-  if ($LASTEXITCODE -eq 0 -or $fakeApprovalText -notmatch 'approval_not_found') {
+  if ($LASTEXITCODE -eq 0 -or $fakeApprovalText -notmatch 'approval_not_found' -or $fakeApprovalText -notmatch 'requires_si=true') {
     Add-Failure 'gateway must block a fake approval id'
   }
+  $unsupported = 'Get-ChildItem -Name -Recurse'
+  Import-Module (Resolve-HarnessPath 'scripts/lib/hebri-common.psm1') -Force -DisableNameChecking -Prefix 'Hebri' -Scope Local
+  $unsupportedApproval = New-HebriApprovalEnvelope -Root $Root -CommandText $unsupported -Purpose 'validator non-authorizable block' -TtlMinutes 5
+  try {
+    foreach ($id in @($unsupportedApproval.Id,'APR-FAKE-DOES-NOT-EXIST')) {
+      $denied = & $gatewayScript -Root $Root -CheckOnly -Json -CommandText $unsupported -ApprovalId $id | ConvertFrom-Json
+      if ($denied.reason -ne 'apply_requires_strict_readonly_allowlist' -or $denied.requires_si -or $denied.execution.attempted) {
+        Add-Failure 'valid or invalid approval must not hide a capability rejection'
+      }
+    }
+  }
+  finally { Remove-Item -LiteralPath $unsupportedApproval.Path -Force }
 }
 finally {
   if ($null -ne $approvalEnvelope -and (Test-Path -LiteralPath $approvalEnvelope.Path)) {
@@ -318,6 +338,10 @@ try {
   $rateState = [ordered]@{ schema = 'hebrinex.gateway_rate_state'; version = '0.1'; window_seconds = 60; entries = $rateEntries }
   [IO.File]::WriteAllText($ratePath, ($rateState | ConvertTo-Json -Depth 3))
   Assert-GatewayApplyBlocks 'Test-Path README.md' 'rate_limit_exceeded'
+  $rateJson = Invoke-GatewayJson 'Test-Path README.md' '' 'Apply'
+  if ($rateJson.Json.requires_si -or $rateJson.Json.requires_preflight -or $rateJson.Json.execution.attempted -or $rateJson.Json.next_step -notmatch 'wait for the rate window') {
+    Add-Failure 'rate limit must request waiting, not another SI'
+  }
   $checkOnlyDuringLimit = Invoke-Gateway 'Get-Content README.md' 'CheckOnly'
   if ($checkOnlyDuringLimit.ExitCode -ne 0 -or $checkOnlyDuringLimit.Text -notmatch 'decision=allow') {
     Add-Failure 'gateway CheckOnly must not be rate limited'

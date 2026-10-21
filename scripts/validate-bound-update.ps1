@@ -185,9 +185,16 @@ function Invoke-SourceTemplateBoundUpdateSmoke() {
     $bindingPath = Resolve-RootHarnessPath $boundRoot 'PROJECT_BINDING.yaml'
     $binding = [IO.File]::ReadAllText($bindingPath)
     $originalInstanceId = Get-Scalar $binding 'harness_instance_id'
+    $pinPath = Resolve-RootHarnessPath $boundRoot 'orquestador/memory/local/session-pin.md'
+    $oldPin = ([IO.File]::ReadAllText($pinPath).Replace($sourceVersion, $previousVersion) -replace '\r?\n', "`r`n") + "# local pin marker`r`n"
+    [IO.File]::WriteAllBytes($pinPath, [Text.UTF8Encoding]::new($false).GetBytes($oldPin))
 
     Write-Utf8Text (Join-Path $boundRoot 'orquestador/memory/local/update-bound-marker.md') "preserve_marker_0107 local memory`n"
     Write-Utf8Text (Join-Path $boundRoot 'orquestador/sdd/progress/cycles/update-bound-marker.md') "preserve_marker_0107 progress cycle`n"
+    Write-Utf8Text (Join-Path $boundRoot 'orquestador/memory/local/canonical-wins.md') "stale legacy memory`n"
+    Write-Utf8Text (Join-Path $boundRoot 'instance/memory/local/canonical-wins.md') "current canonical memory`n"
+    Write-Utf8Text (Join-Path $boundRoot 'orquestador/runtime/gateway-rate.json') '{"legacy":true}'
+    Write-Utf8Text (Join-Path $boundRoot 'instance/runtime/gateway-rate.json') '{"canonical":true}'
     Write-Utf8Text (Join-Path $boundRoot 'HARNESS_VERSION') "$previousVersion`n"
     $oldBinding = Set-TopLevelScalar $binding 'harness_version' ('"' + $previousVersion + '"')
     $legacyBindingPath = Join-Path $boundRoot 'PROJECT_BINDING.yaml'
@@ -214,6 +221,19 @@ function Invoke-SourceTemplateBoundUpdateSmoke() {
     if ($applyText -notmatch 'update_status=applied') { Add-Failure 'update-bound Apply must report update_status=applied' }
 
     Assert-BoundUpdateShape $boundRoot $projectRoot $sourceVersion $originalInstanceId
+    $updatedPin = [IO.File]::ReadAllText((Join-Path $boundRoot 'instance/memory/local/session-pin.md'))
+    if ($updatedPin -cne $oldPin.Replace($previousVersion, $sourceVersion)) {
+      Add-Failure 'update-bound must update only the session pin version while preserving other content and CRLF'
+    }
+    if ([IO.File]::ReadAllText((Join-Path $boundRoot 'instance/memory/local/canonical-wins.md')) -ne "current canonical memory`n") {
+      Add-Failure 'update-bound replaced current canonical memory with stale legacy memory'
+    }
+    if ([IO.File]::ReadAllText((Join-Path $boundRoot 'instance/runtime/gateway-rate.json')) -ne '{"canonical":true}') {
+      Add-Failure 'update-bound replaced current canonical runtime state with stale legacy state'
+    }
+    if (-not (Test-Path -LiteralPath (Join-Path $boundRoot 'instance/memory/local/update-bound-marker.md') -PathType Leaf)) {
+      Add-Failure 'update-bound did not import legacy memory when canonical destination was absent'
+    }
 
     $boundValidator = Join-Path $boundRoot 'scripts/validate-harness.ps1'
     if (Test-Path -LiteralPath $boundValidator -PathType Leaf) {
@@ -237,6 +257,19 @@ function Assert-BoundModeUpdateReadiness() {
 }
 
 function Run-NegativeTests() {
+  $tokens = $null; $parseErrors = $null
+  $ast = [Management.Automation.Language.Parser]::ParseFile((Join-Path $Root 'scripts/hebrinex.ps1'), [ref]$tokens, [ref]$parseErrors)
+  $converter = $ast.Find({ param($node) $node -is [Management.Automation.Language.FunctionDefinitionAst] -and $node.Name -eq 'Convert-BoundSessionPinVersion' }, $false)
+  if ($null -eq $converter -or $parseErrors.Count) { Add-Failure 'session pin converter unavailable'; return }
+  . ([scriptblock]::Create($converter.Extent.Text))
+  $original = [char]0xFEFF + "# pin`r`nharness_version: '0.17.2' # local`r`ncustom: keep`r`n"
+  $converted = Convert-BoundSessionPinVersion $original '0.17.2' '0.17.3'
+  if ($converted.Text -cne $original.Replace('0.17.2','0.17.3')) { Add-Failure 'pin conversion changed BOM, CRLF or unrelated text' }
+  foreach ($bad in @('missing', "harness_version: 0.16.0`n", "harness_version: 0.17.2`nharness_version: 0.17.2`n")) {
+    $rejected = $false
+    try { Convert-BoundSessionPinVersion $bad '0.17.2' '0.17.3' | Out-Null } catch { $rejected = $true }
+    if (-not $rejected) { Add-Failure 'ambiguous session pin accepted' }
+  }
   $badSource = 'binding_mode: bound'
   if ($badSource -notmatch 'binding_mode:\s*bound') { Add-Failure 'negative test failed: source_template requirement did not trigger' }
   $badExisting = 'target project does not have .hebrinex'

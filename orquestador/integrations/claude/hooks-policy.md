@@ -6,13 +6,28 @@ Hooks implementados (ver `settings.template.json` e instalador `scripts/install-
   En `central_instance` resuelve `.hebrinex/binding.json`, calcula el brief y lo
   inyecta sin persistir acceso ni copiar scripts. En modos legacy conserva el brief
   local de `orquestador/runtime/claude/reentry-brief.md`.
-- `PreToolUse` (matcher `Bash|PowerShell`): ejecuta `scripts/claude-pretooluse-hook.ps1`,
-  que clasifica el comando con el Command Gateway y responde:
-  - gateway `allow` -> `permissionDecision=allow` (read-only seguro, sin prompt).
-  - gateway `blocked_pattern` -> `permissionDecision=ask` (fuerza `SI` explicito del
-    operador aunque el comando este allowlisted en el host).
-  - resto (composite, secrets, unknown) -> sin decision; aplica el flujo de permisos
-    normal de Claude Code.
+- `PreToolUse` (matcher `Bash|PowerShell`): usa el AST de PowerShell de la
+  plataforma, sin ejecutar el comando ni invocar Gateway/resolvers de bindings.
+  Solo autoaprueba un comando literal `Get-Content`, `Get-ChildItem`, `Test-Path`
+  o `Get-Item`, calificado con `Microsoft.PowerShell.Management\`, con un
+  `-LiteralPath` existente dentro del ProjectRoot del caller.
+  Solo `Get-Content` admite ademas `-Raw`. Comprueba ancestros desde la raiz del
+  filesystem antes de acceder a descendientes; rechaza symlinks/reparse points.
+  La comparacion de containment distingue mayusculas en Linux y no en Windows.
+  No admite alias, flags adicionales/abreviados, providers, wildcards, recursion,
+  pipelines, redirecciones, expansiones ni construcciones de codigo.
+  - coincidencia de `blocked_patterns`, incluso citada -> `permissionDecision=ask`;
+  - lectura literal probada y `host_read_only.enabled: true` -> `allow`;
+  - Bash/Git, secretos, paths ausentes/fuera de scope y cualquier incertidumbre ->
+    sin decision, flujo normal de permisos del host.
+  `ProjectRoot` explicito prevalece; si falta se usa `CLAUDE_PROJECT_DIR`.
+  Sin raiz o cwd no se autoaprueba. Ningun binding externo sustituye esa raiz.
+  Las politicas se leen directamente del InstallRoot confiable sin resolver bindings.
+  El hook no reemplaza sandbox/perimetro del host ni autoriza secretos. No prueba
+  ausencia de secretos en archivos con nombres ordinarios, ni evita cambios de
+  filesystem entre clasificacion y ejecucion (TOCTOU). Requiere host confiable,
+  con modulos de plataforma confiables. El prefijo evita shadowing ordinario por
+  funciones/alias; el hook externo no demuestra integridad del runspace ejecutor.
 - `PreToolUse` (matcher `Edit|Write|NotebookEdit`): ejecuta
   `scripts/claude-writeguard-hook.ps1`, que valida el `file_path` (o `notebook_path`)
   del tool input contra:
@@ -50,7 +65,10 @@ Instalacion: `scripts/install-claude-hooks.ps1 -CheckOnly` muestra el plan;
 `<project_root>/.claude/settings.json`. Para una instancia central se agrega
 `-RuntimeMode central_instance -ProjectRoot <root> -CatalogRoot <root-catalogo>`.
 
-El `SI` del operador se materializa con `hebrinex approve -Apply -CommandText <accion>`,
+Lecturas nativas acotadas sin secretos, incluido kernel/bootstrap, no requieren
+`SI`, envelope ni Gateway. Gateway es opcional, restringido, no universal.
+Para efectos, `SI` cubre el alcance agrupado aprobado, sin repetir cada paso menor.
+Cuando se usa Gateway, su contrato se materializa con `hebrinex approve -Apply -CommandText <accion>`,
 que crea un approval envelope con expiracion y hash exacto de la accion. El gateway
 valida `-ApprovalId` contra ese almacen y bloquea envelopes falsos, vencidos o con
 comando distinto. El gateway ademas limita las ejecuciones `-Apply` con una ventana

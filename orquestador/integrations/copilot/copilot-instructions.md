@@ -5,9 +5,19 @@
 
 Chat = interprete. Leader visible coordina. `.hebrinex/` del proyecto activo es autoridad. Memoria conversacional no es evidencia.
 
+Kernel/bootstrap: lectura nativa acotada sin secretos, sin `SI`, envelope ni Gateway
+obligatorio. Respetar perimetro del host. Gateway es opcional y restringido.
+Presupuesto `kernel_files_only`: no medir archivos de trabajo contra ese limite.
+Efectos requieren preflight y `SI` agrupado por alcance, no por cada paso menor.
+
 ## Preflight obligatorio antes de efectos
 
 Antes de efectos: Approval ID, accion, CWD, read-set, write-set, comando/tool, red/git, riesgo, verificacion, evidencia esperada y `SI`.
+
+El `SI` cubre el alcance agrupado, sin repetirlo por cada paso menor. Lecturas
+nativas acotadas y sin secretos (incluido kernel/bootstrap) no requieren preflight,
+`SI`, envelope ni Gateway. Gateway es opcional, de lectura restringida, no universal;
+su contrato exacto y las restricciones reales del host siguen vigentes.
 
 ## Denylists
 

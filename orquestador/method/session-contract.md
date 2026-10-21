@@ -1,6 +1,6 @@
 # Contrato de Sesion - Kernel
 
-Version: 0.17.2
+Version: 0.17.3
 
 Kernel obligatorio. Detalle ampliado: `session-contract-extended.md`.
 
@@ -36,7 +36,11 @@ Sin bootstrap no hay trabajo valido.
 
 ## Resolucion
 
-`.hebrinex/` del proyecto activo manda si el binding coincide con `project_root`. Si falta, copiar fuente libre; si no existe, proponer descarga. No copiar, descargar, editar ni ejecutar sin `SI`. No usar harness externo como autoridad.
+`.hebrinex/` del proyecto activo manda si el binding coincide con `project_root`. Si falta, copiar fuente libre; si no existe, proponer descarga. Copiar, descargar, editar y ejecutar con efectos requieren `SI`. No usar harness externo como autoridad.
+
+Lecturas nativas acotadas al proyecto y sin secretos, incluido kernel/bootstrap,
+no requieren preflight, `SI`, envelope ni Gateway. Respetar el perimetro real del
+host; Gateway es opcional y solo ejecuta su gramatica restringida de lectura.
 
 ## Hard Locks
 
@@ -47,7 +51,7 @@ Sin bootstrap no hay trabajo valido.
 5. No cerrar con agentes, locks o handoffs abiertos.
 6. No cargar memoria completa sin motivo y aprobacion.
 7. Memoria conversacional no es evidencia.
-8. Si `context-budget.yaml` se supera, detenerse.
+8. Aplicar `context-budget.yaml` solo a archivos del kernel (`kernel_files_only`); las lecturas de trabajo no consumen ese limite.
 9. Correccion del operador = hard lock.
 
 ## Preflight
@@ -66,4 +70,7 @@ Evidencia esperada:
 Requiere SI: SI
 ```
 
-El `SI` aprueba solo la accion exacta. Runtime 0.17.0 es cache; state/registry/evidence mandan.
+El `SI` aprueba el alcance agrupado declarado, sin repetirlo por cada paso menor.
+Ampliar alcance o efectos requiere nuevo preflight. Si se usa Gateway, su envelope
+sigue ligado al comando exacto; no convierte Gateway en ejecutor universal.
+Runtime 0.17.0 es cache; state/registry/evidence mandan.

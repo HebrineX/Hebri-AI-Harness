@@ -1,6 +1,6 @@
 # Context Loading Policy
 
-Version: 0.17.2
+Version: 0.17.3
 
 ## Objetivo
 
@@ -30,7 +30,13 @@ Context budget:
 - Dentro de presupuesto: si | no
 ```
 
-Si el read-set supera presupuesto, el agente debe parar y pedir un brief mas acotado o aprobacion para `leader_full`/`audit_global`.
+El presupuesto aplica solo a archivos del kernel (`scope: kernel_files_only`),
+no al read-set de implementacion, tests o documentos de trabajo. Aplicar a ese
+kernel los umbrales y acciones de `context-budget.yaml`.
+
+Leer kernel/bootstrap con herramientas nativas, dentro del proyecto y sin secretos,
+no requiere `SI`, preflight, envelope ni Gateway obligatorio. Gateway es opcional
+y restringido; esta regla no elimina restricciones del host ni de secretos.
 
 ## Carga Completa
 

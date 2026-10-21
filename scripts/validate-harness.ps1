@@ -484,6 +484,16 @@ if ((Invoke-WriteguardHook 'HARNESS_VERSION') -notmatch '"permissionDecision":"a
 if (-not [string]::IsNullOrWhiteSpace((Invoke-WriteguardHook 'artifacts/validate-harness-unprotected-witness.tmp'))) {
   Add-Failure 'writeguard hook must stay silent for an unprotected, unlocked path'
 }
+
+# Focused hook suite owns disposable fixtures and exercises actual stdin on PS7/5.1.
+if (-not $SkipNestedValidators) {
+  try {
+    & (Resolve-HarnessPath 'scripts/validate-host-readonly.ps1') -Root $Root
+  } catch {
+    Add-Failure "PreToolUse focused validation failed: $($_.Exception.Message)"
+  }
+}
+Assert-Contains 'orquestador/security/command-risk-registry.yaml' 'host_read_only_commands' 'command risk registry must declare the host read-only command list'
 Assert-Contains 'orquestador/integrations/claude/CLAUDE.template.md' 'reentry-brief' 'CLAUDE template must point to reentry brief'
 Assert-Contains 'orquestador/sdd/progress/templates/claude-reentry-state.yaml' 'non_authoritative: true' 'Claude reentry state must be non-authoritative'
 Assert-Contains 'scripts/install-claude-hooks.ps1' 'install-claude-hooks requires exactly one mode' 'Claude hook installer must enforce exclusive CheckOnly/Apply mode'
@@ -639,6 +649,12 @@ else {
   Invoke-Validator 'validate-migration' 'scripts/validate-migration.ps1'
   Invoke-Validator 'validate-fixtures' 'scripts/validate-fixtures.ps1'
   Invoke-Validator 'validate-command-gateway' 'scripts/validate-command-gateway.ps1'
+  if (Test-HarnessLeaf (Resolve-HarnessPath 'scripts/validate-harness-inventory.ps1')) {
+    Invoke-Validator 'validate-harness-inventory' 'scripts/validate-harness-inventory.ps1'
+  }
+  if (Test-HarnessLeaf (Resolve-HarnessPath 'scripts/validate-consumer-migration.ps1')) {
+    Invoke-Validator 'validate-consumer-migration' 'scripts/validate-consumer-migration.ps1'
+  }
   Invoke-Validator 'validate-state-machine' 'scripts/validate-state-machine.ps1'
   Invoke-Validator 'validate-agent-runtime' 'scripts/validate-agent-runtime.ps1'
   if (Test-HarnessLeaf (Resolve-HarnessPath 'scripts/validate-agent-context.ps1')) {

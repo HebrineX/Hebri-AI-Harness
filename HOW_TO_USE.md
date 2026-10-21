@@ -1,4 +1,4 @@
-# How To Use - Hebri-AI-Harness 0.17.2
+# How To Use - Hebri-AI-Harness 0.17.3
 
 Esta guia es la entrada practica para usar el harness sin leer todo el arbol.
 La autoridad operativa sigue siendo `.hebrinex/` cuando existe en un proyecto
@@ -19,6 +19,19 @@ consumidor; en este repo fuente la autoridad es el source template.
    agentes cuando aplique.
 
 ## Instalacion en un proyecto
+
+### Actualizar un consumidor existente
+
+Usar `scripts/migrate-consumer.ps1` desde una distribucion fuente verificada,
+primero con `-CheckOnly`, indicando un solo `-ProjectRoot`. La autoridad sigue
+siendo el `.hebrinex` local del consumidor. Revisar el plan y registrar su
+aprobacion exacta antes de `-Apply`; no intentar resolver bloqueos de sintaxis
+del Gateway repitiendo SI ni usar `migrate` historico para este flujo.
+
+Procedimiento, formatos soportados y recuperacion:
+[`consumer-migration.md`](orquestador/method/consumer-migration.md).
+Para localizar copias sin leer su contenido, usar el flujo separado de
+[`gateway-inventory.md`](orquestador/method/gateway-inventory.md).
 
 ### Candidato central P06
 

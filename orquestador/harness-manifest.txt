@@ -575,3 +575,10 @@ file scripts/validate-operation-safety.ps1
 file scripts/validate-project-service.ps1
 file scripts/validate-root-resolver.ps1
 file scripts/validate-packaging.ps1
+file scripts/inventory-harness.ps1
+file scripts/validate-harness-inventory.ps1
+file orquestador/method/gateway-inventory.md
+file scripts/migrate-consumer.ps1
+file scripts/validate-consumer-migration.ps1
+file scripts/validate-host-readonly.ps1
+file orquestador/method/consumer-migration.md

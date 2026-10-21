@@ -141,6 +141,10 @@ function New-ApplyPlan([string]$Text) {
       $pathArg = $tokens[3]
       $raw = $true
     }
+    elseif ($tokens.Count -eq 4 -and $tokens[1] -ieq '-LiteralPath' -and -not $tokens[2].StartsWith('-') -and $tokens[3] -ieq '-Raw') {
+      $pathArg = $tokens[2]
+      $raw = $true
+    }
     else { throw 'apply_requires_strict_readonly_allowlist' }
     return [ordered]@{ kind = 'get_content'; path = (Resolve-ReadOnlyPath $pathArg); pattern = ''; raw = $raw }
   }
@@ -413,6 +417,18 @@ if (-not [string]::IsNullOrWhiteSpace($RiskClass) -and $RiskClass -ne $detectedR
   $requiresSi = $true
 }
 
+# Validate capability before authorization: approval cannot extend the grammar.
+$plan = $null
+$capabilityBlocked = $decision -ne 'allow'
+if (-not $capabilityBlocked) {
+  try { $plan = New-ApplyPlan $command }
+  catch {
+    $decision = 'block'
+    $reason = $_.Exception.Message
+    $capabilityBlocked = $true
+  }
+}
+
 # Approval enforcement: a declared ApprovalId is validated against the approval
 # store. A missing, expired, unapproved or mismatched envelope blocks the call
 # instead of being echoed back as if it were legitimate.
@@ -426,25 +442,19 @@ if (-not [string]::IsNullOrWhiteSpace($ApprovalId)) {
   }
   else {
     $approvalStatus = 'invalid'
-    $decision = 'block'
-    $reason = $approvalReason
-    $requiresPreflight = $true
-    $requiresSi = $true
+    if (-not $capabilityBlocked) {
+      $decision = 'block'
+      $reason = $approvalReason
+      $requiresPreflight = $true
+      $requiresSi = $true
+    }
   }
 }
 
-# Both modes validate the same plan; only Apply executes and records rate state.
-$plan = $null
-if ($decision -eq 'allow') {
-  try {
-    $plan = New-ApplyPlan $command
-  }
-  catch {
-    $decision = 'block'
-    $reason = $_.Exception.Message
-    $requiresPreflight = $true
-    $requiresSi = $true
-  }
+# Only authorization failures can be repaired by another approval.
+if ($capabilityBlocked) {
+  $requiresPreflight = $false
+  $requiresSi = $false
 }
 
 if ($Apply -and $decision -eq 'allow') {
@@ -473,6 +483,24 @@ if ($Apply -and $decision -eq 'allow') {
 }
 
 $safeCommand = Redact-Text $command
+$nextStep = 'use generated_preflight for the exact supported command; never reuse an approval for different text'
+if ($capabilityBlocked) {
+  $nextStep = 'blocked by capability or policy; another SI cannot authorize this command; do not execute it outside the gateway'
+  if ($reason -eq 'apply_requires_strict_readonly_allowlist') {
+    $nextStep += '; use supported syntax (Get-Content [-Raw] -LiteralPath <path> [-Raw], Raw at most once); recursive inventory requires the separately approved inventory-harness.ps1 entrypoint'
+  }
+  elseif ($reason -eq 'path_outside_root_not_allowed') {
+    $nextStep += '; paths are relative to Root (the harness), not the consumer project; external roots require a separately approved inventory workflow'
+  }
+}
+elseif ($reason -like 'rate_limit_exceeded:*') {
+  $requiresPreflight = $false
+  $requiresSi = $false
+  $nextStep = 'wait for the rate window to expire; another SI does not reset the limit'
+}
+elseif ($decision -eq 'allow') {
+  $nextStep = if ($Apply) { 'read-only command executed; rate-state mutation is declared separately from command effects' } else { 'external caller may request Apply for read-only allowlisted execution; relative paths resolve under Root' }
+}
 $effectiveApprovalId = $ApprovalId
 if ([string]::IsNullOrWhiteSpace($effectiveApprovalId)) { $effectiveApprovalId = 'COMMAND-GATEWAY-REQUIRED' }
 
@@ -486,7 +514,7 @@ $preflight = [ordered]@{
   command_tool = $safeCommand
   network_git_external = if ($detectedRisk -in @('network','git_remote')) { 'yes' } else { 'no by default' }
   risk = $detectedRisk
-  verification = 'human review plus command evidence outside gateway'
+  verification = 'validate the exact supported command and approval through the gateway'
   expected_evidence = 'SI approval, command output, exit code and redacted logs'
   requires_si = $requiresSi
 }
@@ -512,7 +540,7 @@ $result = [ordered]@{
   reason = $reason
   generated_preflight = $preflight
   execution = $execution
-  next_step = if ($decision -eq 'allow' -and $Apply) { 'read-only command executed; rate-state mutation is declared separately from command effects' } elseif ($decision -eq 'allow') { 'external caller may request Apply for read-only allowlisted execution' } else { 'use generated_preflight before any execution' }
+  next_step = $nextStep
 }
 
 $gatewayExitCode = 0
@@ -541,6 +569,7 @@ Write-Output "executes=$($executes.ToString().ToLowerInvariant())"
 Write-Output "mutation_contract=$mutationContract"
 Write-Output "matched_pattern=$matchedPattern"
 Write-Output "reason=$reason"
+Write-Output "next_step=$nextStep"
 Write-Output "execution_attempted=$($execution.attempted.ToString().ToLowerInvariant())"
 Write-Output "execution_exit_code=$($execution.exit_code)"
 Write-Output "execution_timed_out=$($execution.timed_out.ToString().ToLowerInvariant())"

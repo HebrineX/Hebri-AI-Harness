@@ -104,9 +104,9 @@ function Get-LatestAppliedReport() {
     Add-Failure 'missing reports directory: orquestador/migration/reports'
     return $null
   }
-  $reports = Get-ChildItem -LiteralPath $reportsPath -File -Filter 'migration-*.yaml' |
+  $reports = @(Get-ChildItem -LiteralPath $reportsPath -File -Filter 'migration-*.yaml' |
     Where-Object { $_.Name -ne 'migration-report.template.yaml' } |
-    Sort-Object LastWriteTimeUtc -Descending
+    Sort-Object LastWriteTimeUtc -Descending)
   if (-not $reports -or $reports.Count -eq 0) {
     Add-Failure 'missing applied migration report'
     return $null

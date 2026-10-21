@@ -1,6 +1,6 @@
 schema: hebrinex.registry_index
 version: "0.1"
-harness_version: "0.17.2"
+harness_version: "0.17.3"
 registries:
   - id: prompts
     path: orquestador/prompt-registry.yaml

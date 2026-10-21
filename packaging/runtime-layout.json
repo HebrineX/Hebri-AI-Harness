@@ -4,7 +4,7 @@
   "schema_version": 1,
   "contract_version": "1.0.0",
   "runtime_api": "1",
-  "harness_version": "0.17.2",
+  "harness_version": "0.17.3",
   "default_class": "denied",
   "roots": {
     "InstallRoot": { "authority": "trusted_launcher", "consumer_write": false },

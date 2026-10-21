@@ -79,3 +79,26 @@ jobs:
       - name: POSIX entrypoint
         shell: bash
         run: ./init.sh
+
+  windows-consumer-migration:
+    name: Windows consumer migration (${{ matrix.shell }})
+    runs-on: windows-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        shell: [pwsh, powershell]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Consumer migration and Gateway regressions
+        shell: ${{ matrix.shell }}
+        run: |
+          ./scripts/validate-command-gateway.ps1 -Root . -RunNegativeTests
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          ./scripts/validate-harness-inventory.ps1 -Root .
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          ./scripts/validate-host-readonly.ps1 -Root .
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          ./scripts/validate-consumer-migration.ps1 -Root .
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }

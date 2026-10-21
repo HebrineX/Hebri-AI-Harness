@@ -276,8 +276,8 @@ function Get-LegacyRuntimeVersion {
   $versionPath = Join-Path (Get-LegacyFullPath $InstallRoot) 'HARNESS_VERSION'
   if (-not (Test-Path -LiteralPath $versionPath -PathType Leaf)) { throw 'RUNTIME_NOT_INSTALLED: HARNESS_VERSION is missing' }
   $version = [IO.File]::ReadAllText($versionPath).Trim()
-  if ($version -notin @($script:LegacyMinimumEngine, '0.17.2')) {
-    throw 'RUNTIME_NOT_INSTALLED: P05 requires a supported engine (0.17.1 or 0.17.2)'
+  if ($version -notin @($script:LegacyMinimumEngine, '0.17.2', '0.17.3')) {
+    throw 'RUNTIME_NOT_INSTALLED: P05 requires a supported engine (0.17.1, 0.17.2 or 0.17.3)'
   }
   return $version
 }

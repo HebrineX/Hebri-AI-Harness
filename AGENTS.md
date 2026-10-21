@@ -1,7 +1,7 @@
 # AGENTS.md - Kernel Operativo Hebri-AI-Harness
 
 Referencia metodologica: https://github.com/HebrineX/Hebri-AI-Structure
-Version operativa esperada: 0.17.2
+Version operativa esperada: 0.17.3
 
 ## Regla Raiz
 
@@ -55,7 +55,7 @@ Maximo 5 agentes activos totales: 1 leader + 4 subagentes. Si no hay subagentes 
 
 ## Preflight Obligatorio
 
-Antes de editar, ejecutar comandos, usar red/git/tools con efecto, cambiar estado SDD o iniciar trabajo con riesgo:
+Antes de editar, ejecutar comandos con efecto, usar red/git/tools con efecto, cambiar estado SDD o iniciar trabajo con riesgo:
 
 ```text
 Approval ID:
@@ -71,10 +71,23 @@ Evidencia esperada:
 Requiere SI: SI
 ```
 
-El `SI` aprueba solo esa accion exacta. Para comandos, el `SI` se materializa con
+El `SI` aprueba el alcance agrupado declarado; no se repite por cada paso menor
+dentro de ese alcance. Para comandos ejecutados por Gateway, se materializa con
 `scripts/hebrinex.ps1 approve -Apply -CommandText <accion>`; el Command Gateway
 valida el `ApprovalId` contra el almacen (`orquestador/sdd/progress/approvals/`)
 y bloquea envelopes falsos, vencidos o con comando distinto.
+
+Lectura sin efecto (0.17.3): los comandos de solo lectura dentro del proyecto no
+requieren preflight, `SI`, envelope ni Gateway obligatorio (clase `read_only`),
+incluidas lecturas de kernel/bootstrap sin secretos. Se permiten tools nativos
+dentro del perimetro real del host. Gateway es un ejecutor opcional de lectura
+restringida, no universal. No permite eludir restricciones de secretos o rutas.
+El hook Claude autoaprueba solo un cmdlet PowerShell literal validado por AST:
+`Get-Content`, `Get-ChildItem`, `Test-Path` o `Get-Item`, calificado con el prefijo
+`Microsoft.PowerShell.Management\`, con `-LiteralPath`
+existente en el proyecto, sin enlaces; solo `Get-Content` admite ademas `-Raw`.
+Bash/Git y sintaxis adicional quedan en el flujo normal de permisos del host.
+Escritura, red, git con efecto, secretos y rutas fuera del proyecto requieren `SI`.
 
 ## Hard Locks
 
@@ -87,7 +100,7 @@ y bloquea envelopes falsos, vencidos o con comando distinto.
 7. No cargar memoria completa sin motivo, presupuesto y aprobacion.
 8. No usar memoria conversacional o de herramienta como evidencia.
 9. No ignorar correcciones del operador: pasan a hard lock de sesion.
-10. No superar `orquestador/context-budget.yaml`; si se supera, detenerse y pedir brief mas acotado.
+10. No superar `orquestador/context-budget.yaml` al cargar el kernel; si se supera, detenerse y pedir brief mas acotado. El presupuesto mide solo archivos de kernel (`scope: kernel_files_only`), no la lectura de trabajo de la sesion.
 
 ## Rutas Extendidas
 
