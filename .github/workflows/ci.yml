@@ -92,8 +92,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Consumer migration and Gateway regressions
-        shell: ${{ matrix.shell }}
+        shell: pwsh
         run: |
+          $validation = @'
+          $ErrorActionPreference = 'Stop'
+          $global:LASTEXITCODE = 0
           ./scripts/validate-command-gateway.ps1 -Root . -RunNegativeTests
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           ./scripts/validate-harness-inventory.ps1 -Root .
@@ -102,3 +105,6 @@ jobs:
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           ./scripts/validate-consumer-migration.ps1 -Root .
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          '@
+          & '${{ matrix.shell }}' -NoProfile -Command $validation
+          exit $LASTEXITCODE
