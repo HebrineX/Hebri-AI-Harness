@@ -97,6 +97,8 @@ jobs:
           $validation = @'
           $ErrorActionPreference = 'Stop'
           $global:LASTEXITCODE = 0
+          $OutputEncoding = [Text.UTF8Encoding]::new($false)
+          [Console]::InputEncoding = [Text.UTF8Encoding]::new($false)
           ./scripts/validate-command-gateway.ps1 -Root . -RunNegativeTests
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           ./scripts/validate-harness-inventory.ps1 -Root .
