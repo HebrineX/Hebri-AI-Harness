@@ -143,7 +143,9 @@ function Test-HostReadOnlyCommand([string]$CommandText, [string]$Shell, [string]
 }
 
 try {
-  $raw = [Console]::In.ReadToEnd()
+  $reader = [IO.StreamReader]::new([Console]::OpenStandardInput(), [Text.UTF8Encoding]::new($false, $true), $false)
+  try { $raw = $reader.ReadToEnd() } finally { $reader.Dispose() }
+  if ($raw.Length -gt 0 -and $raw[0] -eq [char]0xfeff) { $raw = $raw.Substring(1) }
   if ([string]::IsNullOrWhiteSpace($raw)) { exit 0 }
   $payload = $raw | ConvertFrom-Json
   if ($payload.tool_name -cnotin @('Bash','PowerShell')) { exit 0 }

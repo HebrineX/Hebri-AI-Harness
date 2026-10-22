@@ -22,7 +22,7 @@ function Assert-Read([string]$Command, [bool]$Expected, [string]$Shell = 'PowerS
   $script:count++
 }
 
-function Invoke-HookPayload([string]$Payload, [string]$Scope = $project) {
+function Invoke-HookPayload([string]$Payload, [string]$Scope = $project, [int]$BomCount = 0) {
   $exe = (Get-Process -Id $PID).Path
   $start = New-Object System.Diagnostics.ProcessStartInfo
   $start.FileName = $exe
@@ -36,8 +36,14 @@ function Invoke-HookPayload([string]$Payload, [string]$Scope = $project) {
   $process.StartInfo = $start
   try {
     [void]$process.Start()
-    $process.StandardInput.Write($Payload)
-    $process.StandardInput.Close()
+    if ($BomCount -gt 0) {
+      $bytes = [Text.UTF8Encoding]::new($false).GetBytes((([string][char]0xfeff) * $BomCount) + $Payload)
+      $process.StandardInput.BaseStream.Write($bytes, 0, $bytes.Length)
+      $process.StandardInput.BaseStream.Close()
+    } else {
+      $process.StandardInput.Write($Payload)
+      $process.StandardInput.Close()
+    }
     $stdout = $process.StandardOutput.ReadToEndAsync()
     $stderr = $process.StandardError.ReadToEndAsync()
     if (-not $process.WaitForExit(15000)) { $process.Kill(); throw 'Hook timed out' }
@@ -160,6 +166,15 @@ try {
   }
   if (Invoke-HookPayload '{malformed') { throw 'Malformed payload must defer' }
   $count++
+  $originalInputEncoding = [Console]::InputEncoding
+  try {
+    [Console]::InputEncoding = [Text.UTF8Encoding]::new($false)
+    $payload = @{ tool_name = 'PowerShell'; cwd = $project; tool_input = @{ command = 'Microsoft.PowerShell.Management\Get-Content -Raw -LiteralPath sample.txt' } } | ConvertTo-Json -Compress -Depth 4
+    $output = Invoke-HookPayload $payload $project 1
+    if (-not $output -or ($output | ConvertFrom-Json).hookSpecificOutput.permissionDecision -ne 'allow') { throw 'UTF-8 BOM payload must preserve readonly decision' }
+    if (Invoke-HookPayload $payload $project 2) { throw 'Double BOM payload must defer' }
+    $count += 2
+  } finally { [Console]::InputEncoding = $originalInputEncoding }
   $payload = @{ tool_name = 'PowerShell'; cwd = $fixture; tool_input = @{ command = 'Microsoft.PowerShell.Management\Get-Content -LiteralPath outside.txt' } } | ConvertTo-Json -Compress -Depth 4
   if (Invoke-HookPayload $payload) { throw 'Explicit root must not be replaced by payload cwd' }
   $count++

@@ -130,6 +130,12 @@ function Assert-GatewayApplyBlocks([string]$CommandText, [string]$ExpectedReason
 $Root = (Resolve-Path -LiteralPath $Root).Path
 Write-Host "Validating command gateway at $Root"
 
+$originalRatePath = Resolve-HarnessPath 'orquestador/runtime/gateway-rate.json'
+$originalRateExists = Test-Path -LiteralPath $originalRatePath -PathType Leaf
+$originalRateBytes = if ($originalRateExists) { [IO.File]::ReadAllBytes($originalRatePath) } else { $null }
+try {
+if ($originalRateExists) { Remove-Item -LiteralPath $originalRatePath -Force }
+
 Assert-File 'scripts/command-gateway.ps1'
 Assert-File 'orquestador/security/command-risk-registry.yaml'
 Assert-File 'orquestador/testing/fixtures/positive/command-readonly-safe.txt'
@@ -363,6 +369,11 @@ if ($RunNegativeTests) {
   if ($outside -notmatch '[.][.]') {
     Add-Failure 'negative test failed: traversal pattern did not trigger'
   }
+}
+
+} finally {
+  if ($originalRateExists) { [IO.File]::WriteAllBytes($originalRatePath, $originalRateBytes) }
+  elseif (Test-Path -LiteralPath $originalRatePath) { Remove-Item -LiteralPath $originalRatePath -Force }
 }
 
 if ($script:Failures.Count -gt 0) {
